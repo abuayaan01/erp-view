@@ -1,10 +1,14 @@
 import "./App.css";
+import { Input } from "@/components/ui/input"
 
 function App() {
   return (
-    <>
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
-    </>
+    <main className="w-full h-screen flex justify-center items-center bg-slate-200">
+      <section className="rounded-xl w-[600px] h-[400px] bg-white">
+      <p>Recommended</p>
+      <Input className="w-[400px]" type="email" placeholder="Eemail" />
+      </section>
+    </main>
   );
 }
 
