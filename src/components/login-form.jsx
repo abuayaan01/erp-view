@@ -14,6 +14,7 @@ import {
 import { useDispatch } from "react-redux";
 import { login } from "@/features/auth/auth-slice";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export function LoginForm({ className, ...props }) {
   const [department, setDepartment] = useState();
@@ -22,6 +23,7 @@ export function LoginForm({ className, ...props }) {
   const [password, setPassword] = useState();
 
   const dispatch = useDispatch();
+  const { toast } = useToast();
 
   const loginReq = () => {
     const user = {
@@ -29,20 +31,20 @@ export function LoginForm({ className, ...props }) {
       department,
       role,
       userId: 1,
-    }
+    };
     if (
       username == "abu.ayaan" &&
       password == "12345" &&
       department == "mechanical" &&
       role == "admin"
     ) {
-      dispatch(
-        login(user)
-      );
-    }
-    else {
-      alert("Error!");
-      console.log(user)
+      dispatch(login(user));
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: "There was a problem with your request.",
+      })
     }
   };
 
@@ -76,7 +78,10 @@ export function LoginForm({ className, ...props }) {
           <Label htmlFor="role">Select role</Label>
           <Select onValueChange={(value) => setRole(value)}>
             <SelectTrigger className="w-full">
-              <SelectValue onSelect={(e) => setRole(e.target.value)} placeholder="Select role" />
+              <SelectValue
+                onSelect={(e) => setRole(e.target.value)}
+                placeholder="Select role"
+              />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
