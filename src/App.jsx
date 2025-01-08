@@ -1,14 +1,29 @@
 import "./App.css";
-import { Input } from "@/components/ui/input"
+import { Routes, Route, Navigate } from "react-router";
+import AuthRouter from "./router/auth-router";
+import AppRouter from "./router/app-router";
+import { useSelector, useDispatch } from "react-redux";
+import { login, logout } from "@/features/auth/auth-slice";
 
 function App() {
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const dispatch = useDispatch();
   return (
-    <main className="w-full h-screen flex justify-center items-center bg-slate-200">
-      <section className="rounded-xl w-[600px] h-[400px] bg-white">
-      <p>Recommended</p>
-      <Input className="w-[400px]" type="email" placeholder="Eemail" />
-      </section>
-    </main>
+    <>
+      {/* {isAuthenticated ? "true" : "false"} */}
+      <Routes>
+        {isAuthenticated ? (
+          <Route path="/*" element={<AppRouter />} />
+        ) : (
+          <Route path="/*" element={<AuthRouter />} />
+        )}
+      </Routes>
+
+      {/* <button className="mx-3" onClick={() => dispatch(login())}>
+        Login
+      </button>
+      <button onClick={() => dispatch(logout())}>Logout</button> */}
+    </>
   );
 }
 
