@@ -1,4 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar";
+import Notification from "@/components/quick-notification";
+import ThemeCustomizer from "@/components/theme-customizer";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -38,7 +40,8 @@ export default function Page({ children }) {
             </Breadcrumb>
           </div>
           <div className="mr-4">
-            <span>asda</span>
+            <Notification />
+            <ThemeCustomizer />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>

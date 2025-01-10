@@ -1,0 +1,35 @@
+<div>
+              <h3 className="mb-2 font-bold">Primary Color</h3>
+              <button
+                onClick={() => updateColor("default")}
+                className={`px-4 py-2 rounded ${
+                  color === "default" ? "bg-primary text-white" : "bg-gray-200"
+                }`}
+              >
+                Default
+              </button>
+              <button
+                onClick={() => updateColor("red")}
+                className={`px-4 py-2 rounded ml-2 ${
+                  color === "red" ? "bg-primary text-white" : "bg-gray-200"
+                }`}
+              >
+                Red
+              </button>
+              <button
+                onClick={() => updateColor("green")}
+                className={`px-4 py-2 rounded ml-2 ${
+                  color === "green" ? "bg-primary text-white" : "bg-gray-200"
+                }`}
+              >
+                Green
+              </button>
+              <button
+                onClick={() => updateColor("yellow")}
+                className={`px-4 py-2 rounded ml-2 ${
+                  color === "yellow" ? "bg-primary text-white" : "bg-gray-200"
+                }`}
+              >
+                Yellow
+              </button>
+            </div>
