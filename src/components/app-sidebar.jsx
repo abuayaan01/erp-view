@@ -71,12 +71,8 @@ const data = {
       collapsible: true,
       items: [
         {
-          title: "Add",
-          url: "/add-site",
-        },
-        {
-          title: "List",
-          url: "/list-sites",
+          title: "Manage Sites",
+          url: "/manage-sites",
         },
       ],
     },

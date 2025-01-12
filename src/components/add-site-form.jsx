@@ -29,7 +29,7 @@ export default function AddSiteForm() {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      site_name: "", // Set initial value for site_name
+      name: "", // Set initial value for site_name
       site_code: "", // Set initial value for site_code
       site_address: "", // Set initial value for site_address
     },

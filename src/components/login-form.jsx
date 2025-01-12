@@ -15,37 +15,69 @@ import { useDispatch } from "react-redux";
 import { login } from "@/features/auth/auth-slice";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/services/api/api-service";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const formSchema = z.object({
+  email: z.string().email().nonempty(),
+  password: z.string().nonempty(),
+});
 
 export function LoginForm({ className, ...props }) {
-  const [department, setDepartment] = useState();
-  const [role, setRole] = useState();
+  // const [department, setDepartment] = useState();
+  // const [role, setRole] = useState();
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
+
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "", // Set initial value for site_name
+      password: "", // Set initial value for site_code
+    },
+  });
 
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  const loginReq = () => {
+  const loginReq = async (e) => {
+    e.preventDefault();
+    
     const user = {
-      username,
-      department,
-      role,
-      userId: 1,
+      email: username,
+      password: password,
     };
-    if (
-      username == "abu.ayaan" &&
-      password == "12345" &&
-      department == "mechanical" &&
-      role == "admin"
-    ) {
-      dispatch(login(user));
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem with your request.",
-      })
-    }
+
+    let res = await api.post("auth/login", user);
+    // res = {
+    //   id: 21,
+    //   name: "Manish Kumar",
+    //   email: "manish@gmail.com",
+    //   roleId: 1,
+    //   departmentId: null,
+    //   siteId: null,
+    // };
+
+    console.log(res);
+
+    dispatch(login(user));
+
+    // if (
+    //   username == "abu.ayaan" &&
+    //   password == "12345" &&
+    //   department == "mechanical" &&
+    //   role == "admin"
+    // ) {
+    //   dispatch(login(user));
+    // } else {
+    //   toast({
+    //     variant: "destructive",
+    //     title: "Uh oh! Something went wrong.",
+    //     description: "There was a problem with your request.",
+    //   })
+    // }
   };
 
   return (
@@ -57,7 +89,7 @@ export function LoginForm({ className, ...props }) {
         </p>
       </div>
       <div className="grid gap-6">
-        <div className="grid gap-2">
+        {/* <div className="grid gap-2">
           <Label htmlFor="role">Select Department</Label>
           <Select onValueChange={(value) => setDepartment(value)}>
             <SelectTrigger className="w-full">
@@ -95,12 +127,12 @@ export function LoginForm({ className, ...props }) {
               </SelectGroup>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
         <div className="grid gap-2">
           <Label htmlFor="email">Username</Label>
           <Input
-            id="email"
-            type="email"
+            id="username"
+            type="text"
             placeholder="john.doe@bpc.com"
             required
             onChange={(e) => setUsername(e.target.value)}
@@ -123,7 +155,7 @@ export function LoginForm({ className, ...props }) {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <Button onClick={loginReq} type="submit" className="w-full">
+        <Button onClick={loginReq} className="w-full">
           Login
         </Button>
       </div>
