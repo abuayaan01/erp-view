@@ -37,7 +37,7 @@ function Notification() {
   return (
     <>
       <Popover>
-        <PopoverTrigger className="mx-4">
+        <PopoverTrigger asChild className="mx-4">
           <Button variant="outline" size="icon">
             <Bell className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
           </Button>

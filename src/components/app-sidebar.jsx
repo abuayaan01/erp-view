@@ -14,7 +14,10 @@ import {
   Hammer,
   BookUser,
   PersonStanding,
-  LayoutDashboard
+  LayoutDashboard,
+  Locate,
+  Drill,
+  Users
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -32,9 +35,9 @@ import {
 // This is sample data.
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "abu.ayaan",
+    email: "abu.ayaan@bpcipl.com",
+    avatar: "https://creatorindia.netlify.app/media/ayaan_closeimg_4574.webp",
   },
   teams: [
     {
@@ -61,91 +64,84 @@ const data = {
       collapsible: false
     },
     {
-      title: "Playground",
+      title: "Sites",
+      url: "#",
+      icon: Locate,
+      isActive: true,
+      collapsible: true,
+      items: [
+        {
+          title: "Add",
+          url: "/add-site",
+        },
+        {
+          title: "List",
+          url: "/list-sites",
+        },
+      ],
+    },
+    {
+      title: "Machine Category",
       url: "#",
       icon: SquareTerminal,
       isActive: true,
       collapsible: true,
       items: [
         {
-          title: "History",
-          url: "/h",
+          title: "Add",
+          url: "/add-machine-category",
         },
         {
-          title: "Starred",
-          url: "/s",
-        },
-        {
-          title: "Settings",
-          url: "/settings",
+          title: "List",
+          url: "/list-machine-category",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Machine",
       url: "#",
-      icon: Bot,
+      icon: Drill,
       collapsible: true,
       items: [
         {
-          title: "Genesis",
-          url: "#",
+          title: "Add",
+          url: "/add-machine",
         },
         {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
+          title: "List",
+          url: "list-machine",
         },
       ],
     },
     {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      collapsible: true,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
+      title: "Spare Parts",
       url: "#",
       icon: Settings2,
       collapsible: true,
       items: [
         {
-          title: "General",
-          url: "#",
+          title: "Add",
+          url: "/add-spare-parts",
         },
         {
-          title: "Team",
-          url: "#",
+          title: "List",
+          url: "/list-spare-parts",
+        },
+      ],
+    },
+    {
+      title: "Manage Users",
+      url: "#",
+      icon: Users,
+      collapsible: true,
+      items: [
+        {
+          title: "Add",
+          url: "/users/add-users",
         },
         {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
+          title: "List",
+          url: "/users",
         },
       ],
     },
@@ -179,7 +175,7 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

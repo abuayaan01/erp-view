@@ -16,14 +16,14 @@ const ThemeCustomizer = () => {
   return (
     <>
       <Popover>
-        <PopoverTrigger>
+        <PopoverTrigger asChild>
           <Button variant="outline" size="icon">
             <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent>
+        <PopoverContent sideOffset={5} align={"end"}>
           <div className="p-2 space-y-4">
             {/* Light/Dark Mode Toggle */}
             <div className="space-y-1.5">

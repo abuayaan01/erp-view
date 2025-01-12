@@ -1,31 +1,21 @@
-import { Button } from "@/components/ui/button";
-import React from "react";
-import { Routes, Route } from "react-router";
-import { logout } from "@/features/auth/auth-slice";
-import { useDispatch } from "react-redux";
-import Sidebar from "@/app/dashboard/page";
+import { Route, Routes } from "react-router";
+import AppLayout from "@/app/layout/page";
+import Dashboard from "@/app/dashboard/page";
+import AddSite from '@/app/sites/add-site/page';
+import ListSites from '@/app/sites/list-sites/page';
+import AddMachine from '@/app/machine/add-machine/page'
 
 function AppRouter() {
-  const dispatch = useDispatch();
   return (
     <>
-      <Sidebar>
+      <AppLayout>
         <Routes>
-          <Route
-            path="/"
-            element={
-              <div className="gap-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                  <div className="aspect-video rounded-xl bg-muted/50" />
-                  <div className="aspect-video rounded-xl bg-muted/50" />
-                  <div className="aspect-video rounded-xl bg-muted/50" />
-                </div>
-                <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 mt-4 md:min-h-[50vh]" />
-              </div>
-            }
-          />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/add-site" element={<AddSite />} />
+          <Route path="/list-sites" element={<ListSites />} />
+          <Route path="/add-machine" element={<AddMachine />} />
         </Routes>
-      </Sidebar>
+      </AppLayout>
     </>
   );
 }

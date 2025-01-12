@@ -27,7 +27,7 @@ export function NavMain({ items }) {
         {items.map((item) => {
           if (!item.collapsible) {
             return (
-              <NavLink className={"rounded-md"} to={item.url}>
+              <NavLink key={item.title} className={"rounded-md"} to={item.url}>
                 <SidebarMenuButton tooltip={item.title}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
