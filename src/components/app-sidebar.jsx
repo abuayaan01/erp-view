@@ -31,6 +31,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { useSelector } from "react-redux"
 
 // This is sample data.
 const data = {
@@ -65,10 +66,10 @@ const data = {
     },
     {
       title: "Sites",
-      url: "#",
+      url: "/manage-sites",
       icon: Locate,
-      isActive: true,
-      collapsible: true,
+      isActive: false,
+      collapsible: false,
       items: [
         {
           title: "Manage Sites",
@@ -80,7 +81,7 @@ const data = {
       title: "Machine Category",
       url: "#",
       icon: SquareTerminal,
-      isActive: true,
+      isActive: false,
       collapsible: true,
       items: [
         {
@@ -164,6 +165,9 @@ const data = {
 export function AppSidebar({
   ...props
 }) {
+
+  const {user} = useSelector((state) => state.auth);
+
   return (
     (<Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -174,7 +178,7 @@ export function AppSidebar({
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>)

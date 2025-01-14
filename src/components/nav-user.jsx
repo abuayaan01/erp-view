@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  LogOut
-} from "lucide-react";
+import { BadgeCheck, Bell, ChevronsUpDown, LogOut } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -25,10 +20,17 @@ import {
 } from "@/components/ui/sidebar";
 import { useDispatch } from "react-redux";
 import { logout } from "@/features/auth/auth-slice";
+import { useNavigate } from "react-router";
 
 export function NavUser({ user }) {
   const { isMobile } = useSidebar();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const logoutUser = () => {
+    navigate("/");
+    dispatch(logout());
+  };
 
   return (
     <SidebarMenu>
@@ -41,7 +43,7 @@ export function NavUser({ user }) {
             >
               <Avatar className="h-8 w-8 rounded-lg border-2">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">{user.name.slice(0,1)}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{user.name}</span>
@@ -60,7 +62,7 @@ export function NavUser({ user }) {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">{user.name.slice(0,1)}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{user.name}</span>
@@ -80,7 +82,11 @@ export function NavUser({ user }) {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => {dispatch(logout())}}>
+            <DropdownMenuItem
+              onClick={() => {
+                logoutUser();
+              }}
+            >
               <LogOut />
               Log out
             </DropdownMenuItem>

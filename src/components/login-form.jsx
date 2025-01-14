@@ -26,8 +26,6 @@ const formSchema = z.object({
 });
 
 export function LoginForm({ className, ...props }) {
-  // const [department, setDepartment] = useState();
-  // const [role, setRole] = useState();
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
 
@@ -44,40 +42,14 @@ export function LoginForm({ className, ...props }) {
 
   const loginReq = async (e) => {
     e.preventDefault();
-    
+
     const user = {
       email: username,
       password: password,
     };
 
     let res = await api.post("auth/login", user);
-    // res = {
-    //   id: 21,
-    //   name: "Manish Kumar",
-    //   email: "manish@gmail.com",
-    //   roleId: 1,
-    //   departmentId: null,
-    //   siteId: null,
-    // };
-
-    console.log(res);
-
-    dispatch(login(user));
-
-    // if (
-    //   username == "abu.ayaan" &&
-    //   password == "12345" &&
-    //   department == "mechanical" &&
-    //   role == "admin"
-    // ) {
-    //   dispatch(login(user));
-    // } else {
-    //   toast({
-    //     variant: "destructive",
-    //     title: "Uh oh! Something went wrong.",
-    //     description: "There was a problem with your request.",
-    //   })
-    // }
+    dispatch(login(res.data));
   };
 
   return (

@@ -16,38 +16,45 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import api from "@/services/api/api-service";
 
 const formSchema = z.object({
-  site_name: z.string().nonempty(),
-  site_code: z.string().nonempty(),
-  site_address: z.string().nonempty(),
+  name: z.string().nonempty(),
+  code: z.string().nonempty(),
+  address: z.string().nonempty(),
+  departmentId: z.number(),
 });
 
-export default function AddSiteForm() {
+export default function AddSiteForm({ getSites, close }) {
   const { toast } = useToast();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "", // Set initial value for site_name
-      site_code: "", // Set initial value for site_code
-      site_address: "", // Set initial value for site_address
+      name: "", // Set initial value for name
+      code: "", // Set initial value for code
+      address: "", // Set initial value for address
+      departmentId: 1,
     },
   });
 
-  function onSubmit(values) {
+  async function onSubmit(values) {
     try {
-      console.log(values);
-      toast(
-        {
-          variant: "destructive",
-          title: "Uh oh! Something went wrong.",
-          description: "Incorrect input",
-        }
-      );
+      const res = await api.post("/sites", values);
+      console.log(res);
+      getSites();
+      toast({
+        title: "Success! ",
+        description: "Site created successfully",
+      });
+      close();
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error.response.data.message,
+      });
     }
   }
 
@@ -61,7 +68,7 @@ export default function AddSiteForm() {
           <div className="col-span-6">
             <FormField
               control={form.control}
-              name="site_name"
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Site Name</FormLabel>
@@ -76,7 +83,7 @@ export default function AddSiteForm() {
           <div className="col-span-6">
             <FormField
               control={form.control}
-              name="site_code"
+              name="code"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Site Code</FormLabel>
@@ -91,7 +98,7 @@ export default function AddSiteForm() {
         </div>
         <FormField
           control={form.control}
-          name="site_address"
+          name="address"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Site Address</FormLabel>

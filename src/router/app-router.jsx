@@ -12,6 +12,7 @@ function AppRouter() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/manage-sites" element={<ManageSite />} />
           <Route path="/add-machine" element={<AddMachine />} />
+          <Route path="/list-machine" element={<AddMachine />} />
         </Routes>
       </AppLayout>
     </>
