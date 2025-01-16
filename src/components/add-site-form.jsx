@@ -53,7 +53,7 @@ export default function AddSiteForm({ getSites, close }) {
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
-        description: error.response.data.message,
+        description: error.response.data.message | "Failed to submit the form.",
       });
     }
   }

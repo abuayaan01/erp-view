@@ -106,7 +106,7 @@ const data = {
         },
         {
           title: "List",
-          url: "list-machine",
+          url: "/list-machine",
         },
       ],
     },
@@ -127,20 +127,10 @@ const data = {
       ],
     },
     {
-      title: "Manage Users",
-      url: "#",
+      title: "Users",
+      url: "/manage-users",
       icon: Users,
-      collapsible: true,
-      items: [
-        {
-          title: "Add",
-          url: "/users/add-users",
-        },
-        {
-          title: "List",
-          url: "/users",
-        },
-      ],
+      collapsible: false,
     },
   ],
   projects: [
