@@ -29,10 +29,13 @@ import {
 } from "@/components/ui/dialog";
 import AddSiteForm from "@/components/add-site-form";
 
-export function DataTable({ columns, data, getSites }) {
+export function DataTable({ columns, data }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const table = useReactTable({
     data,
@@ -47,8 +50,8 @@ export function DataTable({ columns, data, getSites }) {
       sorting,
       columnFilters,
       pagination: {
-        ...pagination
-      }
+        ...pagination,
+      },
     },
     onPaginationChange: setPagination,
   });
@@ -64,7 +67,7 @@ export function DataTable({ columns, data, getSites }) {
           }
           className="max-w-sm"
         />
-        <AddSiteDialog getSites={getSites} />
+        <AddSiteDialog />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -138,15 +141,17 @@ export function DataTable({ columns, data, getSites }) {
   );
 }
 
-function AddSiteDialog({getSites}) {
+function AddSiteDialog() {
   const [openForm, setOpenForm] = React.useState(false);
   const closeForm = () => {
     setOpenForm(false);
-  }
+  };
   return (
     <Dialog open={openForm} onOpenChange={setOpenForm}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpenForm(true)} variant="outline">Add site</Button>
+        <Button onClick={() => setOpenForm(true)} variant="outline">
+          Add site
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
@@ -155,7 +160,7 @@ function AddSiteDialog({getSites}) {
             Add site detail to create a new site. Click submit when you're done.
           </DialogDescription>
         </DialogHeader>
-        <AddSiteForm getSites={getSites} close={closeForm} />
+        <AddSiteForm close={closeForm} />
       </DialogContent>
     </Dialog>
   );

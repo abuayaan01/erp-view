@@ -9,6 +9,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { UpdateSite } from "@/components/add-site-form";
+import api from "@/services/api/api-service";
+import { toast } from "@/hooks/use-toast";
 
 export const columns = [
   {
@@ -36,6 +39,24 @@ export const columns = [
   {
     id: "actions",
     cell: ({ row }) => {
+      const handleDelete = async (id) => {
+        const sid = Number(id);
+        try {
+          await api.delete(`/sites/${sid}`);
+          toast({
+            title: "Success",
+            description: "Site deleted successfully.",
+          });
+          // Trigger a re-fetch or update local state here if needed
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description:
+              error.response?.data?.message || "Failed to delete the site.",
+          });
+        }
+      };
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -47,12 +68,13 @@ export const columns = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText("Abu Ayaan")}
-            >
-              Edit
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <UpdateSite data={row.original} />
             </DropdownMenuItem>
-            <DropdownMenuItem className={"text-red-500"}>
+            <DropdownMenuItem
+              onClick={() => handleDelete(row.original.id)}
+              className={"text-red-500"}
+            >
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

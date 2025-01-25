@@ -519,6 +519,237 @@ export default function AddMachineForm() {
             />
           </div>
         </div>
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="sr_no"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sr. No.</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="primary_category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Primary Category</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="machine_category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Machine Category</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="erp_code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ERP Code</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="registration_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Registration No.</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="machine_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Machine No.</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Model</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="make"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Make</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="yom"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Year of Manufacture</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="capacity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Capacity</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="file_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>File No.</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-3">
+            <FormField
+              control={form.control}
+              name="owner_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Owner Type</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-6">
+            <FormField
+              control={form.control}
+              name="site"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Site</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="text" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-6">
+            <FormField
+              control={form.control}
+              name="is_active"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Is Active</FormLabel>
+                  <FormControl>
+                    <input type="checkbox" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
         <Button type="submit">Submit</Button>
       </form>
     </Form>

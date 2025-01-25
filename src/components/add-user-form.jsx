@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +23,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import api from "@/services/api/api-service";
+import { getIdByRole, ROLES } from "@/utils/roles";
+import { useSelector } from "react-redux";
 
 const formSchema = z.object({
   name: z.string().min(3),
@@ -36,6 +53,7 @@ const formSchema = z.object({
 
 export default function AddUserForm() {
   const { toast } = useToast();
+  const { data: languages } = useSelector((s) => s.sites);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -54,16 +72,36 @@ export default function AddUserForm() {
   async function onSubmit(values) {
     try {
       console.log(values);
+      if (values.password !== values.confirm_password) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Password and Confirm Password must match.",
+        });
+        return;
+      }
+
+      const transformedData = {
+        ...values,
+        roleId: getIdByRole(values.roleId),
+      };
+      delete transformedData.confirm_password;
+
+      console.log(transformedData);
+
+      // await api.post("/users", transformedData);
+      console.log(values);
       toast({
         title: "Success! ",
         description: "User created successfully",
       });
     } catch (error) {
-      console.error("Form submission error", error);
+      console.error("Form submission error", error.response.data.message);
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
-        description: error.response.data.message | "Failed to submit the form.",
+        description:
+          error.response.data.messages || "Failed to submit the form.",
       });
     }
   }
@@ -164,21 +202,11 @@ export default function AddUserForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="head-office-head">
-                        HO Mechanical Head
-                      </SelectItem>
-                      <SelectItem value="head-office-manager">
-                        HO Mechanical Manager
-                      </SelectItem>
-                      <SelectItem value="site-project-manager">
-                        Site Project Manager
-                      </SelectItem>
-                      <SelectItem value="site-store-manager">
-                        Site Store Manager
-                      </SelectItem>
-                      <SelectItem value="site-incharge">
-                        Site Incharge
-                      </SelectItem>
+                      {Object.values(ROLES).map((role) => {
+                        return (
+                          <SelectItem value={role.name}>{role.name}</SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
 
@@ -189,36 +217,72 @@ export default function AddUserForm() {
           </div>
 
           <div className="col-span-6">
-            <FormField
-              control={form.control}
-              name="siteId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Site</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="m@example.com">
-                        m@example.com
-                      </SelectItem>
-                      <SelectItem value="m@google.com">m@google.com</SelectItem>
-                      <SelectItem value="m@support.com">
-                        m@support.com
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+          control={form.control}
+          name="language"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Language</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "w-[200px] justify-between",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value
+                        ? languages.find(
+                            (language) => language.name === field.value
+                          )?.name
+                        : "Select language"}
+                      <ChevronsUpDown className="opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search framework..."
+                      className="h-9"
+                    />
+                    <CommandList>
+                      <CommandEmpty>No framework found.</CommandEmpty>
+                      <CommandGroup>
+                        {languages.map((language) => (
+                          <CommandItem
+                            value={language.name}
+                            key={language.name}
+                            onSelect={() => {
+                              form.setValue("language", language.name)
+                            }}
+                          >
+                            {language.name}
+                            <Check
+                              className={cn(
+                                "ml-auto",
+                                language.name === field.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <FormDescription>
+                This is the language that will be used in the dashboard.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
           </div>
         </div>
 
@@ -263,5 +327,56 @@ export default function AddUserForm() {
         </Button>
       </form>
     </Form>
+  );
+}
+
+export function SelectSiteBox() {
+  const [open, setOpen] = React.useState(false);
+  const [value, setValue] = React.useState("");
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-[200px] justify-between"
+        >
+          {value
+            ? frameworks.find((framework) => framework.value === value)?.label
+            : "Select framework..."}
+          <ChevronsUpDown className="opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0">
+        <Command>
+          <CommandInput placeholder="Search framework..." className="h-9" />
+          <CommandList>
+            <CommandEmpty>No framework found.</CommandEmpty>
+            <CommandGroup>
+              {frameworks.map((framework) => (
+                <CommandItem
+                  key={framework.value}
+                  value={framework.value}
+                  onSelect={(currentValue) => {
+                    setValue(currentValue === value ? "" : currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  {framework.label}
+                  <Check
+                    className={cn(
+                      "ml-auto",
+                      value === framework.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

@@ -15,16 +15,18 @@ import { combineReducers } from "redux";
 //Reducers
 import counterReducer from "../../features/counter/counter-slice";
 import authReducer from "@features/auth/auth-slice";
+import sitesReducer from "@/features/sites/sites-slice";
 
 const persistConfig = {
   key: "root", // key for storing in localStorage
   storage, // uses localStorage by default
-  whitelist: ["auth", "counter"], // specify reducers to persist (optional)
+  whitelist: ["auth"], // specify reducers to persist (optional)
 };
 
 const rootReducer = combineReducers({
   counter: counterReducer,
   auth: authReducer,
+  sites: sitesReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
