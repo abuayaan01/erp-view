@@ -1,14 +1,12 @@
-import Text from '@/components/ui/text'
-import React from 'react'
-import AddMachineForm from '@/components/add-machine-form'
+import Text from "@/components/ui/text";
+import AddMachineMultiStepForm from "@/components/add-machine-multistepform";
 
 function Page() {
   return (
     <div>
-        <Text>Machine Management {">"} Add Machine</Text>
-        <AddMachineForm />
+      <AddMachineMultiStepForm />
     </div>
-  )
+  );
 }
 
-export default Page
+export default Page;

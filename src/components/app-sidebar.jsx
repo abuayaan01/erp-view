@@ -42,7 +42,7 @@ const data = {
   },
   teams: [
     {
-      name: "Mechanical Dept",
+      name: "BPC Infraproject Pvt Ltd",
       logo: Cog,
       plan: "Enterprise",
     },

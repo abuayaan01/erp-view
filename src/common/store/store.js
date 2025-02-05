@@ -16,6 +16,9 @@ import { combineReducers } from "redux";
 import counterReducer from "../../features/counter/counter-slice";
 import authReducer from "@features/auth/auth-slice";
 import sitesReducer from "@/features/sites/sites-slice";
+import machineCategoryReducer from "@/features/machine-category/machine-category-slice";
+import primaryCategoryReducer from "@/features/primary-category/primary-category-slice";
+import machineReducer from "@/features/machine/machine-slice";
 
 const persistConfig = {
   key: "root", // key for storing in localStorage
@@ -27,6 +30,9 @@ const rootReducer = combineReducers({
   counter: counterReducer,
   auth: authReducer,
   sites: sitesReducer,
+  machineCategories: machineCategoryReducer,
+  primaryCategories: primaryCategoryReducer,
+  machines: machineReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

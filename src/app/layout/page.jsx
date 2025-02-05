@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import Notification from "@/components/quick-notification";
 import ThemeCustomizer from "@/components/theme-customizer";
+import { useLocation } from "react-router";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,7 +17,30 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
+const formatBreadcrumb = (segment) => {
+  // Replace hyphens with spaces and capitalize each word
+  return segment
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+export const useBreadcrumbs = () => {
+  const location = useLocation();
+  const { pathname } = location;
+
+  // Split pathname into segments and filter out empty strings
+  const pathSegments = pathname.split("/").filter(Boolean);
+
+  // Map segments to formatted breadcrumb labels
+  const breadcrumbs = pathSegments.map(formatBreadcrumb);
+
+  return breadcrumbs;
+};
+
 export default function Page({ children }) {
+  const breadcrumbs = useBreadcrumbs();
+
+  console.log(breadcrumbs);
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -28,14 +52,14 @@ export default function Page({ children }) {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    BPC Infraproject Pvt. Ltd
-                  </BreadcrumbLink>
+                  <BreadcrumbLink href="#">Mechanical Dept.</BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Mechanical Dept.</BreadcrumbPage>
-                </BreadcrumbItem>
+                {breadcrumbs.map((crumb, index) => (
+                  <BreadcrumbItem>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbPage>{crumb}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                ))}
               </BreadcrumbList>
             </Breadcrumb>
           </div>

@@ -9,62 +9,74 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UpdateSite } from "@/components/add-site-form";
 import api from "@/services/api/api-service";
 import { toast } from "@/hooks/use-toast";
+import { UpdateMachineCategory } from "@/components/add-primary-category-form";
 
 export const columns = [
   {
+    accessorKey: "id",
+    header: "ID",
+  },
+  {
     accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Site name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: "Machine Category",
   },
   {
-    accessorKey: "code",
-    header: "Site Code",
+    accessorKey: "primaryCategory.name",
+    header: "Primary Category",
   },
   {
-    accessorKey: "address",
-    header: "Address",
+    accessorKey: "averageBase",
+    header: "Average Base",
   },
   {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      console.log(row)
-      return <>{row.original.status}</>;
-    },
+    accessorKey: "standardHrsRun",
+    header: "Standard Hrs Run",
+  },
+  {
+    accessorKey: "useFor",
+    header: "Usage",
+  },
+  {
+    accessorKey: "machineType",
+    header: "Machine Type",
+  },
+  {
+    accessorKey: "remarks",
+    header: "Remarks",
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Created At",
+    cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+  },
+  {
+    accessorKey: "updatedAt",
+    header: "Updated At",
+    cell: ({ row }) => new Date(row.original.updatedAt).toLocaleDateString(),
   },
   {
     id: "actions",
+    header: "Actions",
+    className: "sticky-col",
     cell: ({ row }) => {
       const handleDelete = async (id) => {
-        const sid = Number(id);
         try {
-          await api.delete(`/sites/${sid}`);
+          await api.delete(`/category/machine/${id}`);
           toast({
             title: "Success",
-            description: "Site deleted successfully.",
+            description: "Category deleted successfully.",
           });
-          // Trigger a re-fetch or update local state here if needed
         } catch (error) {
           toast({
             variant: "destructive",
             title: "Error",
-            description:
-              error.response?.data?.message || "Failed to delete the site.",
+            description: "Failed to delete category.",
           });
         }
       };
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -76,12 +88,12 @@ export const columns = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <UpdateSite data={row.original} />
+            <DropdownMenuItem onClick={(e) => e.preventDefault()}>
+              <UpdateMachineCategory data={row.original} />
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handleDelete(row.original.id)}
-              className={"text-red-500"}
+              className="text-red-500"
             >
               Delete
             </DropdownMenuItem>

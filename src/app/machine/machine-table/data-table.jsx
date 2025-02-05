@@ -31,13 +31,12 @@ export function DataTable({ columns, data }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({
-    RegistrationNo: false,
-    Make: false,
+    registrationNumber: false,
+    make: false,
     FileNo: false,
-    OwnerName: false,
-    OwnerType: false,
-    YOM: false,
-    OwnerName: false,
+    ownerName: false,
+    ownerType: false,
+    yom: false,
   });
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
@@ -70,10 +69,10 @@ export function DataTable({ columns, data }) {
       <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Filter machines..."
-          value={table.getColumn("RegistrationNo")?.getFilterValue() ?? ""}
+          value={table.getColumn("registrationNumber")?.getFilterValue() ?? ""}
           onChange={(event) =>
             table
-              .getColumn("RegistrationNo")
+              .getColumn("registrationNumber")
               ?.setFilterValue(event.target.value)
           }
           className="max-w-sm"

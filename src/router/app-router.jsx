@@ -9,11 +9,21 @@ import AddMachineCategory from "@/app/machine-category/add-machine-category/add-
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { fetchSites } from "@/features/sites/sites-slice";
+// import { fetchCategories } from "@/features/categories/categories-slice";
+import { fetchMachineCategories } from "@/features/machine-category/machine-category-slice";
+import { fetchPrimaryCategories } from "@/features/primary-category/primary-category-slice";
+import { fetchMachines } from "@/features/machine/machine-slice";
+import MachineCategoryPage from "@/app/machine-category/machine-category-table/page";
+
 
 function AppRouter() {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(fetchSites());
+    // dispatch(fetchCategories());
+    dispatch(fetchMachineCategories());
+    dispatch(fetchMachines());
+    dispatch(fetchPrimaryCategories());
   }, [dispatch]);
 
   return (
@@ -23,6 +33,7 @@ function AppRouter() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/manage-sites" element={<ManageSite />} />
           <Route path="/add-machine-category" element={<AddMachineCategory />} />
+          <Route path="/list-machine-category" element={<MachineCategoryPage />} />
           <Route path="/add-machine" element={<AddMachine />} />
           <Route path="/list-machine" element={<MachineTable />} />
           <Route path="/manage-users" element={<ManageUsers />} />

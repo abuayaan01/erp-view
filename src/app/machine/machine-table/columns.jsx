@@ -12,101 +12,83 @@ import {
 // import { UpdateMachine } from "@/components/update-machine-form"; // Assume this component exists
 import api from "@/services/api/api-service";
 import { toast } from "@/hooks/use-toast";
+// import { UpdateMachine } from "@/components/add-machine-form";
 
 export const columns = [
+  { accessorKey: "id", header: "ID" },
+  { accessorKey: "erpCode", header: "ERP Code" },
+  { accessorKey: "registrationNumber", header: "Registration Number" },
+  { accessorKey: "machineNumber", header: "Machine Number" },
+  { accessorKey: "machineCode", header: "Machine Code" },
+  { accessorKey: "chassisNumber", header: "Chassis Number" },
+  { accessorKey: "engineNumber", header: "Engine Number" },
+  { accessorKey: "serialNumber", header: "Serial Number" },
+  { accessorKey: "model", header: "Model" },
+  { accessorKey: "make", header: "Make" },
+  { accessorKey: "yom", header: "Year of Manufacture" },
   {
-    accessorKey: "PrimaryCategory",
-    header: "Primary Category",
-  },
-  {
-    accessorKey: "MachineCategory",
-    header: "Machine Category",
-  },
-  {
-    accessorKey: "ERPCode",
-    header: "ERP Code",
-  },
-  {
-    accessorKey: "RegistrationNo",
-    header: "Registration No.",
-  },
-  {
-    accessorKey: "MachineNo",
-    header: "Machine No.",
-  },
-  {
-    accessorKey: "Model",
-    header: "Model",
-  },
-  {
-    accessorKey: "Make",
-    header: "Make",
-  },
-  {
-    accessorKey: "YOM",
-    header: "Year of Manufacture",
-  },
-  {
-    accessorKey: "PurchaseDate",
+    accessorKey: "purchaseDate",
     header: "Purchase Date",
+    cell: ({ row }) => new Date(row.original.purchaseDate).toLocaleDateString(),
+  },
+  { accessorKey: "capacity", header: "Capacity" },
+  { accessorKey: "ownerName", header: "Owner Name" },
+  { accessorKey: "ownerType", header: "Owner Type" },
+  { accessorKey: "siteId", header: "Site ID" },
+  {
+    accessorKey: "isActive",
+    header: "Active Status",
+    cell: ({ row }) => (row.original.isActive ? "Active" : "Inactive"),
+  },
+  { accessorKey: "machineName", header: "Machine Name" },
+  { accessorKey: "status", header: "Status" },
+  {
+    accessorKey: "fitnessCertificateExpiry",
+    header: "Fitness Expiry",
+    cell: ({ row }) =>
+      new Date(row.original.fitnessCertificateExpiry).toLocaleDateString(),
   },
   {
-    accessorKey: "Capacity",
-    header: "Capacity",
+    accessorKey: "motorVehicleTaxDue",
+    header: "MV Tax Due",
+    cell: ({ row }) =>
+      new Date(row.original.motorVehicleTaxDue).toLocaleDateString(),
   },
   {
-    accessorKey: "FileNo",
-    header: "File No.",
+    accessorKey: "permitExpiryDate",
+    header: "Permit Expiry",
+    cell: ({ row }) =>
+      new Date(row.original.permitExpiryDate).toLocaleDateString(),
   },
   {
-    accessorKey: "OwnerName",
-    header: "Owner Name",
+    accessorKey: "nationalPermitExpiry",
+    header: "National Permit Expiry",
+    cell: ({ row }) =>
+      new Date(row.original.nationalPermitExpiry).toLocaleDateString(),
   },
   {
-    accessorKey: "OwnerType",
-    header: "Owner Type",
+    accessorKey: "insuranceExpiry",
+    header: "Insurance Expiry",
+    cell: ({ row }) =>
+      new Date(row.original.insuranceExpiry).toLocaleDateString(),
   },
   {
-    accessorKey: "Site",
-    header: "Site",
+    accessorKey: "pollutionCertificateExpiry",
+    header: "Pollution Expiry",
+    cell: ({ row }) =>
+      new Date(row.original.pollutionCertificateExpiry).toLocaleDateString(),
   },
   {
-    accessorKey: "IsActive",
-    header: "Is Active",
-    cell: ({ row }) => (row.original.IsActive ? "Yes" : "No"),
+    accessorKey: "createdAt",
+    header: "Created At",
+    cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
   },
   {
-    accessorKey: "Location",
-    header: "Location",
+    accessorKey: "updatedAt",
+    header: "Updated At",
+    cell: ({ row }) => new Date(row.original.updatedAt).toLocaleDateString(),
   },
-  {
-    accessorKey: "FitnessForm38",
-    header: "Fitness (FORM 38)",
-  },
-  {
-    accessorKey: "MVTax",
-    header: "MV TAX",
-  },
-  {
-    accessorKey: "PermitDetails",
-    header: "Permit Details",
-  },
-  {
-    accessorKey: "Permit",
-    header: "Permit",
-  },
-  {
-    accessorKey: "NationalPermit",
-    header: "National Permit",
-  },
-  {
-    accessorKey: "InsuranceDate",
-    header: "Insurance Date",
-  },
-  {
-    accessorKey: "PollutionDate",
-    header: "Pollution Date",
-  },
+
   {
     id: "actions",
     header: "Actions",
@@ -142,8 +124,8 @@ export const columns = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              Update Machine
+            <DropdownMenuItem onClick={(e) => e.preventDefault()}>
+              {/* <UpdateMachine data={row.original} /> */}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handleDelete(row.original.SrNo)}

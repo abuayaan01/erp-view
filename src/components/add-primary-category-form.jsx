@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { toast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,24 +19,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchMachineCategories } from "@/features/machine-category/machine-category-slice";
+import api from "@/services/api/api-service";
 
 // Validation schema using zod
 const formSchema = z.object({
-  primaryCategory: z.string().nonempty("Primary Category is required"),
-  machineCategory: z.string().nonempty("Machine Category is required"),
-  machineType: z.enum(["vehicle", "machine", "drilling"], {
+  primaryCategoryId: z.string().nonempty("Primary Category is required"),
+  name: z.string().nonempty("Machine Category is required"),
+  machineType: z.enum(["Vehicle", "Machine", "Drilling"], {
     errorMap: () => ({ message: "Please select a Machine Type" }),
   }),
-  applicableFor: z
-    .array(z.string())
-    .min(1, "You must select at least one applicable item."),
-  standardRunKm: z.string().regex(/^\d*$/, "Must be a valid number"),
-  standardRunHrs: z.string().regex(/^\d*$/, "Must be a valid number"),
+  // applicableFor: z
+  //   .array(z.string())
+  //   .min(1, "You must select at least one applicable item."),
+  standardKmRun: z.string().regex(/^\d*$/, "Must be a valid number"),
+  standardHrsRun: z.string().regex(/^\d*$/, "Must be a valid number"),
   standardMileage: z.string().regex(/^\d*$/, "Must be a valid number"),
-  standardMileageHr: z.string().regex(/^\d*$/, "Must be a valid number"),
+  itrPerHour: z.string().regex(/^\d*$/, "Must be a valid number"),
 });
 
 const items = [
@@ -51,39 +62,43 @@ const items = [
 ];
 
 export default function AddPrimaryCategoryForm() {
+  const dispatch = useDispatch();
+  const { data, loading } =
+    useSelector((state) => state.primaryCategories) || [];
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      primaryCategory: "",
-      machineCategory: "",
+      primaryCategoryId: "",
+      name: "",
       machineType: "",
-      applicableFor: [],
-      standardRunKm: "",
-      standardRunHrs: "",
-      standardMileage: "",
-      standardMileageHr: "",
+      standardKmRun: null,
+      standardHrsRun: null,
+      standardMileage: null,
+      itrPerHour: null,
     },
   });
 
-  const onSubmit = (values) => {
+  async function onSubmit(values) {
+    console.log("first", values);
     try {
-      console.log("Form Values:", values);
+      const res = await api.post("/category/machine", values);
+      console.log(res);
       toast({
-        title: "Form Submitted",
-        description: (
-          <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-            <code className="text-white">
-              {JSON.stringify(values, null, 2)}
-            </code>
-          </pre>
-        ),
+        title: "Success! ",
+        description: "Machine category created successfully",
       });
+      dispatch(fetchMachineCategories());
+      close();
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description:
+          error.response.data.message || "Failed to submit the form.",
+      });
     }
-  };
-
+  }
   return (
     <Form {...form}>
       <form
@@ -95,23 +110,32 @@ export default function AddPrimaryCategoryForm() {
           <div className="col-span-6">
             <FormField
               control={form.control}
-              name="primaryCategory"
+              name="primaryCategoryId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Primary Category</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={field.onChange} // This will update the form value with the selected id
+                    value={field.value} // This will sync the form's value with the Select component
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
+                        <SelectValue
+                          placeholder="Select a category"
+                          // Display the name of the selected item based on the id stored in field.value
+                          value={
+                            data?.find((item) => item.id === field.value)
+                              ?.name || "Select a category"
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="category1">Category 1</SelectItem>
-                      <SelectItem value="category2">Category 2</SelectItem>
-                      <SelectItem value="category3">Category 3</SelectItem>
+                      {data?.map((item) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.name} {/* Display the name */}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -119,10 +143,11 @@ export default function AddPrimaryCategoryForm() {
               )}
             />
           </div>
+
           <div className="col-span-6">
             <FormField
               control={form.control}
-              name="machineCategory"
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Machine Category</FormLabel>
@@ -137,7 +162,7 @@ export default function AddPrimaryCategoryForm() {
         </div>
 
         {/* Applicable For */}
-        <FormField
+        {/* <FormField
           control={form.control}
           name="applicableFor"
           render={() => (
@@ -174,7 +199,7 @@ export default function AddPrimaryCategoryForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
 
         {/* Machine Type */}
         <FormField
@@ -190,19 +215,19 @@ export default function AddPrimaryCategoryForm() {
               >
                 <FormItem className="flex items-center space-x-2 mr-2 space-y-1">
                   <FormControl>
-                    <RadioGroupItem value="vehicle" />
+                    <RadioGroupItem value="Vehicle" />
                   </FormControl>
                   <FormLabel>Vehicle</FormLabel>
                 </FormItem>
                 <FormItem className="flex items-center space-x-2 mr-2 space-y-1">
                   <FormControl>
-                    <RadioGroupItem value="machine" />
+                    <RadioGroupItem value="Machine" />
                   </FormControl>
                   <FormLabel>Machine</FormLabel>
                 </FormItem>
                 <FormItem className="flex items-center space-x-2 mr-2 space-y-1">
                   <FormControl>
-                    <RadioGroupItem value="drilling" />
+                    <RadioGroupItem value="rilling" />
                   </FormControl>
                   <FormLabel>Drilling</FormLabel>
                 </FormItem>
@@ -262,7 +287,7 @@ export default function AddPrimaryCategoryForm() {
           <div className="col-span-6">
             <FormField
               control={form.control}
-              name="standardRunKm"
+              name="standardKmRun"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Standard KM Run (In Month)</FormLabel>
@@ -277,7 +302,7 @@ export default function AddPrimaryCategoryForm() {
           <div className="col-span-6">
             <FormField
               control={form.control}
-              name="standardRunHrs"
+              name="standardHrsRun"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Standard Hrs. Run (In Month)</FormLabel>
@@ -310,7 +335,7 @@ export default function AddPrimaryCategoryForm() {
           <div className="col-span-6">
             <FormField
               control={form.control}
-              name="standardMileageHr"
+              name="itrPerHour"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ltr/hour</FormLabel>
@@ -328,5 +353,70 @@ export default function AddPrimaryCategoryForm() {
         <Button type="submit">Add Category</Button>
       </form>
     </Form>
+  );
+}
+export function UpdateMachineCategory({ data }) {
+  const [openForm, setOpenForm] = useState(false);
+  const closeForm = () => setOpenForm(false);
+  const { toast } = useToast();
+  const dispatch = useDispatch();
+
+  const form = useForm({
+    defaultValues: {
+      name: data.name || "",
+      averageBase: data.averageBase || "",
+      remarks: data.remarks || "",
+    },
+  });
+
+  async function onSubmit(values) {
+    try {
+      await api.put(`/category/machine/${data.id}`, values);
+      toast({
+        title: "Success!",
+        description: "Machine category updated successfully",
+      });
+      dispatch(fetchMachineCategories());
+      closeForm();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update machine category",
+      });
+    }
+  }
+
+  return (
+    <Dialog open={openForm} onOpenChange={setOpenForm}>
+      <DialogTrigger>
+        <Button>Edit</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Update Machine Category</DialogTitle>
+          <DialogDescription>
+            Modify category details and click submit.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <Button type="submit">Submit</Button>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }
