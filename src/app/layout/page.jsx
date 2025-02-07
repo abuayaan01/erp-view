@@ -39,8 +39,6 @@ export const useBreadcrumbs = () => {
 
 export default function Page({ children }) {
   const breadcrumbs = useBreadcrumbs();
-
-  console.log(breadcrumbs);
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -55,10 +53,12 @@ export default function Page({ children }) {
                   <BreadcrumbLink href="#">Mechanical Dept.</BreadcrumbLink>
                 </BreadcrumbItem>
                 {breadcrumbs.map((crumb, index) => (
-                  <BreadcrumbItem>
+                  <span key={crumb} className="flex items-center gap-3">
                     <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbPage>{crumb}</BreadcrumbPage>
-                  </BreadcrumbItem>
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>{crumb}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </span>
                 ))}
               </BreadcrumbList>
             </Breadcrumb>

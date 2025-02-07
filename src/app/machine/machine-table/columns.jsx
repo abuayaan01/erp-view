@@ -15,7 +15,11 @@ import { toast } from "@/hooks/use-toast";
 // import { UpdateMachine } from "@/components/add-machine-form";
 
 export const columns = [
-  { accessorKey: "id", header: "ID" },
+  {
+    accessorKey: "id",
+    header: "ID",
+    className: "min-w-[60px] max-w-[60px] text-center",
+  },
   { accessorKey: "erpCode", header: "ERP Code" },
   { accessorKey: "registrationNumber", header: "Registration Number" },
   { accessorKey: "machineNumber", header: "Machine Number" },
@@ -126,6 +130,7 @@ export const columns = [
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={(e) => e.preventDefault()}>
               {/* <UpdateMachine data={row.original} /> */}
+              Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handleDelete(row.original.SrNo)}

@@ -1,29 +1,41 @@
 import React, { useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import api from "@/services/api/api-service";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { FormItem, FormLabel } from "./ui/form";
+import SelectDropdown from "./ui/select-dropdown";
+import { useSelector } from "react-redux";
 
-const Step1 = ({ onNext }) => {
+const Step1 = ({ onNext, primaryCategories, machineCategories, siteList }) => {
   return (
     <>
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-6">
-          <Label>Primary Category</Label>
-          <Input
-            placeholder=""
-            {...onNext.register("primaryCategoryId", { required: true })}
-            type="text"
+          <SelectDropdown
+            label={"Primary Category"}
+            name={"primaryCategoryId"}
+            data={primaryCategories}
+            control={onNext.control}
           />
         </div>
 
         <div className="col-span-6">
-          <Label>Machine Category</Label>
-          <Input
-            placeholder=""
-            {...onNext.register("machineCategoryId", { required: true })}
-            type="text"
+          <SelectDropdown
+            label={"Machine Category"}
+            name={"machineCategoryId"}
+            data={machineCategories}
+            control={onNext.control}
           />
         </div>
       </div>
@@ -73,10 +85,11 @@ const Step1 = ({ onNext }) => {
           />
         </div>
         <div className="col-span-6">
-          <Label htmlFor="siteId">Site</Label>
-          <Input
-            id="siteId"
-            {...onNext.register("siteId", { required: true })}
+          <SelectDropdown
+            label={"Allocate Site"}
+            name={"siteId"}
+            data={siteList}
+            control={onNext.control}
           />
         </div>
       </div>
@@ -127,7 +140,10 @@ const Step2 = ({ onNext }) => {
 
         <div className="col-span-6">
           <Label htmlFor="purchaseDate">Purchase Date</Label>
-          <Input id="purchaseDate" {...onNext.register("purchaseDate", { required: true })} />
+          <Input
+            id="purchaseDate"
+            {...onNext.register("purchaseDate", { required: true })}
+          />
         </div>
       </div>
 
@@ -179,11 +195,11 @@ const Step3 = ({ onNext }) => {
             type="date"
             {...onNext.register("motorVehicleTaxDue", { required: true })}
           />
-          <Input
+          {/* <Input
             id="motorVehicleTaxFile"
             type="file"
             {...onNext.register("motorVehicleTaxFile")}
-          />
+          /> */}
         </div>
       </div>
 
@@ -274,7 +290,7 @@ const Step4 = ({ onNext }) => {
           />
         </div>
       </div>
-      <div className="grid grid-cols-12 gap-4">
+      {/* <div className="grid grid-cols-12 gap-4">
         <div className="col-span-6">
           <Label htmlFor="ownerPhone">Owner Phone.</Label>
           <Input
@@ -290,7 +306,7 @@ const Step4 = ({ onNext }) => {
             {...onNext.register("ownerAddress", { required: true })}
           />
         </div>
-      </div>
+      </div> */}
     </>
   );
 };
@@ -316,33 +332,85 @@ const Sidebar = ({ steps, currentStep, navigateToStep }) => {
 };
 
 const AddMachineMultiStepForm = () => {
-  const methods = useForm({
-    defaultValues: { name: "", email: "", password: "" },
-  });
-  const { handleSubmit, watch, setValue } = methods;
   const [step, setStep] = useState(1);
+
+  const { data: primaryCategories } =
+    useSelector((state) => state.primaryCategories) || [];
+
+  const { data: machineCategories } =
+    useSelector((state) => state.machineCategories) || [];
+
+  const { data: siteList } = useSelector((state) => state.sites) || [];
+
+  const { toast } = useToast();
+
+  const methods = useForm({
+    defaultValues: {
+      isActive: true,
+      status: "Idle",
+    },
+  });
+
+  const { handleSubmit, watch, setValue } = methods;
 
   const navigateToStep = (stepNumber) => {
     setStep(stepNumber);
   };
 
   const handleNext = (data) => {
+    // Save the current step data
     Object.keys(data).forEach((key) => setValue(key, data[key]));
-    setStep(step + 1);
+
+    setStep((prevStep) => {
+      const nextStep = prevStep + 1;
+      return nextStep;
+    });
   };
 
-  const handleFinalSubmit = (data) => {
-    console.log("Final Form Data:", data);
-    alert("Form submitted successfully!");
+  const handleFinalSubmit = async (data) => {
+    const formData = new FormData();
+
+    // Loop through the form data and append to formData
+    Object.entries(data).forEach(([key, value]) => {
+      if (value instanceof FileList) {
+        // Append files properly
+        Array.from(value).forEach((file) => formData.append(key, file));
+      } else {
+        formData.append(key, value);
+      }
+    });
+
+    console.log("Final Form Data:", Object.fromEntries(formData.entries()));
+
+    // try {
+    //   const res = await api.post("/machinery", formData, {
+    //     headers: {
+    //       "Content-Type": "multipart/form-data",
+    //     },
+    //   });
+    //   console.log(res);
+    //   toast({
+    //     title: "Success! ",
+    //     description: "Site created successfully",
+    //   });
+    // } catch (error) {
+    //   toast({
+    //     variant: "destructive",
+    //     title: "Uh oh! Something went wrong.",
+    //     description:
+    //       error.response.data.message || "Failed to submit the form.",
+    //   });
+    // }
   };
 
   const steps = [
     "General Details",
     "Machine Info.",
-    "Documents",
     "Owner Info.",
+    "Documents",
   ];
-  const StepComponent = [Step1, Step2, Step3, Step4][step - 1];
+
+  const StepComponent = [Step1, Step2, Step4, Step3][step - 1];
 
   return (
     <div className="flex flex-col">
@@ -355,17 +423,34 @@ const AddMachineMultiStepForm = () => {
         <div className="max-w-4xl py-4">
           <FormProvider {...methods}>
             <form
-              onSubmit={handleSubmit(step < 3 ? handleNext : handleFinalSubmit)}
+              // onSubmit={handleSubmit(step < 4 ? handleNext : handleFinalSubmit)}
+              onSubmit={(e) => {
+                e.preventDefault(); // Prevent default form submission
+                handleSubmit(step < 4 ? handleNext : handleFinalSubmit)();
+              }}
               className="space-y-4 "
             >
-              <StepComponent onNext={methods} />
+              <StepComponent
+                key={step}
+                primaryCategories={primaryCategories}
+                machineCategories={machineCategories}
+                siteList={siteList}
+                onNext={methods}
+              />
               <div className="flex justify-between mt-4">
                 {step > 1 && (
-                  <Button variant="outline" onClick={() => setStep(step - 1)}>
+                  <span
+                    className={
+                      "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground px-4 py-2 h-9 cursor-pointer"
+                    }
+                    onClick={() => {
+                      setStep((prev) => Math.max(prev - 1, 1));
+                    }}
+                  >
                     Back
-                  </Button>
+                  </span>
                 )}
-                <Button type="submit">{step < 3 ? "Next" : "Submit"}</Button>
+                <Button type="submit">{step < 4 ? "Next" : "Submit"}</Button>
               </div>
             </form>
           </FormProvider>

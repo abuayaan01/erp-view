@@ -60,7 +60,9 @@ export function DataTable({ columns, data }) {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="text-xs min-w-[150px]">
+                  <TableHead key={header.id} className={`text-xs min-w-[150px] text-nowrap ${
+                    header.column.columnDef.className || ""
+                  }`}>
                     {flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
@@ -72,8 +74,11 @@ export function DataTable({ columns, data }) {
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="text-xs py-[0.3rem]">
+                    <TableCell key={cell.id} className={`text-xs py-[0.3rem] ${
+                      cell.column.columnDef.className || ""
+                    }`}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {/* {cell.getValue() ? flexRender(cell.column.columnDef.cell, cell.getContext()) : "-"} */}
                     </TableCell>
                   ))}
                 </TableRow>

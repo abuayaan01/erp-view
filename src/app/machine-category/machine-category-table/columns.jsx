@@ -17,6 +17,7 @@ export const columns = [
   {
     accessorKey: "id",
     header: "ID",
+    className: "min-w-[60px] max-w-[60px] text-center",
   },
   {
     accessorKey: "name",

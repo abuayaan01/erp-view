@@ -46,7 +46,7 @@ const formSchema = z.object({
   phone: z.string().min(10),
   code: z.string().min(3),
   roleId: z.string().min(1),
-  siteId: z.string().min(1).optional(),
+  siteId: z.string(),
   password: z.string().min(8),
   confirm_password: z.string().min(8),
 });
@@ -70,6 +70,7 @@ export default function AddUserForm() {
   });
 
   async function onSubmit(values) {
+    console.log("ASdasdasdasdasd");
     try {
       console.log(values);
       if (values.password !== values.confirm_password) {
@@ -85,12 +86,13 @@ export default function AddUserForm() {
         ...values,
         roleId: getIdByRole(values.roleId),
       };
+
       delete transformedData.confirm_password;
 
       console.log(transformedData);
 
       // await api.post("/users", transformedData);
-      console.log(values);
+
       toast({
         title: "Success! ",
         description: "User created successfully",
@@ -222,7 +224,7 @@ export default function AddUserForm() {
           name="language"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Language</FormLabel>
+              <FormLabel>Select Site</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -276,9 +278,6 @@ export default function AddUserForm() {
                   </Command>
                 </PopoverContent>
               </Popover>
-              <FormDescription>
-                This is the language that will be used in the dashboard.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -322,9 +321,7 @@ export default function AddUserForm() {
           </div>
         </div>
         <div></div>
-        <Button className="" type="submit">
-          Submit
-        </Button>
+        <Button type="submit">Add User</Button>
       </form>
     </Form>
   );

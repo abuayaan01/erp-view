@@ -15,16 +15,21 @@ import { toast } from "@/hooks/use-toast";
 
 export const columns = [
   {
+    accessorKey: "id",
+    header: "ID",
+    className: "min-w-[60px] max-w-[60px] text-center",
+  },
+  {
     accessorKey: "name",
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
+        <span
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className={"text-xs flex cursor-pointer"}
         >
           Site name
           <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+        </span>
       );
     },
   },
@@ -40,12 +45,17 @@ export const columns = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      console.log(row)
-      return <>{row.original.status}</>;
+      return <>{row.original.status.toUpperCase()}</>;
     },
   },
   {
+    accessorKey: "createdAt",
+    header: "Created At",
+    cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+  },
+  {
     id: "actions",
+    header: "Actions",
     cell: ({ row }) => {
       const handleDelete = async (id) => {
         const sid = Number(id);

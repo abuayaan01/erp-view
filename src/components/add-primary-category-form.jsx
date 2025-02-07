@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast, useToast } from "@/hooks/use-toast";
@@ -41,13 +41,16 @@ const formSchema = z.object({
   machineType: z.enum(["Vehicle", "Machine", "Drilling"], {
     errorMap: () => ({ message: "Please select a Machine Type" }),
   }),
-  // applicableFor: z
-  //   .array(z.string())
-  //   .min(1, "You must select at least one applicable item."),
+  averageBase: z.enum(["Distance", "Time", "Both", "None"], {
+    errorMap: () => ({ message: "Please select the Average Base" }),
+  }),
   standardKmRun: z.string().regex(/^\d*$/, "Must be a valid number"),
   standardHrsRun: z.string().regex(/^\d*$/, "Must be a valid number"),
   standardMileage: z.string().regex(/^\d*$/, "Must be a valid number"),
   itrPerHour: z.string().regex(/^\d*$/, "Must be a valid number"),
+  // applicableFor: z
+  //   .array(z.string())
+  //   .min(1, "You must select at least one applicable item."),
 });
 
 const items = [
@@ -71,34 +74,36 @@ export default function AddPrimaryCategoryForm() {
       primaryCategoryId: "",
       name: "",
       machineType: "",
-      standardKmRun: null,
-      standardHrsRun: null,
-      standardMileage: null,
-      itrPerHour: null,
+      averageBase: "",
+      standardKmRun: "",
+      standardHrsRun: "",
+      standardMileage: "",
+      itrPerHour: "",
     },
   });
 
   async function onSubmit(values) {
-    console.log("first", values);
-    try {
-      const res = await api.post("/category/machine", values);
-      console.log(res);
-      toast({
-        title: "Success! ",
-        description: "Machine category created successfully",
-      });
-      dispatch(fetchMachineCategories());
-      close();
-    } catch (error) {
-      console.error("Form submission error", error);
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description:
-          error.response.data.message || "Failed to submit the form.",
-      });
-    }
+    console.log("OnSubmit Values : ", values);
+    // try {
+    //   const res = await api.post("/category/machine", values);
+    //   console.log(res);
+    //   toast({
+    //     title: "Success! ",
+    //     description: "Machine category created successfully",
+    //   });
+    //   dispatch(fetchMachineCategories());
+    //   close();
+    // } catch (error) {
+    //   console.error("Form submission error", error);
+    //   toast({
+    //     variant: "destructive",
+    //     title: "Uh oh! Something went wrong.",
+    //     description:
+    //       error.response.data.message || "Failed to submit the form.",
+    //   });
+    // }
   }
+
   return (
     <Form {...form}>
       <form
@@ -108,37 +113,28 @@ export default function AddPrimaryCategoryForm() {
         {/* Primary and Machine Category */}
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-6">
-            <FormField
-              control={form.control}
+            <Controller
               name="primaryCategoryId"
+              control={form.control}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Primary Category</FormLabel>
                   <Select
-                    onValueChange={field.onChange} // This will update the form value with the selected id
-                    value={field.value} // This will sync the form's value with the Select component
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={!data || data.length === 0}
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder="Select a category"
-                          // Display the name of the selected item based on the id stored in field.value
-                          value={
-                            data?.find((item) => item.id === field.value)
-                              ?.name || "Select a category"
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select an option" />
+                    </SelectTrigger>
                     <SelectContent>
-                      {data?.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name} {/* Display the name */}
+                      {data.map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>
+                          {item.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -227,7 +223,7 @@ export default function AddPrimaryCategoryForm() {
                 </FormItem>
                 <FormItem className="flex items-center space-x-2 mr-2 space-y-1">
                   <FormControl>
-                    <RadioGroupItem value="rilling" />
+                    <RadioGroupItem value="Drilling" />
                   </FormControl>
                   <FormLabel>Drilling</FormLabel>
                 </FormItem>

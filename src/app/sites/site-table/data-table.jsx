@@ -76,7 +76,12 @@ export function DataTable({ columns, data }) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className={`text-xs min-w-[150px] text-nowrap ${
+                        header.column.columnDef.className || ""
+                      }`}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -97,7 +102,9 @@ export function DataTable({ columns, data }) {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell className={"text-sm py-[0.3rem]"} key={cell.id}>
+                    <TableCell className={`text-xs py-[0.3rem] ${
+                      cell.column.columnDef.className || ""
+                    }`} key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
