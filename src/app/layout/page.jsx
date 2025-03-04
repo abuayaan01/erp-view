@@ -16,6 +16,8 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { date } from "zod";
+import DigitalClock from "@/components/date-time";
 
 const formatBreadcrumb = (segment) => {
   // Replace hyphens with spaces and capitalize each word
@@ -63,7 +65,8 @@ export default function Page({ children }) {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <div className="mr-4">
+          <div className="mr-4 flex">
+            <DigitalClock />
             <Notification />
             <ThemeCustomizer />
           </div>

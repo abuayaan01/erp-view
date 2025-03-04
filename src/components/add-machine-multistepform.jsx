@@ -195,11 +195,11 @@ const Step3 = ({ onNext }) => {
             type="date"
             {...onNext.register("motorVehicleTaxDue", { required: true })}
           />
-          {/* <Input
+          <Input
             id="motorVehicleTaxFile"
             type="file"
             {...onNext.register("motorVehicleTaxFile")}
-          /> */}
+          />
         </div>
       </div>
 
@@ -265,6 +265,17 @@ const Step3 = ({ onNext }) => {
             {...onNext.register("pollutionCertificateFile")}
           />
         </div>
+
+        <div className="col-span-6">
+          <Label htmlFor="machineImageFile">
+            Machine Image
+          </Label>
+          <Input
+            id="machineImageFile"
+            type="file"
+            {...onNext.register("machineImageFile")}
+          />
+        </div>
       </div>
     </>
   );
@@ -313,14 +324,14 @@ const Step4 = ({ onNext }) => {
 
 const Sidebar = ({ steps, currentStep, navigateToStep }) => {
   return (
-    <aside className="bg-gray-100 mb-4 rounded p-4">
+    <aside className="bg-accent mb-2 rounded p-4">
       <ul className="flex gap-4">
         {steps.map((step, index) => (
           <li key={index}>
             <Button
               variant={currentStep === index + 1 ? "default" : "outline"}
               onClick={() => navigateToStep(index + 1)}
-              className="w-full"
+              className="w-full text-xs"
             >
               {step}
             </Button>
@@ -382,25 +393,25 @@ const AddMachineMultiStepForm = () => {
 
     console.log("Final Form Data:", Object.fromEntries(formData.entries()));
 
-    // try {
-    //   const res = await api.post("/machinery", formData, {
-    //     headers: {
-    //       "Content-Type": "multipart/form-data",
-    //     },
-    //   });
-    //   console.log(res);
-    //   toast({
-    //     title: "Success! ",
-    //     description: "Site created successfully",
-    //   });
-    // } catch (error) {
-    //   toast({
-    //     variant: "destructive",
-    //     title: "Uh oh! Something went wrong.",
-    //     description:
-    //       error.response.data.message || "Failed to submit the form.",
-    //   });
-    // }
+    try {
+      const res = await api.post("/machinery", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log(res);
+      toast({
+        title: "Success! ",
+        description: "Site created successfully",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description:
+          error.response.data.message || "Failed to submit the form.",
+      });
+    }
   };
 
   const steps = [
