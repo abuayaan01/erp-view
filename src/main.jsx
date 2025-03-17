@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { BrowserRouter } from "react-router";
 import { ThemeProvider } from "./common/context/theme/theme-provider.jsx";
+import { LoaderProvider } from "./common/context/loader/loader-provider.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -13,7 +14,9 @@ createRoot(document.getElementById("root")).render(
       <PersistGate loading={null} persistor={persistor}>
         <BrowserRouter>
           <ThemeProvider>
-            <App />
+            <LoaderProvider>
+              <App />
+            </LoaderProvider>
           </ThemeProvider>
         </BrowserRouter>
       </PersistGate>

@@ -31,8 +31,8 @@ const DigitalClock = () => {
 
   return (
     <div className="flex flex-col items-end justify-end text-white">
-      <div className="text-xs font-semibold">{formatDate(time)}</div>
-      <div className="text-xs font-bold">{formatTime(time)}</div>
+      <div className="text-xs text-primary font-semibold">{formatDate(time)}</div>
+      <div className="text-xs text-primary font-bold">{formatTime(time)}</div>
     </div>
   );
 };

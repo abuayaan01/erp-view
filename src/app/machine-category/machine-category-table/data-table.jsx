@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 export function DataTable({ columns, data }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 15 });
 
   const table = useReactTable({
     data,

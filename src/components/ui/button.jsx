@@ -34,15 +34,32 @@ const buttonVariants = cva(
   }
 )
 
-const Button = React.forwardRef(({ className, variant, size, asChild = false, ...props }, ref) => {
-  const Comp = asChild ? Slot : "button"
-  return (
-    (<Comp
-      className={cn(buttonVariants({ variant, size, className }))}
-      ref={ref}
-      {...props} />)
-  );
-})
+const Button = React.forwardRef(
+  ({ className, variant, size, asChild = false, loading = false, children, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button';
+
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }), 'relative')}
+        ref={ref}
+        {...props}
+      >
+        {/* Wrapping the button text and loader inside a span to maintain width */}
+        <span className={`flex items-center justify-center ${loading ? 'opacity-0' : 'opacity-100'}`}>
+          {children} {/* Button's content (e.g., text) */}
+        </span>
+
+        {/* Spinner loader, absolutely positioned but maintaining button's width */}
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="animate-spin rounded-full border-2 border-t-primary border-white-500 w-4 h-4 border-solid"></div>
+          </div>
+        )}
+      </Comp>
+    );
+  }
+);
+
 Button.displayName = "Button"
 
 export { Button, buttonVariants }

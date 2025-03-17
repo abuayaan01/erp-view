@@ -9,6 +9,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLoader } from "@/common/context/loader/loader-provider";
+import { toast } from "@/hooks/use-toast";
+import api from "@/services/api/api-service";
 
 export const columns = [
   {
@@ -40,14 +43,14 @@ export const columns = [
   {
     accessorKey: "roleId",
     header: "Designation",
-    cell: ({row}) => {
-      if(row.original.roleId == 1)
+    cell: ({ row }) => {
+      if (row.original.roleId == 1)
         return "Admin"
-      else if(row.original.roleId == 2)
+      else if (row.original.roleId == 2)
         return "Head Officer"
-      else if(row.original.roleId == 3)
+      else if (row.original.roleId == 3)
         return "Site manager"
-      else if(row.original.roleId == 4)
+      else if (row.original.roleId == 4)
         return "Project manager"
       else
         return "Site incharge"
@@ -56,7 +59,31 @@ export const columns = [
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => {
+    cell: ({ row, fetchUsersData}) => {
+      const { showLoader, hideLoader } = useLoader();
+      const handleDelete = async (id) => {
+        const uid = Number(id);
+        try {
+          showLoader()
+          await api.delete(`/users/${uid}`);
+          toast({
+            title: "Success",
+            description: "User deleted successfully.",
+          });
+          fetchUsersData();
+          // Trigger a re-fetch or update local state here if needed
+        } catch (error) {
+          console.log(error)
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description:
+              error.response?.data?.message || "Failed to delete the user.",
+          });
+        } finally {
+          hideLoader();
+        }
+      };
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -68,12 +95,15 @@ export const columns = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
+            {/* <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText("Abu Ayaan")}
             >
               Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem className={"text-red-500"}>
+            </DropdownMenuItem> */}
+            <DropdownMenuItem
+              onClick={() => handleDelete(row.original.id)}
+              className={"text-red-500"}
+            >
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

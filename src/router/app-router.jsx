@@ -14,6 +14,8 @@ import { fetchMachineCategories } from "@/features/machine-category/machine-cate
 import { fetchPrimaryCategories } from "@/features/primary-category/primary-category-slice";
 import { fetchMachines } from "@/features/machine/machine-slice";
 import MachineCategoryPage from "@/app/machine-category/machine-category-table/page";
+import SiteDetailPage from "@/app/sites/site-detail-page/site-detail-page";
+import MachineryDetailPage from "@/app/machine/machine-details-page/machine-details-page";
 
 
 function AppRouter() {
@@ -32,10 +34,13 @@ function AppRouter() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/manage-sites" element={<ManageSite />} />
+          <Route path="/sites/:id" element={<SiteDetailPage />} />
           <Route path="/add-machine-category" element={<AddMachineCategory />} />
+          <Route path="/update-machine-category" element={<AddMachineCategory update={true} />} />
           <Route path="/list-machine-category" element={<MachineCategoryPage />} />
           <Route path="/add-machine" element={<AddMachine />} />
           <Route path="/list-machine" element={<MachineTable />} />
+          <Route path="/machines" element={<MachineryDetailPage />} />
           <Route path="/manage-users" element={<ManageUsers />} />
         </Routes>
       </AppLayout>

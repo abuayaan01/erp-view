@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -33,6 +33,7 @@ import { Input } from "@/components/ui/input";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMachineCategories } from "@/features/machine-category/machine-category-slice";
 import api from "@/services/api/api-service";
+import { useLocation, useNavigate } from "react-router";
 
 // Validation schema using zod
 const formSchema = z.object({
@@ -44,10 +45,10 @@ const formSchema = z.object({
   averageBase: z.enum(["Distance", "Time", "Both", "None"], {
     errorMap: () => ({ message: "Please select the Average Base" }),
   }),
-  standardKmRun: z.string().regex(/^\d*$/, "Must be a valid number"),
-  standardHrsRun: z.string().regex(/^\d*$/, "Must be a valid number"),
-  standardMileage: z.string().regex(/^\d*$/, "Must be a valid number"),
-  itrPerHour: z.string().regex(/^\d*$/, "Must be a valid number"),
+  standardKmRun: z.string().nonempty("Required field").regex(/^\d*$/, "Must be a valid number"),
+  standardHrsRun: z.string().nonempty("Required field").regex(/^\d*$/, "Must be a valid number"),
+  standardMileage: z.string().nonempty("Required field").regex(/^\d*$/, "Must be a valid number"),
+  ltrPerHour: z.string().nonempty("Required field").regex(/^\d*$/, "Must be a valid number"),
   // applicableFor: z
   //   .array(z.string())
   //   .min(1, "You must select at least one applicable item."),
@@ -64,45 +65,68 @@ const items = [
   { id: "greenTax", label: "Green Tax" },
 ];
 
-export default function AddPrimaryCategoryForm() {
+export default function AddPrimaryCategoryForm({ update = true }) {
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { data, loading } =
+  const location = useLocation();
+  const data = location.state?.myData;
+
+  const { data: primaryCategories } =
     useSelector((state) => state.primaryCategories) || [];
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       primaryCategoryId: "",
-      name: "",
-      machineType: "",
-      averageBase: "",
-      standardKmRun: "",
-      standardHrsRun: "",
-      standardMileage: "",
-      itrPerHour: "",
+      name: data?.name || "",
+      machineType: data?.machineType || "",
+      averageBase: data?.averageBase || "",
+      standardKmRun: String(data?.standardKmRun) || "",
+      standardHrsRun: String(data?.standardHrsRun) || "",
+      standardMileage: String(data?.standardMileage) || "",
+      ltrPerHour: String(data?.ltrPerHour) || "",
     },
   });
 
   async function onSubmit(values) {
-    console.log("OnSubmit Values : ", values);
-    // try {
-    //   const res = await api.post("/category/machine", values);
-    //   console.log(res);
-    //   toast({
-    //     title: "Success! ",
-    //     description: "Machine category created successfully",
-    //   });
-    //   dispatch(fetchMachineCategories());
-    //   close();
-    // } catch (error) {
-    //   console.error("Form submission error", error);
-    //   toast({
-    //     variant: "destructive",
-    //     title: "Uh oh! Something went wrong.",
-    //     description:
-    //       error.response.data.message || "Failed to submit the form.",
-    //   });
-    // }
+    setLoading(true);
+    try {
+      if (update) {
+        const res = await api.put(`/category/machine/${data.id}`, values);
+        toast({
+          title: "Success! ",
+          description: "Machine category updated successfully",
+        });
+      }
+      else {
+        const res = await api.post("/category/machine", values);
+        toast({
+          title: "Success! ",
+          description: "Machine category created successfully",
+        });
+      }
+      dispatch(fetchMachineCategories());
+      navigate('/list-machine-category');
+    } catch (error) {
+      console.error("Form submission error", error);
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description:
+          error.response.data.message || "Failed to submit the form.",
+      });
+    } finally {
+      setLoading(false);
+    }
   }
+
+  useEffect(() => {
+    console.log(data)
+    if (data) {
+      form.setValue('primaryCategoryId', data.primaryCategory?.id || '');
+    }
+  }, [data, form, primaryCategories]);
 
   return (
     <Form {...form}>
@@ -121,20 +145,22 @@ export default function AddPrimaryCategoryForm() {
                   <FormLabel>Primary Category</FormLabel>
                   <Select
                     onValueChange={field.onChange}
+                    value={field.value}
                     defaultValue={field.value}
-                    disabled={!data || data.length === 0}
+                    disabled={!primaryCategories || primaryCategories.length === 0}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select an option" />
                     </SelectTrigger>
                     <SelectContent>
-                      {data.map((item) => (
+                      {primaryCategories.map((item) => (
                         <SelectItem key={item.id} value={String(item.id)}>
                           {item.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage>{form.formState.errors.primaryCategoryId?.message}</FormMessage>
                 </FormItem>
               )}
             />
@@ -331,7 +357,7 @@ export default function AddPrimaryCategoryForm() {
           <div className="col-span-6">
             <FormField
               control={form.control}
-              name="itrPerHour"
+              name="ltrPerHour"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ltr/hour</FormLabel>
@@ -346,7 +372,7 @@ export default function AddPrimaryCategoryForm() {
         </div>
 
         {/* Submit Button */}
-        <Button type="submit">Add Category</Button>
+        <Button loading={loading} type="submit">{update ? "Update Category" : "Add Category"}</Button>
       </form>
     </Form>
   );
@@ -386,7 +412,7 @@ export function UpdateMachineCategory({ data }) {
   return (
     <Dialog open={openForm} onOpenChange={setOpenForm}>
       <DialogTrigger>
-        <Button>Edit</Button>
+        Edit
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

@@ -32,7 +32,7 @@ export default function UsersTable() {
           <Loader />
         </div>
       ) : (
-        <DataTable columns={columns} data={data} />
+        <DataTable fetchUsersData={fetchUsersData} columns={columns} data={data} />
       )}
     </div>
   );

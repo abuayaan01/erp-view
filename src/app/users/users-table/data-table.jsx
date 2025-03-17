@@ -29,14 +29,29 @@ import {
 } from "@/components/ui/dialog";
 import AddUserForm from "@/components/add-user-form";
 
-export function DataTable({ columns, data }) {
+export function DataTable({ fetchUsersData, columns, data }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
+  const enhancedColumns = React.useMemo(() => {
+    return columns.map((column) => {
+      if (column.id === "actions") {
+        return {
+          ...column,
+          cell: ({ row }) => {
+            // Use fetchUsersData directly here
+            return column.cell({ row, fetchUsersData });
+          },
+        };
+      }
+      return column;
+    });
+  }, [columns, fetchUsersData]);
+
   const table = useReactTable({
     data,
-    columns,
+    columns : enhancedColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -64,7 +79,7 @@ export function DataTable({ columns, data }) {
           }
           className="max-w-sm"
         />
-        <AddUserDialog />
+        <AddUserDialog fetchUsersData={fetchUsersData} />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -77,9 +92,9 @@ export function DataTable({ columns, data }) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -139,7 +154,7 @@ export function DataTable({ columns, data }) {
 }
 
 
-function AddUserDialog({getUsers}) {
+function AddUserDialog({ fetchUsersData }) {
   const [openForm, setOpenForm] = React.useState(false);
   const closeForm = () => {
     setOpenForm(false);
@@ -156,7 +171,7 @@ function AddUserDialog({getUsers}) {
             Add user detail to create a new user. Click submit when you're done.
           </DialogDescription>
         </DialogHeader>
-        <AddUserForm />
+        <AddUserForm fetchUsersData={fetchUsersData} close={closeForm} />
       </DialogContent>
     </Dialog>
   );

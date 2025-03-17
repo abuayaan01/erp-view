@@ -12,6 +12,10 @@ import {
 import { UpdateSite } from "@/components/add-site-form";
 import api from "@/services/api/api-service";
 import { toast } from "@/hooks/use-toast";
+import { useDispatch } from "react-redux";
+import { fetchSites } from "@/features/sites/sites-slice";
+import { useLoader } from "@/common/context/loader/loader-provider";
+import { useNavigate } from "react-router";
 
 export const columns = [
   {
@@ -57,14 +61,19 @@ export const columns = [
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
+      const dispatch = useDispatch();
+      const navigate = useNavigate()
+      const { showLoader, hideLoader } = useLoader();
       const handleDelete = async (id) => {
         const sid = Number(id);
         try {
+          showLoader()
           await api.delete(`/sites/${sid}`);
           toast({
             title: "Success",
             description: "Site deleted successfully.",
           });
+          dispatch(fetchSites());
           // Trigger a re-fetch or update local state here if needed
         } catch (error) {
           toast({
@@ -73,10 +82,12 @@ export const columns = [
             description:
               error.response?.data?.message || "Failed to delete the site.",
           });
+        } finally {
+          hideLoader();
         }
       };
       return (
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
               <span className="sr-only">Open menu</span>
@@ -86,6 +97,9 @@ export const columns = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); navigate(`/sites/${row.original.id}`); }}>
+              View Details
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               <UpdateSite data={row.original} />
             </DropdownMenuItem>

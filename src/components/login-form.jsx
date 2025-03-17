@@ -28,6 +28,7 @@ const formSchema = z.object({
 export function LoginForm({ className, ...props }) {
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
+  const [loading, setLoading] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -42,14 +43,20 @@ export function LoginForm({ className, ...props }) {
 
   const loginReq = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     const user = {
       email: username,
       password: password,
     };
 
-    let res = await api.post("auth/login", user);
-    dispatch(login(res.data));
+    try {
+      let res = await api.post("auth/login", user);
+      dispatch(login(res.data));
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
   };
 
   return (
@@ -101,7 +108,7 @@ export function LoginForm({ className, ...props }) {
           </Select>
         </div> */}
         <div className="grid gap-2">
-          <Label htmlFor="email">Username</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="username"
             type="text"
@@ -127,7 +134,7 @@ export function LoginForm({ className, ...props }) {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <Button onClick={loginReq} className="w-full">
+        <Button loading={loading} onClick={loginReq} className="w-full">
           Login
         </Button>
       </div>

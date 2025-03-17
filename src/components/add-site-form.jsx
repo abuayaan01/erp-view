@@ -28,6 +28,7 @@ import api from "@/services/api/api-service";
 import { useDispatch } from "react-redux";
 import { fetchSites } from "@/features/sites/sites-slice";
 
+
 const formSchema = z.object({
   name: z.string().trim().min(1, "Site Name is required"),
   code: z.string().trim().min(1, "Site Code is required"),
@@ -36,6 +37,7 @@ const formSchema = z.object({
 });
 
 export default function AddSiteForm({ close }) {
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const dispatch = useDispatch();
   const form = useForm({
@@ -49,9 +51,9 @@ export default function AddSiteForm({ close }) {
   });
 
   async function onSubmit(values) {
+    setLoading(true);
     try {
       const res = await api.post("/sites", values);
-      console.log(res);
       toast({
         title: "Success! ",
         description: "Site created successfully",
@@ -66,6 +68,8 @@ export default function AddSiteForm({ close }) {
         description:
           error.response.data.message || "Failed to submit the form.",
       });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -120,7 +124,7 @@ export default function AddSiteForm({ close }) {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <Button loading={loading} type="submit">Submit</Button>
       </form>
     </Form>
   );
@@ -128,6 +132,7 @@ export default function AddSiteForm({ close }) {
 
 export function UpdateSite({ data }) {
   const [openForm, setOpenForm] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const closeForm = () => {
     setOpenForm(false);
   };
@@ -143,10 +148,11 @@ export function UpdateSite({ data }) {
       address: data.address || "",
       departmentId: 1,
     },
-    shouldUnregister: true,
   });
 
   async function onSubmit(values) {
+    console.log("asdasdasdasd")
+    setLoading(true);
     try {
       const res = await api.put(`/sites/${data.id}`, values);
       console.log(res);
@@ -154,8 +160,8 @@ export function UpdateSite({ data }) {
         title: "Success!",
         description: "Site updated successfully",
       });
-      dispatch(fetchSites());
       closeForm();
+      dispatch(fetchSites());
     } catch (error) {
       console.error("Form submission error", error);
       toast({
@@ -164,12 +170,14 @@ export function UpdateSite({ data }) {
         description:
           error.response?.data?.message || "Failed to submit the form.",
       });
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <Dialog open={openForm} onOpenChange={setOpenForm}>
-      <DialogTrigger>
+    <Dialog open={openForm} onOpenChange={setOpenForm} onKeyDown={(event) => event.stopPropagation()}>
+      <DialogTrigger asChild>
         <button onClick={() => setOpenForm(true)} variant="outline">
           Edit
         </button>
@@ -195,7 +203,7 @@ export function UpdateSite({ data }) {
                     <FormItem>
                       <FormLabel>Site Name</FormLabel>
                       <FormControl>
-                        <Input type="text" placeholder="" {...field} />
+                        <Input type="text" placeholder="" {...field} onKeyDown={(event) => event.stopPropagation()} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -210,7 +218,7 @@ export function UpdateSite({ data }) {
                     <FormItem>
                       <FormLabel>Site Code</FormLabel>
                       <FormControl>
-                        <Input type="text" placeholder="" {...field} />
+                        <Input type="text" placeholder="" {...field} onKeyDown={(event) => event.stopPropagation()} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -225,13 +233,13 @@ export function UpdateSite({ data }) {
                 <FormItem>
                   <FormLabel>Site Address</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="" className="resize-none" {...field} />
+                    <Textarea placeholder="" className="resize-none" {...field} onKeyDown={(event) => event.stopPropagation()} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit">Submit</Button>
+            <Button loading={loading} type="submit">Submit</Button>
           </form>
         </Form>
       </DialogContent>

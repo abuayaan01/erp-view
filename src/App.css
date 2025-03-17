@@ -280,3 +280,9 @@
   z-index: 2; /* Ensure it stays above other table cells */
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for visibility */
 }
+
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background-color: hsl(var(--accent));
+  border-radius: 20%;
+}

@@ -66,7 +66,7 @@ export function DataTable({ columns, data }) {
 
   return (
     <div className="">
-      <div className="flex items-center justify-between py-4">
+      <div className="flex items-center justify-between gap-2 py-4">
         <Input
           placeholder="Filter machines..."
           value={table.getColumn("registrationNumber")?.getFilterValue() ?? ""}

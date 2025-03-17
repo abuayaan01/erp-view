@@ -40,6 +40,14 @@ import api from "@/services/api/api-service";
 import { getIdByRole, ROLES } from "@/utils/roles";
 import { useSelector } from "react-redux";
 
+
+const passwordSchema = z.string()
+  .min(8, 'Password must be at least 8 characters long')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/[0-9]/, 'Password must contain at least one number')
+  .regex(/[\W_]/, 'Password must contain at least one special character');
+
 const formSchema = z.object({
   name: z.string().min(3),
   email: z.string().email({ message: "Invalid email address" }),
@@ -47,13 +55,14 @@ const formSchema = z.object({
   code: z.string().min(3),
   roleId: z.string().min(1),
   siteId: z.string(),
-  password: z.string().min(8),
-  confirm_password: z.string().min(8),
+  password: passwordSchema,
+  confirm_password: passwordSchema,
 });
 
-export default function AddUserForm() {
+export default function AddUserForm({ fetchUsersData, close }) {
   const { toast } = useToast();
-  const { data: languages } = useSelector((s) => s.sites);
+  const { data: sites } = useSelector((s) => s.sites);
+  const [loading, setLoading] = useState();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -70,14 +79,14 @@ export default function AddUserForm() {
   });
 
   async function onSubmit(values) {
-    console.log("ASdasdasdasdasd");
+    setLoading(true);
     try {
       console.log(values);
       if (values.password !== values.confirm_password) {
         toast({
           variant: "destructive",
           title: "Validation Error",
-          description: "Password and Confirm Password must match.",
+          description: "Password and Confirm Password must be same.",
         });
         return;
       }
@@ -85,26 +94,34 @@ export default function AddUserForm() {
       const transformedData = {
         ...values,
         roleId: getIdByRole(values.roleId),
+        siteId: sites.find((site) => values.siteId === site.name)?.id
       };
 
       delete transformedData.confirm_password;
 
-      console.log(transformedData);
+      // console.log(transformedData);
+      // return
 
-      // await api.post("/users", transformedData);
+      await api.post("/users", transformedData);
 
       toast({
         title: "Success! ",
         description: "User created successfully",
       });
+
+      fetchUsersData();
+      close();
+
     } catch (error) {
-      console.error("Form submission error", error.response.data.message);
+      console.error("Form submission error", error.response.data.message || error);
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
         description:
           error.response.data.messages || "Failed to submit the form.",
       });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -219,69 +236,69 @@ export default function AddUserForm() {
           </div>
 
           <div className="col-span-6">
-          <FormField
-          control={form.control}
-          name="language"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Select Site</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-[200px] justify-between",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value
-                        ? languages.find(
-                            (language) => language.name === field.value
-                          )?.name
-                        : "Select language"}
-                      <ChevronsUpDown className="opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput
-                      placeholder="Search framework..."
-                      className="h-9"
-                    />
-                    <CommandList>
-                      <CommandEmpty>No framework found.</CommandEmpty>
-                      <CommandGroup>
-                        {languages.map((language) => (
-                          <CommandItem
-                            value={language.name}
-                            key={language.name}
-                            onSelect={() => {
-                              form.setValue("language", language.name)
-                            }}
-                          >
-                            {language.name}
-                            <Check
-                              className={cn(
-                                "ml-auto",
-                                language.name === field.value
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="siteId"
+              render={({ field }) => (
+                <FormItem className="flex flex-col mt-2">
+                  <FormLabel>Select Site</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-[200px] justify-between w-full",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value
+                            ? sites.find(
+                              (sites) => sites.name === field.value
+                            )?.name
+                            : "Select site"}
+                          <ChevronsUpDown className="opacity-50 ml-2" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[200px] p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Search sites..."
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandEmpty>No sites found.</CommandEmpty>
+                          <CommandGroup>
+                            {sites.map((sites) => (
+                              <CommandItem
+                                value={sites.name}
+                                key={sites.name}
+                                onSelect={() => {
+                                  form.setValue("siteId", sites.name)
+                                }}
+                              >
+                                {sites.name}
+                                <Check
+                                  className={cn(
+                                    "ml-auto",
+                                    sites.name === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </div>
 
@@ -321,7 +338,7 @@ export default function AddUserForm() {
           </div>
         </div>
         <div></div>
-        <Button type="submit">Add User</Button>
+        <Button loading={loading} type="submit">Add User</Button>
       </form>
     </Form>
   );

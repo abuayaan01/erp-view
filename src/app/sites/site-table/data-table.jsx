@@ -34,7 +34,7 @@ export function DataTable({ columns, data }) {
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 15,
   });
 
   const table = useReactTable({
@@ -58,7 +58,7 @@ export function DataTable({ columns, data }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between py-4">
+      <div className="flex items-center justify-between gap-2 py-4">
         <Input
           placeholder="Filter sites..."
           value={table.getColumn("name")?.getFilterValue() ?? ""}
@@ -69,7 +69,7 @@ export function DataTable({ columns, data }) {
         />
         <AddSiteDialog />
       </div>
-      <div className="rounded-md border">
+      <div className="max-w-[95vw] lg:w-[80vw] overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

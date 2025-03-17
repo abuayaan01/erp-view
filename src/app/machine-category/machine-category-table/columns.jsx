@@ -12,6 +12,10 @@ import {
 import api from "@/services/api/api-service";
 import { toast } from "@/hooks/use-toast";
 import { UpdateMachineCategory } from "@/components/add-primary-category-form";
+import { useLoader } from "@/common/context/loader/loader-provider";
+import { useDispatch } from "react-redux";
+import { fetchMachineCategories } from "@/features/machine-category/machine-category-slice";
+import { useNavigate } from "react-router";
 
 export const columns = [
   {
@@ -62,20 +66,30 @@ export const columns = [
     header: "Actions",
     className: "sticky-col",
     cell: ({ row }) => {
+      const dispatch = useDispatch();
+      const navigate = useNavigate();
+      const { showLoader, hideLoader } = useLoader();
       const handleDelete = async (id) => {
         try {
+          showLoader()
           await api.delete(`/category/machine/${id}`);
           toast({
             title: "Success",
             description: "Category deleted successfully.",
           });
+          dispatch(fetchMachineCategories());
         } catch (error) {
           toast({
             variant: "destructive",
             title: "Error",
             description: "Failed to delete category.",
           });
+        } finally {
+          hideLoader();
         }
+      };
+      const handleEdit = () => {
+        navigate('/update-machine-category', { state: { myData: row.original } });
       };
 
       return (
@@ -89,8 +103,8 @@ export const columns = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={(e) => e.preventDefault()}>
-              <UpdateMachineCategory data={row.original} />
+            <DropdownMenuItem onClick={() => handleEdit()}>
+              Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handleDelete(row.original.id)}
