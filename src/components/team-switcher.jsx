@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar"
 
 import logo from "@/assets/icons/company-logo.jpeg"
+import { useNavigate } from "react-router"
 
 export function TeamSwitcher({
   teams
@@ -25,11 +26,13 @@ export function TeamSwitcher({
   const { isMobile } = useSidebar()
   const [activeTeam, setActiveTeam] = React.useState(teams[0])
 
+  const navigate = useNavigate();
+
   return (
     (<SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger onClick={() => navigate("/")} asChild>
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">

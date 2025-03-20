@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { useDispatch } from "react-redux";
 import { useLoader } from "@/common/context/loader/loader-provider";
 import { fetchMachines } from "@/features/machine/machine-slice";
+import { useNavigate } from "react-router";
 // import { UpdateMachine } from "@/components/add-machine-form";
 
 export const columns = [
@@ -47,10 +48,8 @@ export const columns = [
     accessorKey: "site",
     header: "Site Location",
     cell: ({ row }) => {
-      return (
-        <>{row.original.site.name}</>
-      )
-    }
+      return <>{row.original.site.name}</>;
+    },
   },
   {
     header: "Documents",
@@ -159,8 +158,8 @@ export const columns = [
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-      )
-    }
+      );
+    },
   },
   {
     accessorKey: "fitnessCertificateExpiry",
@@ -221,6 +220,8 @@ export const columns = [
     cell: ({ row }) => {
       const dispatch = useDispatch();
       const { showLoader, hideLoader } = useLoader();
+      const navigate = useNavigate();
+
       const handleDelete = async (id) => {
         const machineId = Number(id);
         try {
@@ -230,7 +231,7 @@ export const columns = [
             title: "Success",
             description: "Machine deleted successfully.",
           });
-          dispatch(fetchMachines())
+          dispatch(fetchMachines());
           // Trigger a re-fetch or update local state here if needed
         } catch (error) {
           toast({
@@ -259,6 +260,11 @@ export const columns = [
             {/* <UpdateMachine data={row.original} /> */}
             {/* Edit */}
             {/* </DropdownMenuItem> */}
+            <DropdownMenuItem
+              onClick={() => navigate(`/machines/${row.original.id}`)}
+            >
+              View Details
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handleDelete(row.original.id)}
               className={"text-red-500"}

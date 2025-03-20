@@ -65,7 +65,7 @@ const items = [
   { id: "greenTax", label: "Green Tax" },
 ];
 
-export default function AddPrimaryCategoryForm({ update = true }) {
+export default function AddPrimaryCategoryForm() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -82,10 +82,10 @@ export default function AddPrimaryCategoryForm({ update = true }) {
       name: data?.name || "",
       machineType: data?.machineType || "",
       averageBase: data?.averageBase || "",
-      standardKmRun: String(data?.standardKmRun) || "",
-      standardHrsRun: String(data?.standardHrsRun) || "",
-      standardMileage: String(data?.standardMileage) || "",
-      ltrPerHour: String(data?.ltrPerHour) || "",
+      standardKmRun: data?.standardKmRun && String(data?.standardKmRun) || "",
+      standardHrsRun: data?.standardHrsRun && String(data?.standardHrsRun) || "",
+      standardMileage: data?.standardMileage && String(data?.standardMileage) || "",
+      ltrPerHour: data?.ltrPerHour && String(data?.ltrPerHour) || "",
     },
   });
 
@@ -372,7 +372,7 @@ export default function AddPrimaryCategoryForm({ update = true }) {
         </div>
 
         {/* Submit Button */}
-        <Button loading={loading} type="submit">{update ? "Update Category" : "Add Category"}</Button>
+        <Button loading={loading} type="submit">{data ? "Update Category" : "Add Category"}</Button>
       </form>
     </Form>
   );
