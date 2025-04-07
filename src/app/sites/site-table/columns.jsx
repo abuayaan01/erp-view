@@ -29,7 +29,7 @@ export const columns = [
       return (
         <span
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className={"text-xs flex cursor-pointer"}
+          className={"text-sm flex cursor-pointer"}
         >
           Site name
           <ArrowUpDown className="ml-2 h-4 w-4" />

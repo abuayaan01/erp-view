@@ -78,7 +78,7 @@ export function DataTable({ columns, data }) {
                   return (
                     <TableHead
                       key={header.id}
-                      className={`text-xs min-w-[150px] text-nowrap ${
+                      className={`text-sm min-w-[150px] text-nowrap ${
                         header.column.columnDef.className || ""
                       }`}
                     >

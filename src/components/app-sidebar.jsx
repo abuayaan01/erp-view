@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from "react";
 import {
   AudioWaveform,
   BookOpen,
@@ -17,21 +17,24 @@ import {
   LayoutDashboard,
   Locate,
   Drill,
-  Users
-} from "lucide-react"
+  Users,
+  Truck,
+  Book,
+  ClipboardList
+} from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { NavMain } from "@/components/nav-main";
+import { NavProjects } from "@/components/nav-projects";
+import { NavUser } from "@/components/nav-user";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
-import { useSelector } from "react-redux"
+} from "@/components/ui/sidebar";
+import { useSelector } from "react-redux";
 
 // This is sample data.
 const data = {
@@ -62,7 +65,7 @@ const data = {
       title: "Dashboard",
       url: "/",
       icon: LayoutDashboard,
-      collapsible: false
+      collapsible: false,
     },
     {
       title: "Sites",
@@ -111,26 +114,102 @@ const data = {
       ],
     },
     {
-      title: "Spare Parts",
-      url: "#",
-      icon: Settings2,
+      title: "Machine Transfer",
+      url: "/machine-transfer",
+      icon: Truck,
       collapsible: true,
       items: [
         {
-          title: "Add",
-          url: "/add-spare-parts",
+          title: "Home",
+          url: "/machine-transfer/home",
         },
         {
-          title: "List",
-          url: "/list-spare-parts",
+          title: "New Transfer",
+          url: "/machine-transfer/new",
+        },
+        {
+          title: "Approve",
+          url: "/machine-transfer/approve",
+        },
+        {
+          title: "History",
+          url: "/machine-transfer/history",
+        },
+        {
+          title: "Dispatch",
+          url: "/machine-transfer/dispatch",
+        },
+        {
+          title: "Receive",
+          url: "/machine-transfer/receive",
         },
       ],
+    },
+    {
+      title: "Log Book",
+      url: "/logbook",
+      icon: Book,
+      collapsible: false,
+      // items: [
+      //   {
+      //     title: "Add",
+      //     url: "/add-logbook",
+      //   },
+      //   {
+      //     title: "List",
+      //     url: "/list-logbook",
+      //   },
+      // ],
+    },
+    {
+      title: "Spare Parts",
+      url: "/spare-parts",
+      icon: Settings2,
+      collapsible: false,
+      // items: [
+      //   {
+      //     title: "Add",
+      //     url: "/add-spare-parts",
+      //   },
+      //   {
+      //     title: "List",
+      //     url: "/list-spare-parts",
+      //   },
+      // ],
     },
     {
       title: "Users",
       url: "/manage-users",
       icon: Users,
       collapsible: false,
+    },
+    {
+      title: "Material Requisition",
+      url: "/material-requisition",
+      icon: ClipboardList,
+      collapsible: true,
+      items: [
+          {
+            title: "Home",
+            url: "/material-requisition/home",
+          },
+          {
+            title: "New",
+            url: "/material-requisition/new",
+          },
+          {
+            title: "Dispatch",
+            url: "/material-requisition/dispatch",
+          },
+          {
+            title: "Receive",
+            url: "/material-requisition/receive",
+          },
+          {
+            title: "Procurement",
+            url: "/material-requisition/procurement",
+          },
+        ]
     },
   ],
   projects: [
@@ -150,16 +229,13 @@ const data = {
       icon: Map,
     },
   ],
-}
+};
 
-export function AppSidebar({
-  ...props
-}) {
-
-  const {user} = useSelector((state) => state.auth);
+export function AppSidebar({ ...props }) {
+  const { user } = useSelector((state) => state.auth);
 
   return (
-    (<Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
@@ -171,6 +247,6 @@ export function AppSidebar({
         <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
-    </Sidebar>)
+    </Sidebar>
   );
 }

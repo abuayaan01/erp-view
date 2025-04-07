@@ -21,8 +21,10 @@ import {
 } from "@/components/ui/select";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -34,6 +36,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchMachineCategories } from "@/features/machine-category/machine-category-slice";
 import api from "@/services/api/api-service";
 import { useLocation, useNavigate } from "react-router";
+import { Plus } from "lucide-react";
+import { fetchPrimaryCategories } from "@/features/primary-category/primary-category-slice";
 
 // Validation schema using zod
 const formSchema = z.object({
@@ -54,6 +58,12 @@ const formSchema = z.object({
   //   .min(1, "You must select at least one applicable item."),
 });
 
+// Primary category form schema
+const primaryCategorySchema = z.object({
+  name: z.string().nonempty("Primary Category name is required"),
+  // description: z.string().optional(),
+})
+
 const items = [
   { id: "insurance", label: "Insurance" },
   { id: "permit", label: "Permit" },
@@ -67,12 +77,14 @@ const items = [
 
 export default function AddPrimaryCategoryForm() {
   const [loading, setLoading] = useState(false);
+  const [addCategoryloader, setAddCategoryloader] = useState(false);
+  const [isPrimaryCategoryDialogOpen, setIsPrimaryCategoryDialogOpen] = useState(false)
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
   const data = location.state?.myData;
 
-  const { data: primaryCategories } =
+  const { data: primaryCategories, loading: primaryCategoryLoading } =
     useSelector((state) => state.primaryCategories) || [];
 
   const form = useForm({
@@ -89,10 +101,17 @@ export default function AddPrimaryCategoryForm() {
     },
   });
 
+  const primaryCategoryForm = useForm({
+    resolver: zodResolver(primaryCategorySchema),
+    defaultValues: {
+      name: "",
+    },
+  })
+
   async function onSubmit(values) {
     setLoading(true);
     try {
-      if (update) {
+      if (data) {
         const res = await api.put(`/category/machine/${data.id}`, values);
         toast({
           title: "Success! ",
@@ -121,70 +140,109 @@ export default function AddPrimaryCategoryForm() {
     }
   }
 
+  async function onSubmitPrimaryCategory(values) {
+    setAddCategoryloader(true);
+    try {
+      const response = await api.post("/category/primary", values)
+      toast({
+        title: "Success!",
+        description: "Primary category created successfully",
+      })
+
+      // Refresh primary categories
+      dispatch(fetchPrimaryCategories());
+
+      // Close the dialog
+      setIsPrimaryCategoryDialogOpen(false)
+
+      // Reset the primary category form
+      primaryCategoryForm.reset()
+    } catch (error) {
+      console.error("Primary category creation error", error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create primary category",
+      })
+    } finally {
+      setAddCategoryloader(false);
+    }
+  }
+
   useEffect(() => {
-    console.log(data)
     if (data) {
       form.setValue('primaryCategoryId', data.primaryCategory?.id || '');
     }
   }, [data, form, primaryCategories]);
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 max-w-3xl py-6"
-      >
-        {/* Primary and Machine Category */}
-        <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-6">
-            <Controller
-              name="primaryCategoryId"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Primary Category</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                    disabled={!primaryCategories || primaryCategories.length === 0}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select an option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {primaryCategories.map((item) => (
-                        <SelectItem key={item.id} value={String(item.id)}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage>{form.formState.errors.primaryCategoryId?.message}</FormMessage>
-                </FormItem>
-              )}
-            />
+    <>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6 max-w-3xl py-6"
+        >
+          {/* Primary and Machine Category */}
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-6">
+              <Controller
+                name="primaryCategoryId"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Primary Category</FormLabel>
+                    <div className="flex gap-2">
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        defaultValue={field.value}
+                        disabled={!primaryCategories || primaryCategories.length === 0}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select an option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {primaryCategories.map((item) => (
+                            <SelectItem key={item.id} value={String(item.id)}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setIsPrimaryCategoryDialogOpen(true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <FormMessage>{form.formState.errors.primaryCategoryId?.message}</FormMessage>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="col-span-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Machine Category</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter Machine Category" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
 
-          <div className="col-span-6">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Machine Category</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter Machine Category" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        {/* Applicable For */}
-        {/* <FormField
+          {/* Applicable For */}
+          {/* <FormField
           control={form.control}
           name="applicableFor"
           render={() => (
@@ -223,158 +281,209 @@ export default function AddPrimaryCategoryForm() {
           )}
         /> */}
 
-        {/* Machine Type */}
-        <FormField
-          control={form.control}
-          name="machineType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Machine Type</FormLabel>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-row"
-              >
-                <FormItem className="flex items-center space-x-2 mr-2 space-y-1">
-                  <FormControl>
-                    <RadioGroupItem value="Vehicle" />
-                  </FormControl>
-                  <FormLabel>Vehicle</FormLabel>
-                </FormItem>
-                <FormItem className="flex items-center space-x-2 mr-2 space-y-1">
-                  <FormControl>
-                    <RadioGroupItem value="Machine" />
-                  </FormControl>
-                  <FormLabel>Machine</FormLabel>
-                </FormItem>
-                <FormItem className="flex items-center space-x-2 mr-2 space-y-1">
-                  <FormControl>
-                    <RadioGroupItem value="Drilling" />
-                  </FormControl>
-                  <FormLabel>Drilling</FormLabel>
-                </FormItem>
-              </RadioGroup>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="col-span-6">
+          {/* Machine Type */}
           <FormField
             control={form.control}
-            name="averageBase"
+            name="machineType"
             render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Average Base</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-row gap-4"
-                  >
-                    <FormItem className="flex items-center space-x-2 space-y-1">
-                      <FormControl>
-                        <RadioGroupItem value="Distance" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Distance</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2 space-y-1">
-                      <FormControl>
-                        <RadioGroupItem value="Time" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Time</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2 space-y-1">
-                      <FormControl>
-                        <RadioGroupItem value="Both" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Both</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2 space-y-1">
-                      <FormControl>
-                        <RadioGroupItem value="None" />
-                      </FormControl>
-                      <FormLabel className="font-normal">None</FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
+              <FormItem>
+                <FormLabel>Machine Type</FormLabel>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-row"
+                >
+                  <FormItem className="flex items-center space-x-2 mr-2 space-y-1">
+                    <FormControl>
+                      <RadioGroupItem value="Vehicle" />
+                    </FormControl>
+                    <FormLabel>Vehicle</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2 mr-2 space-y-1">
+                    <FormControl>
+                      <RadioGroupItem value="Machine" />
+                    </FormControl>
+                    <FormLabel>Machine</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2 mr-2 space-y-1">
+                    <FormControl>
+                      <RadioGroupItem value="Drilling" />
+                    </FormControl>
+                    <FormLabel>Drilling</FormLabel>
+                  </FormItem>
+                </RadioGroup>
                 <FormMessage />
               </FormItem>
             )}
           />
-        </div>
 
-        {/* Standard Runs and Mileage */}
-        <div className="grid grid-cols-12 gap-4">
           <div className="col-span-6">
             <FormField
               control={form.control}
-              name="standardKmRun"
+              name="averageBase"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Standard KM Run (In Month)</FormLabel>
+                <FormItem className="space-y-3">
+                  <FormLabel>Average Base</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter KM" {...field} />
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-row gap-4"
+                    >
+                      <FormItem className="flex items-center space-x-2 space-y-1">
+                        <FormControl>
+                          <RadioGroupItem value="Distance" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Distance</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-1">
+                        <FormControl>
+                          <RadioGroupItem value="Time" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Time</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-1">
+                        <FormControl>
+                          <RadioGroupItem value="Both" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Both</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-1">
+                        <FormControl>
+                          <RadioGroupItem value="None" />
+                        </FormControl>
+                        <FormLabel className="font-normal">None</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
-          <div className="col-span-6">
-            <FormField
-              control={form.control}
-              name="standardHrsRun"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Standard Hrs. Run (In Month)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter Hours" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
 
-        <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-6">
-            <FormField
-              control={form.control}
-              name="standardMileage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Standard Mileage (Km/Ltr)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter Mileage" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {/* Standard Runs and Mileage */}
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-6">
+              <FormField
+                control={form.control}
+                name="standardKmRun"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Standard KM Run (In Month)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter KM" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="col-span-6">
+              <FormField
+                control={form.control}
+                name="standardHrsRun"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Standard Hrs. Run (In Month)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter Hours" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
-          <div className="col-span-6">
-            <FormField
-              control={form.control}
-              name="ltrPerHour"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ltr/hour</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter Litres per Hour" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
 
-        {/* Submit Button */}
-        <Button loading={loading} type="submit">{data ? "Update Category" : "Add Category"}</Button>
-      </form>
-    </Form>
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-6">
+              <FormField
+                control={form.control}
+                name="standardMileage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Standard Mileage (Km/Ltr)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter Mileage" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="col-span-6">
+              <FormField
+                control={form.control}
+                name="ltrPerHour"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ltr/hour</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter Litres per Hour" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <Button loading={loading} type="submit">{data ? "Update Category" : "Add Category"}</Button>
+        </form>
+      </Form>
+
+      <Dialog open={isPrimaryCategoryDialogOpen} onOpenChange={setIsPrimaryCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Primary Category</DialogTitle>
+            <DialogDescription>Add a new primary category that will be available for selection.</DialogDescription>
+          </DialogHeader>
+
+          <Form {...primaryCategoryForm}>
+            <form onSubmit={primaryCategoryForm.handleSubmit(onSubmitPrimaryCategory)} className="space-y-4">
+              <FormField
+                control={primaryCategoryForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter primary category name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={primaryCategoryForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter description" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button loading={addCategoryloader} type="submit">Create Primary Category</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 export function UpdateMachineCategory({ data }) {

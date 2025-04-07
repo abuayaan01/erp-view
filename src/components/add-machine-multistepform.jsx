@@ -30,7 +30,7 @@ const Step1 = ({ onNext, primaryCategories, machineCategories, siteList, watch }
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-6">
           <SelectDropdown
-            label={"Primary Category"}
+            label={"Primary Category *"}
             name={"primaryCategoryId"}
             data={primaryCategories}
             control={onNext.control}
@@ -42,7 +42,7 @@ const Step1 = ({ onNext, primaryCategories, machineCategories, siteList, watch }
 
         <div className="col-span-6">
           <SelectDropdown
-            label={"Machine Category"}
+            label={"Machine Category *"}
             name={"machineCategoryId"}
             data={machineCat}
             control={onNext.control}
@@ -55,7 +55,7 @@ const Step1 = ({ onNext, primaryCategories, machineCategories, siteList, watch }
 
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-6">
-          <Label htmlFor="machineName">Machine Name</Label>
+          <Label htmlFor="machineName">Machine Name *</Label>
           <Input
             id="machineName"
             {...onNext.register("machineName", { required: true })}
@@ -79,7 +79,7 @@ const Step1 = ({ onNext, primaryCategories, machineCategories, siteList, watch }
 
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-6">
-          <Label htmlFor="machineNumber">Machine Number</Label>
+          <Label htmlFor="machineNumber">Machine Number *</Label>
           <Input
             id="machineNumber"
             {...onNext.register("machineNumber", { required: true })}
@@ -133,7 +133,7 @@ const Step2 = ({ onNext }) => {
     <>
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-6">
-          <Label htmlFor="chassisNumber">Chassis Number</Label>
+          <Label htmlFor="chassisNumber">Chassis Number *</Label>
           <Input
             id="chassisNumber"
             {...onNext.register("chassisNumber", { required: true })}
@@ -360,7 +360,7 @@ const Step4 = ({ onNext }) => {
     <>
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-6">
-          <Label htmlFor="ownerName">Owner Name</Label>
+          <Label htmlFor="ownerName">Owner Name *</Label>
           <Input
             id="ownerName"
             {...onNext.register("ownerName", { required: true })}
@@ -372,7 +372,7 @@ const Step4 = ({ onNext }) => {
 
         <div className="col-span-6">
           <SelectDropdown
-            label={"Owner Type"}
+            label={"Owner Type *"}
             name={"ownerType"}
             data={[{ name: "Company", id: "Company" }, { name: "Individual", id: "Individual" }]}
             control={onNext.control}
@@ -571,23 +571,23 @@ const step1Schema = z.object({
   primaryCategoryId: z.number("Required"),
   machineCategoryId: z.number("Required"),
   machineName: z.string().min(3, "Machine Name is required"),
-  registrationNumber: z.string().min(3, "Registration Number is required"),
+  registrationNumber: z.string().optional(),
   machineNumber: z.string().min(3, "Machine Number is required"),
-  machineCode: z.string().min(3, "Machine Code is required"),
-  erpCode: z.string().min(3, "ERP Code is required"),
-  siteId: z.number("Required"),
+  machineCode: z.string().optional(),
+  erpCode: z.string().optional(),
+  siteId: z.number("Required").optional(),
 });
 
 // Step 2 Validation Schema
 const step2Schema = z.object({
   chassisNumber: z.string().min(3, "Chassis Number is required"),
-  engineNumber: z.string().min(3, "Engine Number is required"),
-  serialNumber: z.string().min(3, "Serial Number is required"),
-  model: z.string().min(3, "Model is required"),
-  make: z.string().min(3, "Make is required"),
-  purchaseDate: z.string().nonempty("Purchase date is required"),
-  yom: z.string().min(4, "Year of Manufacture must be a valid year").max(4, "Year of Manufacture must be a valid year"),
-  capacity: z.string().min(1, "Capacity is required"),
+  engineNumber: z.string().optional(),
+  serialNumber: z.string().optional(),
+  model: z.string().optional(),
+  make: z.string().optional(),
+  purchaseDate: z.string().optional(),
+  yom: z.string().min(4, "Year of Manufacture must be a valid year").max(4, "Year of Manufacture must be a valid year").or(z.literal("")),
+  capacity: z.string().optional(),
 });
 
 // Step 3 Validation Schema

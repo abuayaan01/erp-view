@@ -77,7 +77,7 @@ export default function SiteDetailPage() {
         (<div className="container py-4 px-4 max-w-5xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">{data.name}</h1>
+              <h1 className="text-lg font-bold tracking-tight">{data.name}</h1>
               <div className="flex items-center gap-2 mt-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <span>{data.address}</span>
@@ -91,7 +91,7 @@ export default function SiteDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl">Site Information</CardTitle>
+                <CardTitle className="text-lg">Site Information</CardTitle>
                 <CardDescription>Details about the site</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -129,7 +129,7 @@ export default function SiteDetailPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div>
-                  <CardTitle className="text-xl">Department</CardTitle>
+                  <CardTitle className="text-lg">Department</CardTitle>
                   <CardDescription>Department information</CardDescription>
                 </div>
                 <Settings className="h-5 w-5 text-muted-foreground" />
@@ -149,7 +149,7 @@ export default function SiteDetailPage() {
             </Card>
           </div>
 
-          <h2 className="text-xl font-bold mb-4">Machinery</h2>
+          <h2 className="text-lg font-bold mb-4">Machinery</h2>
           <Separator className="mb-6" />
 
           {data.Machinery.length > 0 ? (
@@ -158,7 +158,7 @@ export default function SiteDetailPage() {
                 <Card key={machine.id}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div>
-                      <CardTitle className="text-xl">{machine.machineName}</CardTitle>
+                      <CardTitle className="text-lg">{machine.machineName}</CardTitle>
                       <CardDescription>Machine ID: #{machine.id}</CardDescription>
                     </div>
                     <Package className="h-5 w-5 text-muted-foreground" />
