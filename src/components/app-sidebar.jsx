@@ -35,6 +35,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useSelector } from "react-redux";
+import { ROLES } from "@/utils/roles";
 
 // This is sample data.
 const data = {
@@ -182,6 +183,7 @@ const data = {
       url: "/manage-users",
       icon: Users,
       collapsible: false,
+      allowedRoles: [ROLES.ADMIN.id],
     },
     {
       title: "Material Requisition",

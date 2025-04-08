@@ -15,14 +15,23 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { NavLink } from "react-router";
+import { useSelector } from "react-redux";
 
 
 export function NavMain({ items }) {
+  const { user } = useSelector((state) => state.auth);
+  const userRoleId = user?.roleId;
+
+  const filteredItems = items.filter(
+    (item) =>
+      !item.allowedRoles || item.allowedRoles.includes(userRoleId)
+  );
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Menu</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => {
+        {filteredItems.map((item) => {
           if (!item.collapsible) {
             return (
               <NavLink key={item.title} className={"rounded-md"} to={item.url}>

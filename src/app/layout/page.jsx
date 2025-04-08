@@ -1,7 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import Notification from "@/components/quick-notification";
 import ThemeCustomizer from "@/components/theme-customizer";
-import { useLocation } from "react-router";
+import { Outlet, useLocation } from "react-router";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -71,7 +71,7 @@ export default function Page({ children }) {
             <ThemeCustomizer />
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0"><Outlet /></div>
       </SidebarInset>
     </SidebarProvider>
   );

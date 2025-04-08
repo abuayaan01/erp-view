@@ -1,6 +1,8 @@
 import { Route, Routes, useNavigate } from "react-router";
+import ProtectedRoute from "@/router/protected-route";
+import { ROLES } from "@/utils/roles";
 import AppLayout from "@/app/layout/page";
-import {MainDashboard} from "@/app/dashboard/page";
+import { MainDashboard } from "@/app/dashboard/page";
 import ManageSite from "@/app/sites/manage-site/page";
 import AddMachine from "@/app/machine/add-machine/page";
 import MachineTable from "@/app/machine/machine-table/page";
@@ -35,6 +37,8 @@ import { DispatchPage } from "@/components/material-requisition/DispatchPage";
 import { ReceivePage } from "@/components/material-requisition/ReceivePage";
 import { LogbookDetails } from "@/components/logbook/logbook-details";
 import { RequestSparePartPage } from "@/components/spare-parts/RequestSparePartPage";
+import ForbiddenPage from "@/app/error/403/page";
+import NotFoundPage from "@/app/error/404/page";
 
 function AppRouter() {
   const dispatch = useDispatch();
@@ -83,121 +87,95 @@ function AppRouter() {
   };
 
   return (
-    <>
-      <AppLayout>
-        <Routes>
-          <Route path="/" element={<MainDashboard />} />
-          <Route path="/manage-sites" element={<ManageSite />} />
-          <Route path="/sites/:id" element={<SiteDetailPage />} />
-          <Route
-            path="/add-machine-category"
-            element={<AddMachineCategory />}
-          />
-          <Route
-            path="/update-machine-category"
-            element={<AddMachineCategory />}
-          />
-          <Route
-            path="/list-machine-category"
-            element={<MachineCategoryPage />}
-          />
-          <Route path="/add-machine" element={<AddMachine />} />
-          <Route path="/list-machine" element={<MachineTable />} />
-          <Route path="/add-logbook" element={<LogbookForm />} />
-          <Route path="/logbook" element={<LogbookPage />} />
-          <Route
-            path="/logbook/:id"
-            element={
-              <LogbookDetails
-                entry={mockEntry}
-                onBack={() => navigate("/logbook")}
-              />
-            }
-          />
-          <Route path="/machines/:id" element={<MachineryDetailPage />} />
-          <Route path="/machine-transfer/home" element={<MachineTransferPage />} />
-          <Route path="/machine-transfer/new" element={<NewTransferPage />} />
-          <Route path="/machine-transfer/approve" element={<ApprovePage />} />
-          <Route
-            path="/machine-transfer/dispatch"
-            element={<DispatchTransferPage />}
-          />
-          <Route
-            path="/machine-transfer/receive"
-            element={<ReceiveTransferPage />}
-          />
-          <Route
-            path="/machine-transfer/history"
-            element={<TransferHistoryPage />}
-          />
-          <Route path="/spare-parts" element={<SparePartsPage />} />
-          <Route path="/spare-parts/request" element={<RequestSparePartPage />} />
-          <Route path="/spare-parts/add" element={<AddSparePartModal />} />
-          <Route
-            path="/material-requisition/home"
-            element={<RequisitionsPage />}
-          />
-          <Route
-            path="/material-requisition/new"
-            element={<MaterialRequestForm />}
-          />
-          <Route
-            path="/material-requisition/:id"
-            element={<RequisitionDetail requisition={mockRequisition} />}
-          />
-          <Route
-            path="/material-requisition/dispatch"
-            element={<DispatchPage />}
-          />
-          <Route
-            path="/material-requisition/receive"
-            element={<ReceivePage />}
-          />
-          <Route
-            path="/material-requisition/procurement"
-            element={<ProcurementPage />}
-          />
+    <Routes>
+      {/* Routes WITH AppLayout */}
+      <Route
+        element={<AppLayout />} // Wrap these routes in layout
+      >
+        <Route path="/" element={<MainDashboard />} />
+        <Route path="/manage-sites" element={<ManageSite />} />
+        <Route path="/sites/:id" element={<SiteDetailPage />} />
+        <Route path="/add-machine-category" element={<AddMachineCategory />} />
+        <Route
+          path="/update-machine-category"
+          element={<AddMachineCategory />}
+        />
+        <Route
+          path="/list-machine-category"
+          element={<MachineCategoryPage />}
+        />
+        <Route path="/add-machine" element={<AddMachine />} />
+        <Route path="/list-machine" element={<MachineTable />} />
+        <Route path="/add-logbook" element={<LogbookForm />} />
+        <Route path="/logbook" element={<LogbookPage />} />
+        <Route
+          path="/logbook/:id"
+          element={
+            <LogbookDetails
+              entry={mockEntry}
+              onBack={() => navigate("/logbook")}
+            />
+          }
+        />
+        <Route path="/machines/:id" element={<MachineryDetailPage />} />
+        <Route
+          path="/machine-transfer/home"
+          element={<MachineTransferPage />}
+        />
+        <Route path="/machine-transfer/new" element={<NewTransferPage />} />
+        <Route path="/machine-transfer/approve" element={<ApprovePage />} />
+        <Route
+          path="/machine-transfer/dispatch"
+          element={<DispatchTransferPage />}
+        />
+        <Route
+          path="/machine-transfer/receive"
+          element={<ReceiveTransferPage />}
+        />
+        <Route
+          path="/machine-transfer/history"
+          element={<TransferHistoryPage />}
+        />
+        <Route path="/spare-parts" element={<SparePartsPage />} />
+        <Route path="/spare-parts/request" element={<RequestSparePartPage />} />
+        <Route path="/spare-parts/add" element={<AddSparePartModal />} />
+        <Route
+          path="/material-requisition/home"
+          element={<RequisitionsPage />}
+        />
+        <Route
+          path="/material-requisition/new"
+          element={<MaterialRequestForm />}
+        />
+        <Route
+          path="/material-requisition/:id"
+          element={<RequisitionDetail requisition={mockRequisition} />}
+        />
+        <Route
+          path="/material-requisition/dispatch"
+          element={<DispatchPage />}
+        />
+        <Route path="/material-requisition/receive" element={<ReceivePage />} />
+        <Route
+          path="/material-requisition/procurement"
+          element={<ProcurementPage />}
+        />
+        <Route
+          path="/manage-users"
+          element={
+            <ProtectedRoute
+              element={<ManageUsers />}
+              allowedRoleIds={[ROLES.ADMIN.id]}
+            />
+          }
+        />
+      </Route>
 
-          {/* <Route path="/machine-transfer/*" element={<MachineTransfer />} /> */}
-
-          <Route path="/manage-users" element={<ManageUsers />} />
-        </Routes>
-      </AppLayout>
-    </>
+      {/* Routes WITHOUT Layout */}
+      <Route path="/403" element={<ForbiddenPage />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 }
-// Example navigation items to add to your existing menu
 
 export default AppRouter;
-// const machineTransferLinks = [
-//   {
-//     name: "Machine Transfers",
-//     path: "/machine-transfer",
-//     icon: Truck
-//   },
-//   {
-//     name: "New Transfer",
-//     path: "/machine-transfer/new",
-//     icon: ClipboardList
-//   },
-//   {
-//     name: "Approvals",
-//     path: "/machine-transfer/approve",
-//     icon: CheckSquare
-//   },
-//   {
-//     name: "Dispatch",
-//     path: "/machine-transfer/dispatch",
-//     icon: Send
-//   },
-//   {
-//     name: "Receive",
-//     path: "/machine-transfer/receive",
-//     icon: Download
-//   },
-//   {
-//     name: "Transfer History",
-//     path: "/machine-transfer/history",
-//     icon: History
-//   }
-// ]
