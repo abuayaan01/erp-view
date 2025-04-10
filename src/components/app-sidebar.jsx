@@ -20,7 +20,7 @@ import {
   Users,
   Truck,
   Book,
-  ClipboardList
+  ClipboardList,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -74,6 +74,11 @@ const data = {
       icon: Locate,
       isActive: false,
       collapsible: false,
+      allowedRoles: [
+        ROLES.ADMIN.id,
+        ROLES.MECHANICAL_HEAD.id,
+        ROLES.MECHANICAL_MANAGER.id,
+      ],
       items: [
         {
           title: "Manage Sites",
@@ -91,6 +96,11 @@ const data = {
         {
           title: "Add",
           url: "/add-machine-category",
+          allowedRoles: [
+            ROLES.ADMIN.id,
+            ROLES.MECHANICAL_HEAD.id,
+            ROLES.MECHANICAL_MANAGER.id,
+          ],
         },
         {
           title: "List",
@@ -107,6 +117,11 @@ const data = {
         {
           title: "Add",
           url: "/add-machine",
+          allowedRoles: [
+            ROLES.ADMIN.id,
+            ROLES.MECHANICAL_HEAD.id,
+            ROLES.MECHANICAL_MANAGER.id,
+          ],
         },
         {
           title: "List",
@@ -120,17 +135,27 @@ const data = {
       icon: Truck,
       collapsible: true,
       items: [
-        {
-          title: "Home",
-          url: "/machine-transfer/home",
-        },
+        // {
+        //   title: "Home",
+        //   url: "/machine-transfer/home",
+        // },
         {
           title: "New Transfer",
           url: "/machine-transfer/new",
+          allowedRoles: [
+            ROLES.MECHANICAL_STORE_MANAGER.id,
+            ROLES.MECHANICAL_INCHARGE.id,
+            ROLES.PROJECT_MANAGER.id,
+          ],
         },
         {
           title: "Approve",
           url: "/machine-transfer/approve",
+          allowedRoles: [
+            ROLES.ADMIN.id,
+            ROLES.MECHANICAL_HEAD.id,
+            ROLES.MECHANICAL_MANAGER.id,
+          ],
         },
         {
           title: "History",
@@ -139,10 +164,20 @@ const data = {
         {
           title: "Dispatch",
           url: "/machine-transfer/dispatch",
+          allowedRoles: [
+            ROLES.MECHANICAL_STORE_MANAGER.id,
+            ROLES.MECHANICAL_INCHARGE.id,
+            ROLES.PROJECT_MANAGER.id,
+          ],
         },
         {
           title: "Receive",
           url: "/machine-transfer/receive",
+          allowedRoles: [
+            ROLES.MECHANICAL_STORE_MANAGER.id,
+            ROLES.MECHANICAL_INCHARGE.id,
+            ROLES.PROJECT_MANAGER.id,
+          ],
         },
       ],
     },
@@ -191,27 +226,27 @@ const data = {
       icon: ClipboardList,
       collapsible: true,
       items: [
-          {
-            title: "Home",
-            url: "/material-requisition/home",
-          },
-          {
-            title: "New",
-            url: "/material-requisition/new",
-          },
-          {
-            title: "Dispatch",
-            url: "/material-requisition/dispatch",
-          },
-          {
-            title: "Receive",
-            url: "/material-requisition/receive",
-          },
-          {
-            title: "Procurement",
-            url: "/material-requisition/procurement",
-          },
-        ]
+        {
+          title: "Home",
+          url: "/material-requisition/home",
+        },
+        {
+          title: "New",
+          url: "/material-requisition/new",
+        },
+        {
+          title: "Dispatch",
+          url: "/material-requisition/dispatch",
+        },
+        {
+          title: "Receive",
+          url: "/material-requisition/receive",
+        },
+        {
+          title: "Procurement",
+          url: "/material-requisition/procurement",
+        },
+      ],
     },
   ],
   projects: [

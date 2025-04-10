@@ -93,20 +93,90 @@ function AppRouter() {
         element={<AppLayout />} // Wrap these routes in layout
       >
         <Route path="/" element={<MainDashboard />} />
-        <Route path="/manage-sites" element={<ManageSite />} />
-        <Route path="/sites/:id" element={<SiteDetailPage />} />
-        <Route path="/add-machine-category" element={<AddMachineCategory />} />
+        <Route
+          path="/manage-sites"
+          element={
+            <ProtectedRoute
+              element={<ManageSite />}
+              allowedRoleIds={[
+                ROLES.ADMIN.id,
+                ROLES.MECHANICAL_HEAD.id,
+                ROLES.MECHANICAL_MANAGER.id,
+              ]}
+            />
+          }
+        />
+        <Route
+          path="/sites/:id"
+          element={
+            <ProtectedRoute
+              element={<SiteDetailPage />}
+              allowedRoleIds={[
+                ROLES.ADMIN.id,
+                ROLES.MECHANICAL_HEAD.id,
+                ROLES.MECHANICAL_MANAGER.id,
+              ]}
+            />
+          }
+        />
+        <Route
+          path="/add-machine-category"
+          element={
+            <ProtectedRoute
+              element={<AddMachineCategory />}
+              allowedRoleIds={[
+                ROLES.ADMIN.id,
+                ROLES.MECHANICAL_HEAD.id,
+                ROLES.MECHANICAL_MANAGER.id,
+              ]}
+            />
+          }
+        />
         <Route
           path="/update-machine-category"
-          element={<AddMachineCategory />}
+          element={
+            <ProtectedRoute
+              element={<AddMachineCategory />}
+              allowedRoleIds={[
+                ROLES.ADMIN.id,
+                ROLES.MECHANICAL_HEAD.id,
+                ROLES.MECHANICAL_MANAGER.id,
+              ]}
+            />
+          }
         />
         <Route
           path="/list-machine-category"
           element={<MachineCategoryPage />}
         />
-        <Route path="/add-machine" element={<AddMachine />} />
+        <Route
+          path="/add-machine"
+          element={
+            <ProtectedRoute
+              element={<AddMachine />}
+              allowedRoleIds={[
+                ROLES.ADMIN.id,
+                ROLES.MECHANICAL_HEAD.id,
+                ROLES.MECHANICAL_MANAGER.id,
+              ]}
+            />
+          }
+        />
         <Route path="/list-machine" element={<MachineTable />} />
-        <Route path="/add-logbook" element={<LogbookForm />} />
+
+        <Route
+          path="/add-logbook"
+          element={
+            <ProtectedRoute
+              element={<LogbookForm />}
+              allowedRoleIds={[
+                ROLES.MECHANICAL_STORE_MANAGER.id,
+                ROLES.MECHANICAL_INCHARGE.id,
+                ROLES.PROJECT_MANAGER.id,
+              ]}
+            />
+          }
+        />
         <Route path="/logbook" element={<LogbookPage />} />
         <Route
           path="/logbook/:id"
@@ -122,15 +192,57 @@ function AppRouter() {
           path="/machine-transfer/home"
           element={<MachineTransferPage />}
         />
-        <Route path="/machine-transfer/new" element={<NewTransferPage />} />
-        <Route path="/machine-transfer/approve" element={<ApprovePage />} />
+        <Route
+          path="/machine-transfer/new"
+          element={
+            <ProtectedRoute
+              element={<NewTransferPage />}
+              allowedRoleIds={[
+                ROLES.MECHANICAL_STORE_MANAGER.id,
+                ROLES.MECHANICAL_INCHARGE.id,
+                ROLES.PROJECT_MANAGER.id,
+              ]}
+            />
+          }
+        />
+        <Route
+          path="/machine-transfer/approve"
+          element={
+            <ProtectedRoute
+              element={<ApprovePage />}
+              allowedRoleIds={[
+                ROLES.ADMIN.id,
+                ROLES.MECHANICAL_HEAD.id,
+                ROLES.MECHANICAL_MANAGER.id,
+              ]}
+            />
+          }
+        />
         <Route
           path="/machine-transfer/dispatch"
-          element={<DispatchTransferPage />}
+          element={
+            <ProtectedRoute
+              element={<DispatchTransferPage />}
+              allowedRoleIds={[
+                ROLES.MECHANICAL_STORE_MANAGER.id,
+                ROLES.MECHANICAL_INCHARGE.id,
+                ROLES.PROJECT_MANAGER.id,
+              ]}
+            />
+          }
         />
         <Route
           path="/machine-transfer/receive"
-          element={<ReceiveTransferPage />}
+          element={
+            <ProtectedRoute
+              element={<ReceiveTransferPage />}
+              allowedRoleIds={[
+                ROLES.MECHANICAL_STORE_MANAGER.id,
+                ROLES.MECHANICAL_INCHARGE.id,
+                ROLES.PROJECT_MANAGER.id,
+              ]}
+            />
+          }
         />
         <Route
           path="/machine-transfer/history"
@@ -165,7 +277,11 @@ function AppRouter() {
           element={
             <ProtectedRoute
               element={<ManageUsers />}
-              allowedRoleIds={[ROLES.ADMIN.id]}
+              allowedRoleIds={[
+                ROLES.ADMIN.id,
+                ROLES.MECHANICAL_HEAD.id,
+                ROLES.MECHANICAL_MANAGER.id,
+              ]}
             />
           }
         />

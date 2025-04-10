@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { date } from "zod";
 import DigitalClock from "@/components/date-time";
+import { useSelector } from "react-redux";
 
 const formatBreadcrumb = (segment) => {
   // Replace hyphens with spaces and capitalize each word
@@ -33,6 +34,7 @@ export const useBreadcrumbs = () => {
   // Split pathname into segments and filter out empty strings
   const pathSegments = pathname.split("/").filter(Boolean);
 
+
   // Map segments to formatted breadcrumb labels
   const breadcrumbs = pathSegments.map(formatBreadcrumb);
 
@@ -41,6 +43,7 @@ export const useBreadcrumbs = () => {
 
 export default function Page({ children }) {
   const breadcrumbs = useBreadcrumbs();
+  const { user } = useSelector((state) => state.auth);
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -52,7 +55,7 @@ export default function Page({ children }) {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Mechanical Dept.</BreadcrumbLink>
+                  <BreadcrumbLink href="#">{user?.site?.name || "Mechanical Dept."}</BreadcrumbLink>
                 </BreadcrumbItem>
                 {breadcrumbs.map((crumb, index) => (
                   <span key={crumb} className="flex items-center gap-3">
@@ -71,7 +74,9 @@ export default function Page({ children }) {
             <ThemeCustomizer />
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0"><Outlet /></div>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <Outlet />
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

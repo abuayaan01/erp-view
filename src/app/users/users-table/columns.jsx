@@ -47,13 +47,15 @@ export const columns = [
       if (row.original.roleId == 1)
         return "Admin"
       else if (row.original.roleId == 2)
-        return "Head Officer"
+        return "Mechanical Head"
       else if (row.original.roleId == 3)
-        return "Site manager"
+        return "Mechanical Manager"
       else if (row.original.roleId == 4)
-        return "Project manager"
-      else
-        return "Site incharge"
+        return "Site Incharge"
+      else if (row.original.roleId == 5)
+        return "Store Manager"
+      else if (row.original.roleId == 6)
+        return "Project Manager"
     }
   },
   {
