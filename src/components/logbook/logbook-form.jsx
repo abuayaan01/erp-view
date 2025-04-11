@@ -1,61 +1,108 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CalendarIcon, Save, X } from "lucide-react"
-import { format } from "date-fns"
-import { cn } from "@/lib/utils"
+import React from "react";
+
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon, Save, X, ChevronsUpDown, Check } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import api from "@/services/api/api-service";
 
 export function LogbookForm({ onSubmit, initialData, onCancel }) {
   const defaultFormData = {
     date: new Date(),
-    registrationNo: "",
+    machineId: null,
+    registrationNumber: "",
+    machineNumber: "",
     dieselOpeningBalance: 0,
     dieselIssue: 0,
     dieselClosingBalance: 0,
-    openingKMReading: 0,
-    closingKMReading: 0,
+    openingKmReading: 0,
+    closingKmReading: 0,
     openingHrsMeter: 0,
     closingHrsMeter: 0,
-    workingDetail: "",
+    workingDetails: "",
     assetCode: "",
+    siteId: null,
     siteName: "",
     location: "",
-  }
+  };
 
-  const [formData, setFormData] = useState(defaultFormData)
-  const [errors, setErrors] = useState({})
-  const [sites, setSites] = useState([
-    { id: 1, name: "Project Alpha" },
-    { id: 2, name: "Project Beta" },
-    { id: 3, name: "Project Gamma" },
-  ])
-  const [machines, setMachines] = useState([
-    { id: 1, registrationNo: "MH-123456", assetCode: "AST-001" },
-    { id: 2, registrationNo: "MH-789012", assetCode: "AST-002" },
-    { id: 3, registrationNo: "MH-345678", assetCode: "AST-003" },
-  ])
+  const [formData, setFormData] = useState(defaultFormData);
+  const [errors, setErrors] = useState({});
+  const [sites, setSites] = useState([]);
+  const [machines, setMachines] = useState([]);
+  const [loading, setLoading] = useState({
+    sites: false,
+    machines: false,
+  });
+
+  // For the dropdowns
+  const [machineOpen, setMachineOpen] = useState(false);
+  const [siteOpen, setSiteOpen] = useState(false);
+
+  // Fetch machines and sites from API
+  useEffect(() => {
+    const fetchMachines = async () => {
+      try {
+        setLoading((prev) => ({ ...prev, machines: true }));
+        const response = await api.get("/machinery");
+        setMachines(response.data);
+      } catch (error) {
+        console.error("Error fetching machines:", error);
+      } finally {
+        setLoading((prev) => ({ ...prev, machines: false }));
+      }
+    };
+
+    const fetchSites = async () => {
+      try {
+        setLoading((prev) => ({ ...prev, sites: true }));
+        const response = await api.get("/sites");
+        setSites(response.data);
+      } catch (error) {
+        console.error("Error fetching sites:", error);
+      } finally {
+        setLoading((prev) => ({ ...prev, sites: false }));
+      }
+    };
+
+    fetchMachines();
+    fetchSites();
+  }, []);
 
   useEffect(() => {
     if (initialData) {
       setFormData({
         ...initialData,
         date: initialData.date ? new Date(initialData.date) : new Date(),
-      })
+      });
     } else {
-      setFormData(defaultFormData)
+      setFormData(defaultFormData);
     }
-  }, [initialData])
+  }, [initialData]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    let parsedValue = value
+    const { name, value } = e.target;
+    let parsedValue = value;
 
     // Convert numeric fields to numbers
     if (
@@ -63,73 +110,126 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
         "dieselOpeningBalance",
         "dieselIssue",
         "dieselClosingBalance",
-        "openingKMReading",
-        "closingKMReading",
+        "openingKmReading",
+        "closingKmReading",
         "openingHrsMeter",
         "closingHrsMeter",
       ].includes(name)
     ) {
-      parsedValue = Number.parseFloat(value) || 0
+      parsedValue = Number.parseFloat(value) || 0;
     }
 
-    setFormData({ ...formData, [name]: parsedValue })
+    setFormData({ ...formData, [name]: parsedValue });
 
     // Clear error for this field if it exists
     if (errors[name]) {
-      setErrors({ ...errors, [name]: null })
+      setErrors({ ...errors, [name]: "" });
     }
-  }
+  };
 
   const handleDateChange = (date) => {
-    setFormData({ ...formData, date })
-  }
+    if (date) {
+      setFormData({ ...formData, date });
+    }
+  };
 
-  const handleMachineChange = (registrationNo) => {
-    const selectedMachine = machines.find((m) => m.registrationNo === registrationNo)
-    setFormData({
-      ...formData,
-      registrationNo,
-      assetCode: selectedMachine ? selectedMachine.assetCode : "",
-    })
-  }
+  const handleMachineChange = (machineId) => {
+    const selectedMachine = machines.find((m) => m.id === machineId);
+    if (selectedMachine) {
+      setFormData({
+        ...formData,
+        machineId: selectedMachine.id,
+        registrationNumber: selectedMachine.registrationNumber,
+        machineNumber: selectedMachine.machineNumber,
+        assetCode: selectedMachine.erpCode,
+      });
+    }
+    setMachineOpen(false);
+  };
+
+  const handleSiteChange = (siteId) => {
+    const selectedSite = sites.find((s) => s.id === siteId);
+    if (selectedSite) {
+      setFormData({
+        ...formData,
+        siteId: selectedSite.id,
+        siteName: selectedSite.name,
+        location: selectedSite.address,
+      });
+    }
+    setSiteOpen(false);
+  };
 
   const validateForm = () => {
-    const newErrors = {}
+    const newErrors = {};
 
-    if (!formData.date) newErrors.date = "Date is required"
-    if (!formData.registrationNo) newErrors.registrationNo = "Machine number is required"
-    if (!formData.siteName) newErrors.siteName = "Site name is required"
+    if (!formData.date) newErrors.date = "Date is required";
+    if (!formData.machineId) newErrors.machineId = "Machine is required";
+    if (!formData.siteId) newErrors.siteId = "Site is required";
 
     // Validate numeric fields
-    if (formData.closingKMReading < formData.openingKMReading) {
-      newErrors.closingKMReading = "Closing KM cannot be less than opening KM"
+    if (formData.closingKmReading < formData.openingKmReading) {
+      newErrors.closingKmReading = "Closing KM cannot be less than opening KM";
     }
 
     if (formData.closingHrsMeter < formData.openingHrsMeter) {
-      newErrors.closingHrsMeter = "Closing hours cannot be less than opening hours"
+      newErrors.closingHrsMeter =
+        "Closing hours cannot be less than opening hours";
     }
 
-    const dieselUsed = formData.dieselOpeningBalance + formData.dieselIssue - formData.dieselClosingBalance
+    const dieselUsed =
+      formData.dieselOpeningBalance +
+      formData.dieselIssue -
+      formData.dieselClosingBalance;
     if (dieselUsed < 0) {
-      newErrors.dieselClosingBalance = "Diesel usage calculation results in negative value"
+      newErrors.dieselClosingBalance =
+        "Diesel usage calculation results in negative value";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (validateForm()) {
-      // Format date to string for API
-      const formattedData = {
-        ...formData,
+      // Prepare data for API submission
+      const dieselUsage =
+        formData.dieselOpeningBalance +
+        formData.dieselIssue -
+        formData.dieselClosingBalance;
+
+      const apiData = {
         date: format(formData.date, "yyyy-MM-dd"),
-      }
-      onSubmit(formattedData)
+        machineId: formData.machineId,
+        openingKmReading: formData.openingKmReading,
+        closingKmReading: formData.closingKmReading,
+        openingHrsMeter: formData.openingHrsMeter,
+        closingHrsMeter: formData.closingHrsMeter,
+        dieselOpeningBalance: formData.dieselOpeningBalance,
+        dieselClosingBalance: formData.dieselClosingBalance,
+        dieselIssue: formData.dieselIssue,
+        dieselUsage: dieselUsage > 0 ? dieselUsage : 0,
+        workingDetails: formData.workingDetails,
+        assetCode: formData.assetCode,
+        siteId: formData.siteId,
+        location: formData.location,
+      };
+
+      onSubmit(apiData);
     }
-  }
+  };
+
+  // Calculate derived values
+  const kmRun = formData.closingKmReading - formData.openingKmReading;
+  const hoursRun = formData.closingHrsMeter - formData.openingHrsMeter;
+  const dieselUsed =
+    formData.dieselOpeningBalance +
+    formData.dieselIssue -
+    formData.dieselClosingBalance;
+  const dieselAvg =
+    dieselUsed > 0 && kmRun > 0 ? (kmRun / dieselUsed).toFixed(2) : "N/A";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -144,7 +244,7 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
                 className={cn(
                   "w-full justify-start text-left font-normal",
                   !formData.date && "text-muted-foreground",
-                  errors.date && "border-red-500",
+                  errors.date && "border-red-500"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -152,7 +252,12 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={formData.date} onSelect={handleDateChange} initialFocus />
+              <Calendar
+                mode="single"
+                selected={formData.date}
+                onSelect={handleDateChange}
+                initialFocus
+              />
             </PopoverContent>
           </Popover>
           {errors.date && <p className="text-red-500 text-sm">{errors.date}</p>}
@@ -160,20 +265,65 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
 
         {/* Machine Selection */}
         <div className="space-y-2">
-          <Label htmlFor="registrationNo">Registration No / Machine No</Label>
-          <Select value={formData.registrationNo} onValueChange={handleMachineChange}>
-            <SelectTrigger className={cn(errors.registrationNo && "border-red-500")}>
-              <SelectValue placeholder="Select machine" />
-            </SelectTrigger>
-            <SelectContent>
-              {machines.map((machine) => (
-                <SelectItem key={machine.id} value={machine.registrationNo}>
-                  {machine.registrationNo}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.registrationNo && <p className="text-red-500 text-sm">{errors.registrationNo}</p>}
+          <Label htmlFor="machineId">Registration No / Machine No</Label>
+          <Popover open={machineOpen} onOpenChange={setMachineOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={machineOpen}
+                className={cn(
+                  "w-full justify-between",
+                  errors.machineId && "border-red-500"
+                )}
+                disabled={loading.machines}
+              >
+                {loading.machines
+                  ? "Loading machines..."
+                  : formData.machineId
+                  ? `${
+                      machines.find((m) => m.id === formData.machineId)
+                        ?.registrationNumber || ""
+                    } / ${
+                      machines.find((m) => m.id === formData.machineId)
+                        ?.machineNumber || ""
+                    }`
+                  : "Select machine..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <Command>
+                <CommandInput placeholder="Search by registration or machine number..." />
+                <CommandEmpty>No machine found.</CommandEmpty>
+                <CommandGroup>
+                  <CommandList>
+                    {machines.map((machine) => (
+                      <CommandItem
+                        key={machine.id}
+                        value={`${machine.registrationNumber} ${machine.machineNumber}`}
+                        onSelect={() => handleMachineChange(machine.id)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            formData.machineId === machine.id
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {machine.registrationNumber} / {machine.machineNumber} -{" "}
+                        {machine.machineName}
+                      </CommandItem>
+                    ))}
+                  </CommandList>
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          {errors.machineId && (
+            <p className="text-red-500 text-sm">{errors.machineId}</p>
+          )}
         </div>
 
         {/* Asset Code */}
@@ -191,35 +341,81 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
 
         {/* Site Selection */}
         <div className="space-y-2">
-          <Label htmlFor="siteName">Site Name</Label>
-          <Select value={formData.siteName} onValueChange={(value) => setFormData({ ...formData, siteName: value })}>
-            <SelectTrigger className={cn(errors.siteName && "border-red-500")}>
-              <SelectValue placeholder="Select site" />
-            </SelectTrigger>
-            <SelectContent>
-              {sites.map((site) => (
-                <SelectItem key={site.id} value={site.name}>
-                  {site.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.siteName && <p className="text-red-500 text-sm">{errors.siteName}</p>}
+          <Label htmlFor="siteId">Site Name</Label>
+          <Popover open={siteOpen} onOpenChange={setSiteOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={siteOpen}
+                className={cn(
+                  "w-full justify-between",
+                  errors.siteId && "border-red-500"
+                )}
+                disabled={loading.sites}
+              >
+                {loading.sites
+                  ? "Loading sites..."
+                  : formData.siteId
+                  ? sites.find((s) => s.id === formData.siteId)?.name
+                  : "Select site..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <Command>
+                <CommandInput placeholder="Search sites..." />
+                <CommandEmpty>No site found.</CommandEmpty>
+                <CommandGroup>
+                  <CommandList>
+                    {sites.map((site) => (
+                      <CommandItem
+                        key={site.id}
+                        value={site.name}
+                        onSelect={() => handleSiteChange(site.id)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            formData.siteId === site.id
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {site.name} ({site.code})
+                      </CommandItem>
+                    ))}
+                  </CommandList>
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          {errors.siteId && (
+            <p className="text-red-500 text-sm">{errors.siteId}</p>
+          )}
         </div>
 
         {/* Location */}
         <div className="space-y-2">
           <Label htmlFor="location">Location</Label>
-          <Input id="location" name="location" value={formData.location} onChange={handleChange} />
+          <Input
+            id="location"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+          />
         </div>
 
         {/* Diesel Fields */}
         <div className="space-y-2">
-          <Label htmlFor="dieselOpeningBalance">Diesel Opening Balance (L)</Label>
+          <Label htmlFor="dieselOpeningBalance">
+            Diesel Opening Balance (L)
+          </Label>
           <Input
             id="dieselOpeningBalance"
             name="dieselOpeningBalance"
             type="number"
+            step="0.01"
             value={formData.dieselOpeningBalance}
             onChange={handleChange}
           />
@@ -231,47 +427,59 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
             id="dieselIssue"
             name="dieselIssue"
             type="number"
+            step="0.01"
             value={formData.dieselIssue}
             onChange={handleChange}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="dieselClosingBalance">Diesel Closing Balance (L)</Label>
+          <Label htmlFor="dieselClosingBalance">
+            Diesel Closing Balance (L)
+          </Label>
           <Input
             id="dieselClosingBalance"
             name="dieselClosingBalance"
             type="number"
+            step="0.01"
             value={formData.dieselClosingBalance}
             onChange={handleChange}
             className={cn(errors.dieselClosingBalance && "border-red-500")}
           />
-          {errors.dieselClosingBalance && <p className="text-red-500 text-sm">{errors.dieselClosingBalance}</p>}
+          {errors.dieselClosingBalance && (
+            <p className="text-red-500 text-sm">
+              {errors.dieselClosingBalance}
+            </p>
+          )}
         </div>
 
         {/* KM Readings */}
         <div className="space-y-2">
-          <Label htmlFor="openingKMReading">Opening KM Reading</Label>
+          <Label htmlFor="openingKmReading">Opening KM Reading</Label>
           <Input
-            id="openingKMReading"
-            name="openingKMReading"
+            id="openingKmReading"
+            name="openingKmReading"
             type="number"
-            value={formData.openingKMReading}
+            step="0.01"
+            value={formData.openingKmReading}
             onChange={handleChange}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="closingKMReading">Closing KM Reading</Label>
+          <Label htmlFor="closingKmReading">Closing KM Reading</Label>
           <Input
-            id="closingKMReading"
-            name="closingKMReading"
+            id="closingKmReading"
+            name="closingKmReading"
             type="number"
-            value={formData.closingKMReading}
+            step="0.01"
+            value={formData.closingKmReading}
             onChange={handleChange}
-            className={cn(errors.closingKMReading && "border-red-500")}
+            className={cn(errors.closingKmReading && "border-red-500")}
           />
-          {errors.closingKMReading && <p className="text-red-500 text-sm">{errors.closingKMReading}</p>}
+          {errors.closingKmReading && (
+            <p className="text-red-500 text-sm">{errors.closingKmReading}</p>
+          )}
         </div>
 
         {/* Hours Meter */}
@@ -281,6 +489,7 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
             id="openingHrsMeter"
             name="openingHrsMeter"
             type="number"
+            step="0.01"
             value={formData.openingHrsMeter}
             onChange={handleChange}
           />
@@ -292,21 +501,24 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
             id="closingHrsMeter"
             name="closingHrsMeter"
             type="number"
+            step="0.01"
             value={formData.closingHrsMeter}
             onChange={handleChange}
             className={cn(errors.closingHrsMeter && "border-red-500")}
           />
-          {errors.closingHrsMeter && <p className="text-red-500 text-sm">{errors.closingHrsMeter}</p>}
+          {errors.closingHrsMeter && (
+            <p className="text-red-500 text-sm">{errors.closingHrsMeter}</p>
+          )}
         </div>
       </div>
 
       {/* Working Details */}
       <div className="space-y-2">
-        <Label htmlFor="workingDetail">Working Details</Label>
+        <Label htmlFor="workingDetails">Working Details</Label>
         <Textarea
-          id="workingDetail"
-          name="workingDetail"
-          value={formData.workingDetail}
+          id="workingDetails"
+          name="workingDetails"
+          value={formData.workingDetails}
           onChange={handleChange}
           rows={3}
           placeholder="Enter details about the work performed"
@@ -314,41 +526,47 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
       </div>
 
       {/* Calculated Fields Preview */}
-      {(formData.openingKMReading > 0 || formData.openingHrsMeter > 0) && (
+      {(formData.openingKmReading > 0 || formData.openingHrsMeter > 0) && (
         <div className="bg-muted p-4 rounded-md">
           <h3 className="font-medium mb-2">Calculated Values (Preview)</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <span className="text-sm text-muted-foreground">Total Run KM:</span>
-              <p className="font-medium">{formData.closingKMReading - formData.openingKMReading}</p>
+              <span className="text-sm text-muted-foreground">
+                Total Run KM:
+              </span>
+              <p className="font-medium">{kmRun.toFixed(2)}</p>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Total Run Hours:</span>
-              <p className="font-medium">{formData.closingHrsMeter - formData.openingHrsMeter}</p>
+              <span className="text-sm text-muted-foreground">
+                Total Run Hours:
+              </span>
+              <p className="font-medium">{hoursRun.toFixed(2)}</p>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Diesel Used (L):</span>
+              <span className="text-sm text-muted-foreground">
+                Diesel Used (L):
+              </span>
               <p className="font-medium">
-                {formData.dieselOpeningBalance + formData.dieselIssue - formData.dieselClosingBalance}
+                {dieselUsed > 0 ? dieselUsed.toFixed(2) : 0}
               </p>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Diesel Avg (KM/L):</span>
-              <p className="font-medium">
-                {(() => {
-                  const dieselUsed =
-                    formData.dieselOpeningBalance + formData.dieselIssue - formData.dieselClosingBalance
-                  const kmRun = formData.closingKMReading - formData.openingKMReading
-                  return dieselUsed > 0 && kmRun > 0 ? (kmRun / dieselUsed).toFixed(2) : "N/A"
-                })()}
-              </p>
+              <span className="text-sm text-muted-foreground">
+                Diesel Avg (KM/L):
+              </span>
+              <p className="font-medium">{dieselAvg}</p>
             </div>
           </div>
         </div>
       )}
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel} className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="flex items-center gap-2"
+        >
           <X className="h-4 w-4" />
           Cancel
         </Button>
@@ -358,6 +576,5 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
         </Button>
       </div>
     </form>
-  )
+  );
 }
-

@@ -1,100 +1,106 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
-import { Download } from "lucide-react"
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Download } from "lucide-react";
+import api from "@/services/api/api-service";
 
 // Update the mock data to include the new transfer types
 // Replace the dispatchedTransfers array with this updated one
-const dispatchedTransfers = [
-  {
-    id: "TR-003",
-    machineName: "Crane CR300",
-    machineId: "M003",
-    fromSite: "Site B",
-    toSite: "Site D",
-    dispatchedBy: "Store Manager",
-    dispatchDate: "2023-10-11",
-    transportDetails: {
-      vehicleNo: "XYZ-1234",
-      driverName: "Robert Johnson",
-      driverContact: "9876543210",
-    },
-    type: "site_transfer",
-  },
-  {
-    id: "TR-008",
-    machineName: "Forklift F200",
-    machineId: "M008",
-    fromSite: "Site A",
-    buyerName: "ABC Construction",
-    buyerContact: "9876543210",
-    dispatchedBy: "Store Manager",
-    dispatchDate: "2023-10-19",
-    transportDetails: {
-      vehicleNo: "ABC-5678",
-      driverName: "David Smith",
-      driverContact: "8765432109",
-    },
-    type: "sell",
-  },
-  {
-    id: "TR-009",
-    machineName: "Compactor C100",
-    machineId: "M010",
-    fromSite: "Site C",
-    scrapVendor: "XYZ Recycling",
-    dispatchedBy: "Store Manager",
-    dispatchDate: "2023-10-17",
-    transportDetails: {
-      vehicleNo: "DEF-9012",
-      driverName: "Michael Brown",
-      driverContact: "7654321098",
-    },
-    type: "scrap",
-  },
-]
 
 export function ReceivePage() {
-  const { toast } = useToast()
-  const [transfers, setTransfers] = useState(dispatchedTransfers)
-  const [remarks, setRemarks] = useState({})
+  const { toast } = useToast();
+  const [transfers, setTransfers] = useState([]);
+  const [remarks, setRemarks] = useState({});
+  const [receiveloading, setReceiveloading] = useState(false);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await api.get("/transfers?status=Dispatched");
+        if (res) {
+          setTransfers(res.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchHistory();
+  }, []);
 
   const handleRemarksChange = (transferId, value) => {
     setRemarks((prev) => ({
       ...prev,
       [transferId]: value,
-    }))
-  }
+    }));
+  };
 
   // Update the handleReceive function to handle different transfer types
   // Replace the handleReceive function with this updated one
   const handleReceive = (transfer) => {
     // In a real application, you would send this data to your API
-    console.log(`Receiving transfer ${transfer.id} with remarks:`, remarks[transfer.id] || "No remarks")
-
-    // Remove the transfer from the list
-    setTransfers(transfers.filter((t) => t.id !== transfer.id))
+    console.log(
+      `Receiving transfer ${transfer.id} with remarks:`,
+      remarks[transfer.id] || "No remarks"
+    );
+    setReceiveloading(true);
+    api
+      .put(`/machine-transfer/${transfer.id}/receive123`, {
+        remarks: remarks[transfer.id] || "No remarks",
+      })
+      .then((response) => {
+        console.log("Dispatch response:", response.data);
+        setTransfers(transfers.filter((t) => t.id !== transfer.id));
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setReceiveloading(false);
+      });
 
     // Show success message based on transfer type
-    let message = ""
-    if (transfer.type === "site_transfer") {
-      message = `${transfer.machineName} has been received at ${transfer.toSite}`
-    } else if (transfer.type === "sell") {
-      message = `${transfer.machineName} has been delivered to buyer: ${transfer.buyerName}`
-    } else if (transfer.type === "scrap") {
-      message = `${transfer.machineName} has been delivered to scrap vendor: ${transfer.scrapVendor}`
+    let message = "";
+    if (transfer.requestType === "Site Transfer") {
+      message = `${transfer.machine.machineName} has been received at ${transfer.destinationSite.name}`;
+    } else if (transfer.requestType === "Sell") {
+      message = `${transfer.machine.machineName} has been delivered to buyer: ${transfer.buyerName}`;
+    } else if (transfer.requestType === "scrap") {
+      message = `${transfer.machine.machineName} has been delivered to scrap vendor: ${transfer.scrapVendor}`;
     }
 
     toast({
-      title: transfer.type === "site_transfer" ? "Machine Received" : "Delivery Confirmed",
+      title:
+        transfer.requestType === "Site Transfer"
+          ? "Machine Received"
+          : "Delivery Confirmed",
       description: message,
       variant: "default",
-    })
-  }
+    });
+  };
+
+  const s = {
+    id: "TR-005",
+    machineName: "Excavator XL1000",
+    machineId: "M005",
+    // currentSite.name: "Site D",
+    // destinationSite.name: "Site B",
+    // requester.name: "Jane Smith",
+    requestDate: "2023-10-01",
+    reason: "Machine maintenance completed, returning to original site",
+    type: "Site Transfer",
+  };
 
   return (
     <div className="space-y-6">
@@ -105,15 +111,16 @@ export function ReceivePage() {
             {/* Replace the CardHeader section in the map function with this updated one */}
             <CardHeader>
               <CardTitle className="text-xl">
-                {transfer.type === "site_transfer"
+                {transfer.requestType === "Site Transfer"
                   ? "Receive: "
-                  : transfer.type === "sell"
-                    ? "Confirm Buyer Delivery: "
-                    : "Confirm Scrap Delivery: "}
+                  : transfer.requestType === "Sell"
+                  ? "Confirm Buyer Delivery: "
+                  : "Confirm Scrap Delivery: "}
                 {transfer.id}
               </CardTitle>
               <CardDescription>
-                Dispatched on {transfer.dispatchDate} by {transfer.dispatchedBy}
+                Dispatched on {transfer.dispatchedAt} by{" "}
+                {transfer.dispatcher?.name}
               </CardDescription>
             </CardHeader>
 
@@ -124,44 +131,60 @@ export function ReceivePage() {
                 <div>
                   <h3 className="text-sm font-medium">Machine Details</h3>
                   <p className="text-sm text-muted-foreground">
-                    {transfer.machineName} ({transfer.machineId})
+                    {transfer.machine.machineName} ({transfer.machineId})
                   </p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium">From Site</h3>
-                  <p className="text-sm text-muted-foreground">{transfer.fromSite}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {transfer.currentSite.name}
+                  </p>
                 </div>
               </div>
 
-              {transfer.type === "site_transfer" && (
+              {transfer.requestType === "Site Transfer" && (
                 <div>
                   <h3 className="text-sm font-medium">Destination Site</h3>
-                  <p className="text-sm text-muted-foreground">{transfer.toSite}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {transfer.destinationSite.name}
+                  </p>
                 </div>
               )}
 
-              {transfer.type === "sell" && (
+              {transfer.requestType === "Sell Machine" && (
                 <div className="border rounded-md p-3 space-y-2">
                   <h3 className="text-sm font-medium">Buyer Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div>
-                      <p className="text-xs text-muted-foreground">Buyer Name</p>
-                      <p className="text-sm">{transfer.buyerName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Buyer Name
+                      </p>
+                      <p className="text-sm">
+                        {transfer.buyerDetails?.buyerName}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Buyer Contact</p>
-                      <p className="text-sm">{transfer.buyerContact}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Buyer Contact
+                      </p>
+                      <p className="text-sm">
+                        {transfer.buyerDetails?.buyerContact}
+                      </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {transfer.type === "scrap" && (
+              {transfer.requestType === "Scrap Machine" && (
                 <div className="border rounded-md p-3 space-y-2">
                   <h3 className="text-sm font-medium">Scrap Details</h3>
                   <div>
-                    <p className="text-xs text-muted-foreground">Scrap Vendor</p>
-                    <p className="text-sm">{transfer.scrapVendor}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Scrap Vendor
+                    </p>
+                    <p className="text-sm">
+                      {transfer.scrapDetails?.scrapVendor}
+                    </p>
                   </div>
                 </div>
               )}
@@ -170,26 +193,40 @@ export function ReceivePage() {
                 <h3 className="text-sm font-medium">Transport Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <p className="text-xs text-muted-foreground">Vehicle Number</p>
-                    <p className="text-sm">{transfer.transportDetails.vehicleNo}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Vehicle Number
+                    </p>
+                    <p className="text-sm">
+                      {transfer.transportDetails?.vehicleNumber}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Driver Name</p>
-                    <p className="text-sm">{transfer.transportDetails.driverName}</p>
+                    <p className="text-sm">
+                      {transfer.transportDetails.driverName}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Driver Contact</p>
-                    <p className="text-sm">{transfer.transportDetails.driverContact}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Driver Contact
+                    </p>
+                    <p className="text-sm">
+                      {transfer.transportDetails.mobileNumber}
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium mb-2">Remarks (Machine Condition, Issues, etc.)</h3>
+                <h3 className="text-sm font-medium mb-2">
+                  Remarks (Machine Condition, Issues, etc.)
+                </h3>
                 <Textarea
                   placeholder="Enter remarks about the machine condition"
                   value={remarks[transfer.id] || ""}
-                  onChange={(e) => handleRemarksChange(transfer.id, e.target.value)}
+                  onChange={(e) =>
+                    handleRemarksChange(transfer.id, e.target.value)
+                  }
                   className="min-h-[100px]"
                 />
               </div>
@@ -198,9 +235,15 @@ export function ReceivePage() {
             {/* Update the Button text based on transfer type */}
             {/* Replace the Button in the CardFooter with this updated one */}
             <CardFooter className="flex justify-end">
-              <Button onClick={() => handleReceive(transfer)} className="bg-green-600 text-white hover:bg-green-700">
+              <Button
+                loading={receiveloading}
+                onClick={() => handleReceive(transfer)}
+                className="bg-green-600 text-white hover:bg-green-700"
+              >
                 <Download className="mr-2 h-4 w-4" />
-                {transfer.type === "site_transfer" ? "Receive Machine" : "Confirm Delivery"}
+                {transfer.requestType === "Site Transfer"
+                  ? "Receive Machine"
+                  : "Confirm Delivery"}
               </Button>
             </CardFooter>
           </Card>
@@ -209,11 +252,12 @@ export function ReceivePage() {
         <Card>
           <CardHeader>
             <CardTitle>No Dispatched Transfers</CardTitle>
-            <CardDescription>There are no dispatched machine transfers waiting to be received</CardDescription>
+            <CardDescription>
+              There are no dispatched machine transfers waiting to be received
+            </CardDescription>
           </CardHeader>
         </Card>
       )}
     </div>
-  )
+  );
 }
-

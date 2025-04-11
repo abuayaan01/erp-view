@@ -1,8 +1,15 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,89 +17,70 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
-import { CheckCircle, XCircle } from "lucide-react"
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { CheckCircle, XCircle } from "lucide-react";
+import api from "@/services/api/api-service";
 
 // Mock data for demonstration - replace with your API calls
-const pendingTransfers = [
-  {
-    id: "TR-001",
-    machineName: "Excavator XL2000",
-    machineId: "M001",
-    fromSite: "Site A",
-    toSite: "Site B",
-    requestedBy: "John Doe",
-    requestDate: "2023-10-15",
-    reason: "Required for new project at Site B",
-    type: "site_transfer",
-  },
-  {
-    id: "TR-005",
-    machineName: "Excavator XL1000",
-    machineId: "M005",
-    fromSite: "Site D",
-    toSite: "Site B",
-    requestedBy: "Jane Smith",
-    requestDate: "2023-10-01",
-    reason: "Machine maintenance completed, returning to original site",
-    type: "site_transfer",
-  },
-  {
-    id: "TR-006",
-    machineName: "Forklift F200",
-    machineId: "M008",
-    fromSite: "Site A",
-    buyerName: "ABC Construction",
-    buyerContact: "9876543210",
-    saleAmount: "500000",
-    requestedBy: "Mike Johnson",
-    requestDate: "2023-10-18",
-    reason: "Machine is outdated and no longer needed. Replacement already purchased.",
-    type: "sell",
-  },
-  {
-    id: "TR-007",
-    machineName: "Compactor C100",
-    machineId: "M010",
-    fromSite: "Site C",
-    scrapVendor: "XYZ Recycling",
-    scrapValue: "50000",
-    requestedBy: "Sarah Williams",
-    requestDate: "2023-10-16",
-    reason: "Machine is damaged beyond repair and not economical to fix.",
-    type: "scrap",
-  },
-]
 
 export function ApprovalDashboard() {
-  const { toast } = useToast()
-  const [transfers, setTransfers] = useState(pendingTransfers)
-  const [rejectionReason, setRejectionReason] = useState("")
-  const [selectedTransfer, setSelectedTransfer] = useState(null)
-  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
+  const { toast } = useToast();
+  const [transfers, setTransfers] = useState([]);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedTransfer, setSelectedTransfer] = useState(null);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [approvalLoading, setApprovalLoading] = useState(false);
 
-  const handleApprove = (transferId) => {
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await api.get("/transfers?status=Pending");
+        if (res) {
+          setTransfers(res.data);
+          console.log(res.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchHistory();
+  }, []);
+
+  const handleApprove = async (transferId) => {
     // In a real application, you would send this data to your API
-    console.log(`Approving transfer ${transferId}`)
 
-    // Remove the transfer from the list
-    setTransfers(transfers.filter((transfer) => transfer.id !== transferId))
+    try {
+      setApprovalLoading(true);
+      const res = await api.put(`/transfer/${transferId}/approve`);
+      // Remove the transfer from the list
+      setTransfers(transfers.filter((transfer) => transfer.id !== transferId));
 
-    // Show success message
-    toast({
-      title: "Transfer Approved",
-      description: `Transfer ${transferId} has been approved successfully`,
-      variant: "default",
-    })
-  }
+      // Show success message
+      toast({
+        title: "Transfer Approved",
+        description: `Transfer ${transferId} has been approved successfully`,
+        variant: "default",
+      });
+    } catch (error) {
+      // Show success message
+      toast({
+        title: "Transfer Approval Failed",
+        description: `Transfer request ${transferId} cannot be initiated`,
+        variant: "destructive",
+      });
+    } finally {
+      setApprovalLoading(false);
+    }
+  };
 
   const openRejectDialog = (transfer) => {
-    setSelectedTransfer(transfer)
-    setRejectionReason("")
-    setIsRejectDialogOpen(true)
-  }
+    setSelectedTransfer(transfer);
+    setRejectionReason("");
+    setIsRejectDialogOpen(true);
+  };
 
   const handleReject = () => {
     if (!rejectionReason) {
@@ -100,26 +88,42 @@ export function ApprovalDashboard() {
         title: "Validation Error",
         description: "Please provide a reason for rejection",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     // In a real application, you would send this data to your API
-    console.log(`Rejecting transfer ${selectedTransfer.id} with reason: ${rejectionReason}`)
+    console.log(
+      `Rejecting transfer ${selectedTransfer.id} with reason: ${rejectionReason}`
+    );
 
     // Remove the transfer from the list
-    setTransfers(transfers.filter((transfer) => transfer.id !== selectedTransfer.id))
+    setTransfers(
+      transfers.filter((transfer) => transfer.id !== selectedTransfer.id)
+    );
 
     // Close the dialog
-    setIsRejectDialogOpen(false)
+    setIsRejectDialogOpen(false);
 
     // Show success message
     toast({
       title: "Transfer Rejected",
       description: `Transfer ${selectedTransfer.id} has been rejected`,
       variant: "destructive",
-    })
-  }
+    });
+  };
+
+  // {
+  //   id: "TR-005",
+  //   machine.machineName: "Excavator XL1000",
+  //   machineId: "M005",
+  //   currentSite.name: "Site D",
+  //   destinationSite.name: "Site B",
+  //   requester.name: "Jane Smith",
+  //   createdAt: "2023-10-01",
+  //   reason: "Machine maintenance completed, returning to original site",
+  //   requestType: "Site Transfer",
+  // },
 
   return (
     <div className="space-y-6">
@@ -127,9 +131,11 @@ export function ApprovalDashboard() {
         transfers.map((transfer) => (
           <Card key={transfer.id}>
             <CardHeader>
-              <CardTitle className="text-xl">Transfer Request: {transfer.id}</CardTitle>
+              <CardTitle className="text-xl">
+                Transfer Request: {transfer.id}
+              </CardTitle>
               <CardDescription>
-                Requested by {transfer.requestedBy} on {transfer.requestDate}
+                Requested by {transfer.requester.name} on {transfer.createdAt}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -137,69 +143,94 @@ export function ApprovalDashboard() {
                 <div>
                   <h3 className="text-sm font-medium">Machine Details</h3>
                   <p className="text-sm text-muted-foreground">
-                    {transfer.machineName} ({transfer.machineId})
+                    {transfer.machine.machineName} ({transfer.machineId})
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium">Request Type</h3>
+                  <h3 className="text-sm font-medium">Request requestType</h3>
                   <p className="text-sm text-muted-foreground">
-                    {transfer.type === "site_transfer"
+                    {transfer.requestType === "Site Transfer"
                       ? "Site Transfer"
-                      : transfer.type === "sell"
-                        ? "Sell Machine"
-                        : "Scrap Machine"}
+                      : transfer.requestType === "Sell"
+                      ? "Sell Machine"
+                      : "Scrap Machine"}
                   </p>
                 </div>
               </div>
 
-              {transfer.type === "site_transfer" && (
+              {transfer.requestType === "Site Transfer" && (
                 <div>
                   <h3 className="text-sm font-medium">Transfer Route</h3>
                   <p className="text-sm text-muted-foreground">
-                    {transfer.fromSite} → {transfer.toSite}
+                    {transfer.currentSite.name} →{" "}
+                    {transfer.destinationSite.name}
                   </p>
                 </div>
               )}
 
-              {transfer.type === "sell" && (
+              {transfer.requestType === "Sell Machine" && (
                 <div className="border rounded-md p-3 space-y-2">
                   <h3 className="text-sm font-medium">Buyer Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div>
-                      <p className="text-xs text-muted-foreground">Buyer Name</p>
-                      <p className="text-sm">{transfer.buyerName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Buyer Name
+                      </p>
+                      <p className="text-sm">
+                        {transfer.buyerDetails?.buyerName}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Buyer Contact</p>
-                      <p className="text-sm">{transfer.buyerContact}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Buyer Contact
+                      </p>
+                      <p className="text-sm">
+                        {transfer.buyerDetails?.buyerContact}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Sale Amount</p>
-                      <p className="text-sm">{transfer.saleAmount || "Not specified"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Sale Amount
+                      </p>
+                      <p className="text-sm">
+                        {transfer.buyerDetails?.saleAmount || "Not specified"}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Current Site</p>
-                      <p className="text-sm">{transfer.fromSite}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Current Site
+                      </p>
+                      <p className="text-sm">{transfer.currentSite.name}</p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {transfer.type === "scrap" && (
+              {transfer.requestType === "Scrap Machine" && (
                 <div className="border rounded-md p-3 space-y-2">
                   <h3 className="text-sm font-medium">Scrap Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <div>
-                      <p className="text-xs text-muted-foreground">Scrap Vendor</p>
-                      <p className="text-sm">{transfer.scrapVendor}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Scrap Vendor
+                      </p>
+                      <p className="text-sm">
+                        {transfer.scrapDetails?.scrapVendor}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Scrap Value</p>
-                      <p className="text-sm">{transfer.scrapValue || "Not specified"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Scrap Value
+                      </p>
+                      <p className="text-sm">
+                        {transfer.scrapDetails?.scrapValue || "Not specified"}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Current Site</p>
-                      <p className="text-sm">{transfer.fromSite}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Current Site
+                      </p>
+                      <p className="text-sm">{transfer.currentSite.name}</p>
                     </div>
                   </div>
                 </div>
@@ -207,7 +238,9 @@ export function ApprovalDashboard() {
 
               <div>
                 <h3 className="text-sm font-medium">Request Reason</h3>
-                <p className="text-sm text-muted-foreground">{transfer.reason}</p>
+                <p className="text-sm text-muted-foreground">
+                  {transfer.reason}
+                </p>
               </div>
             </CardContent>
             <CardFooter className="flex justify-end space-x-2">
@@ -219,7 +252,11 @@ export function ApprovalDashboard() {
                 <XCircle className="mr-2 h-4 w-4" />
                 Reject
               </Button>
-              <Button onClick={() => handleApprove(transfer.id)} className="bg-green-600 text-white hover:bg-green-700">
+              <Button
+                loading={approvalLoading}
+                onClick={() => handleApprove(transfer.id)}
+                className="bg-green-600 text-white hover:bg-green-700"
+              >
                 <CheckCircle className="mr-2 h-4 w-4" />
                 Approve
               </Button>
@@ -230,7 +267,9 @@ export function ApprovalDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>No Pending Transfers</CardTitle>
-            <CardDescription>There are no machine transfer requests pending for approval</CardDescription>
+            <CardDescription>
+              There are no machine transfer requests pending for approval
+            </CardDescription>
           </CardHeader>
         </Card>
       )}
@@ -239,7 +278,9 @@ export function ApprovalDashboard() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reject Transfer Request</DialogTitle>
-            <DialogDescription>Please provide a reason for rejecting this transfer request.</DialogDescription>
+            <DialogDescription>
+              Please provide a reason for rejecting this transfer request.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Textarea
@@ -250,16 +291,21 @@ export function ApprovalDashboard() {
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsRejectDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleReject} className="bg-red-600 text-white hover:bg-red-700">
+            <Button
+              onClick={handleReject}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
               Confirm Rejection
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
-

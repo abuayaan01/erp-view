@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
+import api from "@/services/api/api-service";
 
 export function LogbookTable({ entries, onEdit, onDelete }) {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export function LogbookTable({ entries, onEdit, onDelete }) {
       setDeleteConfirm({ open: false, id: null });
     }
   };
-
+ 
   return (
     <>
       <div className="rounded-md border">
@@ -75,8 +76,8 @@ export function LogbookTable({ entries, onEdit, onDelete }) {
                   <TableCell>
                     {format(new Date(entry.date), "dd/MM/yyyy")}
                   </TableCell>
-                  <TableCell>{entry.registrationNo}</TableCell>
-                  <TableCell>{entry.siteName}</TableCell>
+                  <TableCell>{entry.machine.registrationNumber}</TableCell>
+                  <TableCell>{entry.site.name}</TableCell>
                   <TableCell className="hidden md:table-cell">
                     {entry.totalRunKM}
                   </TableCell>
@@ -102,7 +103,7 @@ export function LogbookTable({ entries, onEdit, onDelete }) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => navigate("/logbook/:id")}
+                          onClick={() => navigate(`/logbook/${entry.id}`)}
                         >
                           <Edit className="mr-2 h-4 w-4" />
                           View Details

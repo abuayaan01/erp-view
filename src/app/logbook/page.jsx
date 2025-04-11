@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { useSelector } from "react-redux";
 import { ROLES } from "@/utils/roles";
+import api from "@/services/api/api-service";
 
 export function LogbookPage() {
   const [logEntries, setLogEntries] = useState([]);
@@ -29,62 +30,74 @@ export function LogbookPage() {
     assetCode: "",
   });
 
-  // Fetch log entries from API
   useEffect(() => {
-    // This would be replaced with an actual API call
     const fetchLogEntries = async () => {
       try {
-        // Mock data for demonstration
-        const mockData = [
-          {
-            id: 1,
-            date: "2023-06-01",
-            registrationNo: "MH-123456",
-            dieselOpeningBalance: 50,
-            dieselIssue: 20,
-            dieselClosingBalance: 30,
-            openingKMReading: 12500,
-            closingKMReading: 12600,
-            totalRunKM: 100,
-            dieselAvgKM: 5,
-            openingHrsMeter: 1200,
-            closingHrsMeter: 1208,
-            totalRunHrsMeter: 8,
-            dieselAvgHrsMeter: 5,
-            workingDetail: "Site excavation and material transport",
-            assetCode: "AST-001",
-            siteName: "Project Alpha",
-            location: "North Sector",
-          },
-          {
-            id: 2,
-            date: "2023-06-02",
-            registrationNo: "MH-789012",
-            dieselOpeningBalance: 40,
-            dieselIssue: 30,
-            dieselClosingBalance: 25,
-            openingKMReading: 8700,
-            closingKMReading: 8850,
-            totalRunKM: 150,
-            dieselAvgKM: 3.33,
-            openingHrsMeter: 950,
-            closingHrsMeter: 962,
-            totalRunHrsMeter: 12,
-            dieselAvgHrsMeter: 3.75,
-            workingDetail: "Foundation work and material delivery",
-            assetCode: "AST-002",
-            siteName: "Project Beta",
-            location: "South Wing",
-          },
-        ];
-        setLogEntries(mockData);
+        const response = await api.get("/logbook");
+        setLogEntries(response.data);
       } catch (error) {
-        console.error("Error fetching log entries:", error);
+        console.error("Error fetching logbook entries:", error);
       }
     };
-
     fetchLogEntries();
   }, []);
+
+  // Fetch log entries from API
+  // useEffect(() => {
+  //   // This would be replaced with an actual API call
+  //   const fetchLogEntries = async () => {
+  //     try {
+  //       // Mock data for demonstration
+  //       const mockData = [
+  //         {
+  //           id: 1,
+  //           date: "2023-06-01",
+  //           registrationNo: "MH-123456",
+  //           dieselOpeningBalance: 50,
+  //           dieselIssue: 20,
+  //           dieselClosingBalance: 30,
+  //           openingKMReading: 12500,
+  //           closingKMReading: 12600,
+  //           totalRunKM: 100,
+  //           dieselAvgKM: 5,
+  //           openingHrsMeter: 1200,
+  //           closingHrsMeter: 1208,
+  //           totalRunHrsMeter: 8,
+  //           dieselAvgHrsMeter: 5,
+  //           workingDetail: "Site excavation and material transport",
+  //           assetCode: "AST-001",
+  //           siteName: "Project Alpha",
+  //           location: "North Sector",
+  //         },
+  //         {
+  //           id: 2,
+  //           date: "2023-06-02",
+  //           registrationNo: "MH-789012",
+  //           dieselOpeningBalance: 40,
+  //           dieselIssue: 30,
+  //           dieselClosingBalance: 25,
+  //           openingKMReading: 8700,
+  //           closingKMReading: 8850,
+  //           totalRunKM: 150,
+  //           dieselAvgKM: 3.33,
+  //           openingHrsMeter: 950,
+  //           closingHrsMeter: 962,
+  //           totalRunHrsMeter: 12,
+  //           dieselAvgHrsMeter: 3.75,
+  //           workingDetail: "Foundation work and material delivery",
+  //           assetCode: "AST-002",
+  //           siteName: "Project Beta",
+  //           location: "South Wing",
+  //         },
+  //       ];
+  //       setLogEntries(mockData);
+  //     } catch (error) {
+  //       console.error("Error fetching log entries:", error);
+  //     }
+  //   };
+
+  //   fetchLogEntries();
+  // }, []);
 
   const { user } = useSelector((state) => state.auth);
   const userRoleId = user?.roleId;
@@ -95,20 +108,26 @@ export function LogbookPage() {
     ROLES.PROJECT_MANAGER.id,
   ].includes(userRoleId);
 
-  const handleAddEntry = (newEntry) => {
+  const handleAddEntry = async (newEntry) => {
     // In a real app, this would make an API call first
     const calculatedEntry = {
       ...newEntry,
-      id: logEntries.length + 1,
-      totalRunKM: newEntry.closingKMReading - newEntry.openingKMReading,
+      // id: logEntries.length + 1,
+      totalRunKM: newEntry.closingKmReading - newEntry.openingKmReading,
       dieselAvgKM: calculateDieselAvgKM(newEntry),
       totalRunHrsMeter: newEntry.closingHrsMeter - newEntry.openingHrsMeter,
       dieselAvgHrsMeter: calculateDieselAvgHrsMeter(newEntry),
     };
-
-    setLogEntries([...logEntries, calculatedEntry]);
-    setIsFormOpen(false);
-    setActiveTab("view");
+    // console.log(calculatedEntry);
+    // return;
+    try {
+      const res = await api.post("/logbook", calculatedEntry);
+      setLogEntries([...logEntries, res.data]);
+      setIsFormOpen(false);
+      setActiveTab("view");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleUpdateEntry = (updatedEntry) => {
@@ -147,7 +166,7 @@ export function LogbookPage() {
       entry.dieselOpeningBalance +
       entry.dieselIssue -
       entry.dieselClosingBalance;
-    const kmRun = entry.closingKMReading - entry.openingKMReading;
+    const kmRun = entry.closingKmReading - entry.openingKmReading;
     return dieselUsed > 0 && kmRun > 0
       ? Number.parseFloat((kmRun / dieselUsed).toFixed(2))
       : 0;
@@ -245,7 +264,7 @@ export function LogbookPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <LogbookFilters filters={filters} setFilters={setFilters} />
+              {/* <LogbookFilters filters={filters} setFilters={setFilters} /> */}
               <LogbookTable
                 entries={filteredEntries}
                 onEdit={handleEditEntry}
