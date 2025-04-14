@@ -72,43 +72,43 @@ export function TransferHistory() {
 
   // Update the filteredTransfers function to include type filtering
   // Replace the filteredTransfers constant with this updated one
-  const filteredTransfers = transfers.filter((transfer) => {
-    const matchesSearch =
-      transfer.machine.machineName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      transfer.fromSite.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (transfer.toSite &&
-        transfer.toSite.toLowerCase().includes(searchTerm.toLowerCase()));
+  // const filteredTransfers = transfers.filter((transfer) => {
+  //   const matchesSearch =
+  //     transfer.machine?.machineName
+  //       .toLowerCase()
+  //       .includes(searchTerm.toLowerCase()) ||
+  //     transfer.fromSite.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     (transfer.toSite &&
+  //       transfer.toSite.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesStatus =
-      statusFilter === "All Statuses" || transfer.status === statusFilter;
-    const matchesSite =
-      siteFilter === "All Sites" ||
-      transfer.fromSite === siteFilter ||
-      (transfer.toSite && transfer.toSite === siteFilter);
-    const matchesMachine =
-      machineFilter === "All Machines" ||
-      transfer.machineName === machineFilter;
+  //   const matchesStatus =
+  //     statusFilter === "All Statuses" || transfer.status === statusFilter;
+  //   const matchesSite =
+  //     siteFilter === "All Sites" ||
+  //     transfer.fromSite === siteFilter ||
+  //     (transfer.toSite && transfer.toSite === siteFilter);
+  //   const matchesMachine =
+  //     machineFilter === "All Machines" ||
+  //     transfer.machine.machineName === machineFilter;
 
-    let matchesType = true;
-    if (typeFilter !== "All Types") {
-      if (typeFilter === "Site Transfer" && transfer.type !== "site_transfer")
-        matchesType = false;
-      if (typeFilter === "Sell" && transfer.type !== "sell")
-        matchesType = false;
-      if (typeFilter === "Scrap" && transfer.type !== "scrap")
-        matchesType = false;
-    }
+  //   let matchesType = true;
+  //   if (typeFilter !== "All Types") {
+  //     if (typeFilter === "Site Transfer" && transfer.type !== "site_transfer")
+  //       matchesType = false;
+  //     if (typeFilter === "Sell" && transfer.type !== "sell")
+  //       matchesType = false;
+  //     if (typeFilter === "Scrap" && transfer.type !== "scrap")
+  //       matchesType = false;
+  //   }
 
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesSite &&
-      matchesMachine &&
-      matchesType
-    );
-  });
+  //   return (
+  //     matchesSearch &&
+  //     matchesStatus &&
+  //     matchesSite &&
+  //     matchesMachine &&
+  //     matchesType
+  //   );
+  // });
 
   // Update the getStatusColor function to include new statuses
   // Replace the getStatusColor function with this updated one
@@ -251,7 +251,7 @@ export function TransferHistory() {
             transfers.map((transfer) => (
               <TableRow key={transfer.id}>
                 <TableCell className="font-medium">{transfer.id}</TableCell>
-                <TableCell>{transfer.machine.machineName}</TableCell>
+                <TableCell>{transfer.machine?.machineName}</TableCell>
                 <TableCell>
                   {transfer.requestType === "Site Transfer"
                     ? "Site Transfer"
@@ -260,9 +260,9 @@ export function TransferHistory() {
                     : "Scrap"}
                 </TableCell>
                 <TableCell>
-                  {transfer.currentSite.name} →{" "}
+                  {transfer.currentSite?.name} →{" "}
                   {transfer.requestType === "Site Transfer"
-                    ? transfer.destinationSite.name
+                    ? transfer.destinationSite?.name
                     : transfer.requestType === "Sell"
                     ? transfer.buyerName || "Buyer"
                     : transfer.scrapVendor || "Scrap"}
@@ -300,17 +300,17 @@ export function TransferHistory() {
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
                           <h3 className="text-sm font-medium">
-                            Machine: {transfer.machine.machineName}
+                            Machine: {transfer.machine?.machineName}
                           </h3>
                           <p className="text-sm text-muted-foreground">
                             {transfer.requestType === "Site Transfer"
-                              ? `From ${transfer.currentSite.name} to ${transfer.destinationSite.name}`
+                              ? `From ${transfer.currentSite?.name} to ${transfer.destinationSite?.name}`
                               : transfer.requestType === "Sell"
-                              ? `From ${transfer.currentSite.name} to buyer: ${
+                              ? `From ${transfer.currentSite?.name} to buyer: ${
                                   transfer.buyerName || "N/A"
                                 }`
                               : `From ${
-                                  transfer.currentSite.name
+                                  transfer.currentSite?.name
                                 } to scrap vendor: ${
                                   transfer.scrapVendor || "N/A"
                                 }`}

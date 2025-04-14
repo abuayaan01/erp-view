@@ -48,7 +48,7 @@ export const columns = [
     accessorKey: "site",
     header: "Site Location",
     cell: ({ row }) => {
-      return <>{row.original.site.name}</>;
+      return <>{row.original.site?.name}</>;
     },
   },
   {

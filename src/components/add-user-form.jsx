@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,13 +40,13 @@ import api from "@/services/api/api-service";
 import { getIdByRole, ROLES } from "@/utils/roles";
 import { useSelector } from "react-redux";
 
-
-const passwordSchema = z.string()
-  .min(8, 'Password must be at least 8 characters long')
-  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-  .regex(/[0-9]/, 'Password must contain at least one number')
-  .regex(/[\W_]/, 'Password must contain at least one special character');
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters long")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[\W_]/, "Password must contain at least one special character");
 
 const formSchema = z.object({
   name: z.string().min(3),
@@ -63,6 +63,9 @@ export default function AddUserForm({ fetchUsersData, close }) {
   const { toast } = useToast();
   const { data: sites } = useSelector((s) => s.sites);
   const [loading, setLoading] = useState();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -81,7 +84,6 @@ export default function AddUserForm({ fetchUsersData, close }) {
   async function onSubmit(values) {
     setLoading(true);
     try {
-      console.log(values);
       if (values.password !== values.confirm_password) {
         toast({
           variant: "destructive",
@@ -94,7 +96,7 @@ export default function AddUserForm({ fetchUsersData, close }) {
       const transformedData = {
         ...values,
         roleId: getIdByRole(values.roleId),
-        siteId: sites.find((site) => values.siteId === site.name)?.id
+        siteId: sites.find((site) => values.siteId === site.name)?.id,
       };
 
       delete transformedData.confirm_password;
@@ -111,9 +113,11 @@ export default function AddUserForm({ fetchUsersData, close }) {
 
       fetchUsersData();
       close();
-
     } catch (error) {
-      console.error("Form submission error", error.response.data.message || error);
+      console.error(
+        "Form submission error",
+        error.response.data.message || error
+      );
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
@@ -242,27 +246,26 @@ export default function AddUserForm({ fetchUsersData, close }) {
               render={({ field }) => (
                 <FormItem className="flex flex-col mt-2">
                   <FormLabel>Select Site</FormLabel>
-                  <Popover>
+                  <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[200px] justify-between w-full",
+                            "w-[200px]s justify-between w-full",
                             !field.value && "text-muted-foreground"
                           )}
                         >
                           {field.value
-                            ? sites.find(
-                              (sites) => sites.name === field.value
-                            )?.name
+                            ? sites.find((site) => site.name === field.value)
+                                ?.name
                             : "Select site"}
                           <ChevronsUpDown className="opacity-50 ml-2" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
+                    <PopoverContent className="w-[200px] p-0 pointer-events-auto">
                       <Command>
                         <CommandInput
                           placeholder="Search sites..."
@@ -271,19 +274,20 @@ export default function AddUserForm({ fetchUsersData, close }) {
                         <CommandList>
                           <CommandEmpty>No sites found.</CommandEmpty>
                           <CommandGroup>
-                            {sites.map((sites) => (
+                            {sites.map((site) => (
                               <CommandItem
-                                value={sites.name}
-                                key={sites.name}
+                                value={site.name}
+                                key={site.name}
                                 onSelect={() => {
-                                  form.setValue("siteId", sites.name)
+                                  form.setValue("siteId", site.name);
+                                  setPopoverOpen(false);
                                 }}
                               >
-                                {sites.name}
+                                {site.name}
                                 <Check
                                   className={cn(
                                     "ml-auto",
-                                    sites.name === field.value
+                                    site.name === field.value
                                       ? "opacity-100"
                                       : "opacity-0"
                                   )}
@@ -303,6 +307,7 @@ export default function AddUserForm({ fetchUsersData, close }) {
         </div>
 
         <div className="grid grid-cols-12 gap-4">
+          {/* Password Field */}
           <div className="col-span-6">
             <FormField
               control={form.control}
@@ -311,34 +316,78 @@ export default function AddUserForm({ fetchUsersData, close }) {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="" type="password" {...field} />
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        type={showPassword ? "text" : "password"}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                        <span className="sr-only">
+                          {showPassword ? "Hide password" : "Show password"}
+                        </span>
+                      </button>
+                    </div>
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
 
+          {/* Confirm Password Field */}
           <div className="col-span-6">
             <FormField
               control={form.control}
               name="confirm_password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm password</FormLabel>
+                  <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="" type="password" {...field} />
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        type={showConfirmPassword ? "text" : "password"}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                        <span className="sr-only">
+                          {showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"}
+                        </span>
+                      </button>
+                    </div>
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
         </div>
+
         <div></div>
-        <Button loading={loading} type="submit">Add User</Button>
+        <Button loading={loading} type="submit">
+          Add User
+        </Button>
       </form>
     </Form>
   );

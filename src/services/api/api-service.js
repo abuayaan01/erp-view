@@ -3,8 +3,8 @@ import {toast} from "@/hooks/use-toast"
 
 // Create an Axios instance
 const api = axios.create({
-  // baseURL: "https://cpc-erp-server.onrender.com/api/",
-  baseURL: "https://cfec-103-75-161-26.ngrok-free.app/api/",
+  baseURL: "https://cpc-erp-server.onrender.com/api/",
+  // baseURL: "https://cfec-103-75-161-26.ngrok-free.app/api/",
   timeout: 10000,
   withCredentials: true,
   headers: {

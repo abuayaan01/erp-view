@@ -56,7 +56,7 @@ export function ReceivePage() {
     );
     setReceiveloading(true);
     api
-      .put(`/machine-transfer/${transfer.id}/receive123`, {
+      .put(`/transfer/${transfer.id}/receive`, {
         remarks: remarks[transfer.id] || "No remarks",
       })
       .then((response) => {
