@@ -21,6 +21,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, XCircle } from "lucide-react";
+import Loader from "@/components/ui/loader";
 import api from "@/services/api/api-service";
 
 // Mock data for demonstration - replace with your API calls
@@ -32,17 +33,26 @@ export function ApprovalDashboard() {
   const [selectedTransfer, setSelectedTransfer] = useState(null);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [approvalLoading, setApprovalLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
+        setLoading(true);
         const res = await api.get("/transfers?status=Pending");
         if (res) {
           setTransfers(res.data);
-          console.log(res.data);
         }
       } catch (error) {
         console.log(error);
+        toast({
+          title: "Something went wrong!",
+          description: "Could not fetch list.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -125,7 +135,13 @@ export function ApprovalDashboard() {
   //   requestType: "Site Transfer",
   // },
 
-  return (
+  return loading ? (
+    <div className="mx-auto min-h-[70vh] flex flex-col">
+      <div className="flex-1 flex justify-center items-center">
+        <Loader />
+      </div>
+    </div>
+  ) : (
     <div className="space-y-6">
       {transfers.length > 0 ? (
         transfers.map((transfer) => (

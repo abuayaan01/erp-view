@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/dialog";
 import { Search, FileText } from "lucide-react";
 import api from "@/services/api/api-service";
+import Loader from "../ui/loader";
+import { toast } from "@/hooks/use-toast";
 
 // Update the mock data to include the new transfer types
 // Replace the historyTransfers array with this updated one
@@ -69,6 +71,7 @@ export function TransferHistory() {
   // Add this after the machineFilter state declaration
   const [typeFilter, setTypeFilter] = useState("All Types");
   const [selectedTransfer, setSelectedTransfer] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Update the filteredTransfers function to include type filtering
   // Replace the filteredTransfers constant with this updated one
@@ -140,20 +143,33 @@ export function TransferHistory() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
+        setLoading(true);
         const res = await api.get("/transfers");
         if (res) {
-          setTransfers(res.data); 
-          console.log(res.data);
+          setTransfers(res.data);
         }
       } catch (error) {
         console.log(error);
+        toast({
+          title: "Something went wrong!",
+          description: "Could not fetch list.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchHistory();
   }, []);
 
-  return (
+  return loading ? (
+    <div className="mx-auto min-h-[70vh] flex flex-col">
+      <div className="flex-1 flex justify-center items-center">
+        <Loader />
+      </div>
+    </div>
+  ) : (
     <div className="space-y-4">
       {/* <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex flex-1 items-center space-x-2">

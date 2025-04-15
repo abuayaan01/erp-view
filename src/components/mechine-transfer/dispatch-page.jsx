@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TransferChallan } from "./transfer-challan";
 import api from "@/services/api/api-service";
+import Loader from "../ui/loader";
 
 // Update the mock data to include the new transfer types
 // Replace the approvedTransfers array with this updated one
@@ -28,16 +29,25 @@ export function DispatchPage() {
   const [selectedTransfer, setSelectedTransfer] = useState(null);
   const [challanOpen, setChallanOpen] = useState(false);
   const [dispatchLoader, setDispatchLoader] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
+        setLoading(true);
         const res = await api.get("/transfers?status=Approved");
         if (res) {
           setTransfers(res.data);
         }
       } catch (error) {
         console.log(error);
+        toast({
+          title: "Something went wrong!",
+          description: "Could not fetch list.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -93,17 +103,16 @@ export function DispatchPage() {
         },
       })
       .then((response) => {
-        console.log("Dispatch response:", response.data);
-
         setTransfers(transfers.filter((t) => t.id !== transfer.id));
       })
       .catch((error) => {
         console.log(error);
         setDispatchLoader(false);
+      })
+      .finally(() => {
+        setDispatchLoader(false);
       });
     // Remove the transfer from the list
-
-    setDispatchLoader(false);
 
     // Show success message based on transfer type
     let message = "";
@@ -138,7 +147,13 @@ export function DispatchPage() {
     setChallanOpen(true);
   };
 
-  return (
+  return loading ? (
+    <div className="mx-auto min-h-[70vh] flex flex-col">
+      <div className="flex-1 flex justify-center items-center">
+        <Loader />
+      </div>
+    </div>
+  ) : (
     <div className="space-y-6">
       {transfers.length > 0 ? (
         transfers.map((transfer) => (

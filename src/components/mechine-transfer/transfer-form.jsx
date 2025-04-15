@@ -59,6 +59,7 @@ export function TransferForm({ baseUrl = "/machine-transfer/history" }) {
     machines: true,
     sites: true,
   });
+  const [requestLoader,setRequestLoader] = useState(false);
 
   // Form state
   const [selectedMachine, setSelectedMachine] = useState("");
@@ -242,6 +243,7 @@ export function TransferForm({ baseUrl = "/machine-transfer/history" }) {
 
     try {
       // Submit form data to API
+      setRequestLoader(true);
       const response = await api.post("/transfer", requestPayload);
 
       // Show success message
@@ -264,6 +266,8 @@ export function TransferForm({ baseUrl = "/machine-transfer/history" }) {
         description: "Failed to submit request. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setRequestLoader(false);
     }
   };
 
@@ -304,7 +308,7 @@ export function TransferForm({ baseUrl = "/machine-transfer/history" }) {
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
+                <PopoverContent align={'start'} className="p-0 w-[] md:min-w-[500px]">
                   <Command>
                     <CommandInput placeholder="Search machines..." />
                     <CommandEmpty>No machine found.</CommandEmpty>
@@ -387,7 +391,7 @@ export function TransferForm({ baseUrl = "/machine-transfer/history" }) {
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0">
+                  <PopoverContent  align={'start'} className="w-full p-0">
                     <Command>
                       <CommandInput placeholder="Search sites..." />
                       <CommandEmpty>No site found.</CommandEmpty>
@@ -557,7 +561,7 @@ export function TransferForm({ baseUrl = "/machine-transfer/history" }) {
           >
             Cancel
           </Button>
-          <Button type="submit">Submit Request</Button>
+          <Button loading={requestLoader} type="submit">Submit Request</Button>
         </CardFooter>
       </form>
     </Card>

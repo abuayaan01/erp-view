@@ -19,6 +19,7 @@ import api from "@/services/api/api-service";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Eye, EyeOff } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email().nonempty(),
@@ -28,6 +29,7 @@ const formSchema = z.object({
 export function LoginForm({ className, ...props }) {
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const form = useForm({
@@ -127,12 +129,28 @@ export function LoginForm({ className, ...props }) {
               Forgot your password?
             </a>
           </div>
-          <Input
-            id="password"
-            type="password"
-            required
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              required
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+              <span className="sr-only">
+                {showPassword ? "Hide password" : "Show password"}
+              </span>
+            </button>
+          </div>
         </div>
         <Button loading={loading} onClick={loginReq} className="w-full">
           Login
