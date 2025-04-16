@@ -55,6 +55,8 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
     machines: false,
   });
 
+  const [requestLoader, setRequestLoader] = useState(false);
+
   // For the dropdowns
   const [machineOpen, setMachineOpen] = useState(false);
   const [siteOpen, setSiteOpen] = useState(false);
@@ -216,8 +218,13 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
         siteId: formData.siteId,
         location: formData.location,
       };
+      setRequestLoader(true);
 
-      onSubmit(apiData);
+      try {
+        onSubmit(apiData);
+      } catch (error) {
+        setRequestLoader(false);
+      }
     }
   };
 
@@ -562,16 +569,11 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
 
       <div className="flex justify-end gap-2">
         <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
+          loading={requestLoader}
+          type="submit"
           className="flex items-center gap-2"
         >
-          <X className="h-4 w-4" />
-          Cancel
-        </Button>
-        <Button type="submit" className="flex items-center gap-2">
-          <Save className="h-4 w-4" />
+          <Save className="h-4 w-4 mx-2" />
           {initialData ? "Update Entry" : "Save Entry"}
         </Button>
       </div>

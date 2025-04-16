@@ -251,23 +251,23 @@ export function TransferHistory() {
       <div className="rounded-md border">
         {/* Update the table header to include Type column */}
         <TableHeader>
-          <TableRow>
-            <TableHead>Transfer ID</TableHead>
-            <TableHead>Machine Name</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>From → To</TableHead>
-            <TableHead>Transfer Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+          <TableRow className="text-sm">
+            <TableHead className="text-center">Transfer ID</TableHead>
+            <TableHead className="text-center">Machine Name</TableHead>
+            <TableHead className="text-center">Type</TableHead>
+            <TableHead className="w-[250px] text-center">From → To</TableHead>
+            <TableHead className="text-center">Transfer Date</TableHead>
+            <TableHead className="text-center">Status</TableHead>
+            <TableHead className="text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         {/* Update the table body to display the transfer type and handle different types */}
         <TableBody>
           {transfers.length > 0 ? (
             transfers.map((transfer) => (
-              <TableRow key={transfer.id}>
-                <TableCell className="font-medium">{transfer.id}</TableCell>
-                <TableCell>{transfer.machine?.machineName}</TableCell>
+              <TableRow className="text-sm text-center" key={transfer.id}>
+                <TableCell>{transfer.id}</TableCell>
+                <TableCell>{transfer.machine?.machineName || "NA"}</TableCell>
                 <TableCell>
                   {transfer.requestType === "Site Transfer"
                     ? "Site Transfer"
@@ -276,9 +276,9 @@ export function TransferHistory() {
                     : "Scrap"}
                 </TableCell>
                 <TableCell>
-                  {transfer.currentSite?.name} →{" "}
+                  {transfer.currentSite?.name || "NA"} →{" "}
                   {transfer.requestType === "Site Transfer"
-                    ? transfer.destinationSite?.name
+                    ? transfer.destinationSite?.name || "NA"
                     : transfer.requestType === "Sell"
                     ? transfer.buyerName || "Buyer"
                     : transfer.scrapVendor || "Scrap"}

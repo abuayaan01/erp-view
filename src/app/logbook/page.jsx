@@ -23,6 +23,7 @@ export function LogbookPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [activeTab, setActiveTab] = useState("view");
+  const [tableLoader, setTableLoader] = useState(false);
   const [filters, setFilters] = useState({
     dateRange: { from: null, to: null },
     machineNo: "",
@@ -33,71 +34,22 @@ export function LogbookPage() {
   useEffect(() => {
     const fetchLogEntries = async () => {
       try {
+        setTableLoader(true);
         const response = await api.get("/logbook");
         setLogEntries(response.data);
       } catch (error) {
         console.error("Error fetching logbook entries:", error);
+        toast({
+          title: "Something went wrong !",
+          description: error.message,
+          variant: "destructive",
+        });
+      } finally {
+        setTableLoader(false);
       }
     };
     fetchLogEntries();
   }, []);
-
-  // Fetch log entries from API
-  // useEffect(() => {
-  //   // This would be replaced with an actual API call
-  //   const fetchLogEntries = async () => {
-  //     try {
-  //       // Mock data for demonstration
-  //       const mockData = [
-  //         {
-  //           id: 1,
-  //           date: "2023-06-01",
-  //           registrationNo: "MH-123456",
-  //           dieselOpeningBalance: 50,
-  //           dieselIssue: 20,
-  //           dieselClosingBalance: 30,
-  //           openingKMReading: 12500,
-  //           closingKMReading: 12600,
-  //           totalRunKM: 100,
-  //           dieselAvgKM: 5,
-  //           openingHrsMeter: 1200,
-  //           closingHrsMeter: 1208,
-  //           totalRunHrsMeter: 8,
-  //           dieselAvgHrsMeter: 5,
-  //           workingDetail: "Site excavation and material transport",
-  //           assetCode: "AST-001",
-  //           siteName: "Project Alpha",
-  //           location: "North Sector",
-  //         },
-  //         {
-  //           id: 2,
-  //           date: "2023-06-02",
-  //           registrationNo: "MH-789012",
-  //           dieselOpeningBalance: 40,
-  //           dieselIssue: 30,
-  //           dieselClosingBalance: 25,
-  //           openingKMReading: 8700,
-  //           closingKMReading: 8850,
-  //           totalRunKM: 150,
-  //           dieselAvgKM: 3.33,
-  //           openingHrsMeter: 950,
-  //           closingHrsMeter: 962,
-  //           totalRunHrsMeter: 12,
-  //           dieselAvgHrsMeter: 3.75,
-  //           workingDetail: "Foundation work and material delivery",
-  //           assetCode: "AST-002",
-  //           siteName: "Project Beta",
-  //           location: "South Wing",
-  //         },
-  //       ];
-  //       setLogEntries(mockData);
-  //     } catch (error) {
-  //       console.error("Error fetching log entries:", error);
-  //     }
-  //   };
-
-  //   fetchLogEntries();
-  // }, []);
 
   const { user } = useSelector((state) => state.auth);
   const userRoleId = user?.roleId;
@@ -267,6 +219,7 @@ export function LogbookPage() {
               {/* <LogbookFilters filters={filters} setFilters={setFilters} /> */}
               <LogbookTable
                 entries={filteredEntries}
+                tableLoader={tableLoader}
                 onEdit={handleEditEntry}
                 onDelete={handleDeleteEntry}
               />

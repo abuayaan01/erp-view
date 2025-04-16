@@ -28,8 +28,9 @@ import {
 import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import api from "@/services/api/api-service";
+import Loader from "../ui/loader";
 
-export function LogbookTable({ entries, onEdit, onDelete }) {
+export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
   const navigate = useNavigate();
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null });
   const [page, setPage] = useState(1);
@@ -50,7 +51,7 @@ export function LogbookTable({ entries, onEdit, onDelete }) {
       setDeleteConfirm({ open: false, id: null });
     }
   };
- 
+
   return (
     <>
       <div className="rounded-md border">
@@ -130,7 +131,7 @@ export function LogbookTable({ entries, onEdit, onDelete }) {
                   colSpan={8}
                   className="text-center py-6 text-muted-foreground"
                 >
-                  No logbook entries found
+                  {tableLoader ? <Loader /> : 'No logbook entries found'}
                 </TableCell>
               </TableRow>
             )}

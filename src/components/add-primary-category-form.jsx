@@ -125,7 +125,8 @@ export default function AddPrimaryCategoryForm() {
           description: "Machine category created successfully",
         });
       }
-      dispatch(fetchMachineCategories());
+      // dispatch(fetchMachineCategories());
+      dispatch(fetchPrimaryCategories());
       navigate('/list-machine-category');
     } catch (error) {
       console.error("Form submission error", error);

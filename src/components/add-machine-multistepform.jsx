@@ -553,7 +553,10 @@ const Sidebar = ({ steps, currentStep, navigateToStep }) => {
           <li key={index}>
             <Button
               variant={currentStep === index + 1 ? "default" : "outline"}
-              onClick={() => navigateToStep(index + 1)}
+              onClick={() => {
+                // navigateToStep(index + 1)
+                console.warn("Navigation disabled")
+              }}
               className="w-full text-xs"
             >
               {step}
