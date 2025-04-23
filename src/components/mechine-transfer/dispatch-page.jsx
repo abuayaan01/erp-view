@@ -35,7 +35,7 @@ export function DispatchPage() {
     const fetchHistory = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/transfers?status=Approved");
+        const res = await api.get("/transfers/approved");
         if (res) {
           setTransfers(res.data);
         }

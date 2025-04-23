@@ -30,7 +30,7 @@ export function ReceivePage() {
     const fetchHistory = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/transfers?status=Dispatched");
+        const res = await api.get("/transfers/dispatched");
         if (res) {
           setTransfers(res.data);
         }
