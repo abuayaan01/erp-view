@@ -39,6 +39,19 @@ import { LogbookDetails } from "@/components/logbook/logbook-details";
 import { RequestSparePartPage } from "@/components/spare-parts/RequestSparePartPage";
 import ForbiddenPage from "@/app/error/403/page";
 import NotFoundPage from "@/app/error/404/page";
+import ItemGroupList from "@/app/material-requisition/pages/ItemGroupList";
+import ItemGroupForm from "@/app/material-requisition/pages/ItemGroupForm";
+import ItemList from "@/app/material-requisition/pages/ItemList";
+import ItemForm from "@/app/material-requisition/pages/ItemForm";
+import UnitList from "@/app/material-requisition/pages/UnitList";
+import UnitForm from "@/app/material-requisition/pages/UnitForm";
+import MaterialRequisitionList from "@/app/material-requisition/pages/MaterialRequisitionList";
+import MaterialRequisitionForm from "@/app/material-requisition/pages/MaterialRequisitionForm";
+import MaterialRequisitionView from "@/app/material-requisition/pages/MaterialRequisitionView";
+import MaterialIssueForm from "@/app/material-issue/MatrialIssueForm";
+import MaterialIssueList from "@/app/material-issue/MaterialIssueList.";
+import MaterialIssueDetails from "@/app/material-issue/MaterialIssueDetails";
+import { SparePartsTable } from "@/components/spare-parts/SparePartsTable";
 
 function AppRouter() {
   const dispatch = useDispatch();
@@ -50,41 +63,6 @@ function AppRouter() {
     dispatch(fetchMachines());
     dispatch(fetchPrimaryCategories());
   }, [dispatch]);
-
-  const mockRequisition = {
-    id: 1,
-    date: "2023-06-15",
-    materialName: "Cement",
-    materialId: 1,
-    quantity: 50,
-    unit: "Bags",
-    urgency: "normal",
-    site: "Project Alpha",
-    requiredBy: "2023-06-30",
-    status: "pending",
-    requestedBy: "John Smith",
-    justification: "Required for foundation work in Block A",
-  };
-  const mockEntry = {
-    id: 1,
-    date: "2025-03-20",
-    registrationNo: "MH-123456",
-    dieselOpeningBalance: 50,
-    dieselIssue: 20,
-    dieselClosingBalance: 30,
-    openingKMReading: 12500,
-    closingKMReading: 12600,
-    totalRunKM: 100,
-    dieselAvgKM: 5,
-    openingHrsMeter: 1200,
-    closingHrsMeter: 1208,
-    totalRunHrsMeter: 8,
-    dieselAvgHrsMeter: 5,
-    workingDetail: "Site excavation and material transport",
-    assetCode: "AST-001",
-    siteName: "Project Alpha",
-    location: "North Sector",
-  };
 
   return (
     <Routes>
@@ -178,15 +156,7 @@ function AppRouter() {
           }
         />
         <Route path="/logbook" element={<LogbookPage />} />
-        <Route
-          path="/logbook/:id"
-          element={
-            <LogbookDetails
-              entry={mockEntry}
-              onBack={() => navigate("/logbook")}
-            />
-          }
-        />
+        <Route path="/logbook/:id" element={<LogbookDetails />} />
         <Route path="/machines/:id" element={<MachineryDetailPage />} />
         <Route
           path="/machine-transfer/home"
@@ -248,30 +218,7 @@ function AppRouter() {
           path="/machine-transfer/history"
           element={<TransferHistoryPage />}
         />
-        <Route path="/spare-parts" element={<SparePartsPage />} />
-        <Route path="/spare-parts/request" element={<RequestSparePartPage />} />
-        <Route path="/spare-parts/add" element={<AddSparePartModal />} />
-        <Route
-          path="/material-requisition/home"
-          element={<RequisitionsPage />}
-        />
-        <Route
-          path="/material-requisition/new"
-          element={<MaterialRequestForm />}
-        />
-        <Route
-          path="/material-requisition/:id"
-          element={<RequisitionDetail requisition={mockRequisition} />}
-        />
-        <Route
-          path="/material-requisition/dispatch"
-          element={<DispatchPage />}
-        />
-        <Route path="/material-requisition/receive" element={<ReceivePage />} />
-        <Route
-          path="/material-requisition/procurement"
-          element={<ProcurementPage />}
-        />
+
         <Route
           path="/manage-users"
           element={
@@ -285,6 +232,27 @@ function AppRouter() {
             />
           }
         />
+        <Route path="/spare-parts" element={<SparePartsPage />} />
+        <Route path="/spare-parts/request" element={<RequestSparePartPage />} />
+        <Route path="/spare-parts/add" element={<AddSparePartModal />} />
+        <Route path="/item-groups" element={<ItemGroupList />} />
+        <Route path="/item-groups/new" element={<ItemGroupForm />} />
+        <Route path="/item-groups/edit/:id" element={<ItemGroupForm />} />
+        <Route path="/items" element={<ItemList />} />
+        <Route path="/items/new" element={<ItemForm />} />
+        <Route path="/items/edit/:id" element={<ItemForm />} />
+        <Route path="/units" element={<UnitList />} />
+        <Route path="/units/new" element={<UnitForm />} />
+        <Route path="/units/edit/:id" element={<UnitForm />} />
+        <Route path="/requisitions" element={<MaterialRequisitionList />} />
+        <Route path="/requisitions/new" element={<MaterialRequisitionForm />} />
+        <Route
+          path="/requisitions/view/:id"
+          element={<MaterialRequisitionView />}
+        />
+        <Route path="/issues" element={<MaterialIssueList />} />
+        <Route path="/issues/:id" element={<MaterialIssueDetails />} />
+        <Route path="/issues/new" element={<MaterialIssueForm />} />
       </Route>
 
       {/* Routes WITHOUT Layout */}

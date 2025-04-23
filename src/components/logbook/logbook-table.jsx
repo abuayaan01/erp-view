@@ -77,8 +77,8 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
                   <TableCell>
                     {format(new Date(entry.date), "dd/MM/yyyy")}
                   </TableCell>
-                  <TableCell>{entry.machine.registrationNumber}</TableCell>
-                  <TableCell>{entry.site.name}</TableCell>
+                  <TableCell>{entry.machine?.registrationNumber}</TableCell>
+                  <TableCell>{entry.site?.name}</TableCell>
                   <TableCell className="hidden md:table-cell">
                     {entry.totalRunKM}
                   </TableCell>

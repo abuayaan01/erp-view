@@ -186,32 +186,12 @@ const data = {
       url: "/logbook",
       icon: Book,
       collapsible: false,
-      // items: [
-      //   {
-      //     title: "Add",
-      //     url: "/add-logbook",
-      //   },
-      //   {
-      //     title: "List",
-      //     url: "/list-logbook",
-      //   },
-      // ],
     },
     {
       title: "Spare Parts",
       url: "/spare-parts",
       icon: Settings2,
       collapsible: false,
-      // items: [
-      //   {
-      //     title: "Add",
-      //     url: "/add-spare-parts",
-      //   },
-      //   {
-      //     title: "List",
-      //     url: "/list-spare-parts",
-      //   },
-      // ],
     },
     {
       title: "Users",
@@ -222,29 +202,33 @@ const data = {
     },
     {
       title: "Material Requisition",
-      url: "/material-requisition",
+      url: "/requisitions",
+      icon: ClipboardList,
+      collapsible: false,
+    },
+    {
+      title: "Material Issue",
+      url: "/issues",
+      icon: ClipboardList,
+      collapsible: false,
+    },
+    {
+      title: "Parts & Units Setup",
+      url: "#",
       icon: ClipboardList,
       collapsible: true,
       items: [
         {
-          title: "Home",
-          url: "/material-requisition/home",
+          title: "Item Groups",
+          url: "/item-groups",
         },
         {
-          title: "New",
-          url: "/material-requisition/new",
+          title: "Items",
+          url: "/items",
         },
         {
-          title: "Dispatch",
-          url: "/material-requisition/dispatch",
-        },
-        {
-          title: "Receive",
-          url: "/material-requisition/receive",
-        },
-        {
-          title: "Procurement",
-          url: "/material-requisition/procurement",
+          title: "Units",
+          url: "/units",
         },
       ],
     },

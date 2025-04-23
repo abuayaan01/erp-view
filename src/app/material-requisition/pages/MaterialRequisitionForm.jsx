@@ -1,0 +1,1042 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Plus, Trash2, Save, Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { PDFViewer } from "@react-pdf/renderer";
+import MaterialRequisitionPDF from "./MaterialRequisitionPDF";
+
+const MaterialRequisitionForm = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [showPdf, setShowPdf] = useState(false);
+
+  const [formData, setFormData] = useState({
+    requisitionNo: `REQ-${Date.now().toString().slice(-6)}`,
+    date: new Date().toISOString(),
+    time: new Date().toLocaleTimeString(),
+    storeSection: "",
+    location: "",
+    requestedFor: {
+      type: "party",
+      value: "",
+    },
+    chargeType: "foc",
+    priority: "medium",
+    dueDate: "",
+    preparedBy: "",
+    items: [],
+  });
+
+  const [itemGroups, setItemGroups] = useState([]);
+  const [items, setItems] = useState([]);
+  const [units, setUnits] = useState([]);
+  const [selectedItemGroup, setSelectedItemGroup] = useState("");
+  const [selectedItem, setSelectedItem] = useState("");
+  const [itemQuantity, setItemQuantity] = useState("");
+  const [itemSize, setItemSize] = useState("");
+  const [itemWeight, setItemWeight] = useState("");
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [activeTab, setActiveTab] = useState("details");
+
+  useEffect(() => {
+    const storedItemGroups = [
+      { id: "grp1", name: "Electrical" },
+      { id: "grp2", name: "Mechanical" },
+      { id: "grp3", name: "Safety Equipment" },
+    ];
+
+    const storedItems = [
+      {
+        id: "item1",
+        name: "Cable Roll",
+        itemGroup: "grp1",
+        unitId: "unit1",
+      },
+      { id: "item2", name: "Switch", itemGroup: "grp1", unitId: "unit2" },
+      {
+        id: "item3",
+        name: "Gearbox",
+        itemGroup: "grp2",
+        unitId: "unit3",
+      },
+      {
+        id: "item4",
+        name: "Hard Hat",
+        itemGroup: "grp3",
+        unitId: "unit2",
+      },
+      { id: "item5", name: "Gloves", itemGroup: "grp3", unitId: "unit2" },
+    ];
+
+    const storedUnits = [
+      { id: "unit1", name: "Meter" },
+      { id: "unit2", name: "Piece" },
+      { id: "unit3", name: "Set" },
+    ];
+
+    setItemGroups(storedItemGroups);
+    setItems(storedItems);
+    setUnits(storedUnits);
+  }, []);
+
+  useEffect(() => {
+    // Filter items based on selected item group
+    if (selectedItemGroup) {
+      const filtered = items.filter(
+        (item) => item.itemGroup === selectedItemGroup
+      );
+      setFilteredItems(filtered);
+    } else {
+      setFilteredItems([]);
+    }
+
+    // Reset selected item when item group changes
+    setSelectedItem("");
+  }, [selectedItemGroup, items]);
+
+  const getItemGroupName = (id) => {
+    const group = itemGroups.find((g) => g.id === id);
+    return group ? group.name : "Unknown Group";
+  };
+
+  const getItemName = (id) => {
+    const item = items.find((i) => i.id === id);
+    return item ? item.name : "Unknown Item";
+  };
+
+  const getUnitName = (id) => {
+    const unit = units.find((u) => u.id === id);
+    return unit ? unit.shortName || unit.name : "";
+  };
+
+  const getItemUnit = (id) => {
+    const item = items.find((i) => i.id === id);
+    return item ? item.unit : "";
+  };
+
+  const getItemPartNo = (id) => {
+    const item = items.find((i) => i.id === id);
+    return item ? item.partNo || "-" : "-";
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error when field is edited
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const handleSelectChange = (name, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error when field is edited
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const handleRequestedForTypeChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      requestedFor: {
+        type: value,
+        value: "",
+      },
+    }));
+  };
+
+  const handleRequestedForValueChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      requestedFor: {
+        ...prev.requestedFor,
+        value,
+      },
+    }));
+  };
+
+  const addItem = () => {
+    if (
+      !selectedItem ||
+      !itemQuantity ||
+      Number.parseFloat(itemQuantity) <= 0
+    ) {
+      toast({
+        title: "Invalid Item",
+        description: "Please select an item and enter a valid quantity.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if item already exists in the list
+    const existingItemIndex = formData.items.findIndex(
+      (item) => item.itemId === selectedItem
+    );
+
+    if (existingItemIndex !== -1) {
+      // Update existing item
+      const updatedItems = [...formData.items];
+      updatedItems[existingItemIndex] = {
+        ...updatedItems[existingItemIndex],
+        quantity: Number.parseFloat(itemQuantity),
+        size: itemSize,
+        weight: itemWeight,
+      };
+
+      setFormData((prev) => ({
+        ...prev,
+        items: updatedItems,
+      }));
+    } else {
+      // Add new item
+      const selectedItemObj = items.find((item) => item.id === selectedItem);
+
+      const newItem = {
+        itemId: selectedItem,
+        itemGroupId: selectedItemObj.itemGroup,
+        quantity: Number.parseFloat(itemQuantity),
+        unitId: selectedItemObj.unit,
+        size: itemSize,
+        weight: itemWeight,
+        partNo: getItemPartNo(selectedItem),
+      };
+
+      setFormData((prev) => ({
+        ...prev,
+        items: [...prev.items, newItem],
+      }));
+    }
+
+    // Reset item selection fields
+    setSelectedItem("");
+    setItemQuantity("");
+    setItemSize("");
+    setItemWeight("");
+
+    toast({
+      title: "Item Added",
+      description: "The item has been added to the requisition.",
+    });
+  };
+
+  const removeItem = (index) => {
+    const updatedItems = [...formData.items];
+    updatedItems.splice(index, 1);
+
+    setFormData((prev) => ({
+      ...prev,
+      items: updatedItems,
+    }));
+
+    toast({
+      title: "Item Removed",
+      description: "The item has been removed from the requisition.",
+    });
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.storeSection) {
+      newErrors.storeSection = "Store section is required";
+    }
+
+    if (!formData.location) {
+      newErrors.location = "Location is required";
+    }
+
+    if (!formData.requestedFor.value) {
+      newErrors.requestedFor = `${formData.requestedFor.type} is required`;
+    }
+
+    if (!formData.preparedBy) {
+      newErrors.preparedBy = "Prepared by is required";
+    }
+
+    if (formData.items.length === 0) {
+      newErrors.items = "At least one item is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Get existing requisitions
+    const requisitions = JSON.parse(localStorage.getItem("requisitions")) || [];
+
+    // Create new requisition
+    const newRequisition = {
+      id: Date.now().toString(),
+      ...formData,
+    };
+
+    localStorage.setItem(
+      "requisitions",
+      JSON.stringify([...requisitions, newRequisition])
+    );
+
+    toast({
+      title: "Requisition Created",
+      description: "The material requisition has been created successfully.",
+    });
+
+    // Redirect to view page
+    navigate(`/requisitions/view/${newRequisition.id}`);
+  };
+
+  const handlePrint = () => {
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before printing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setShowPdf(true);
+  };
+
+  const goToNextTab = () => {
+    if (activeTab === "details") {
+      // Validate details before moving to items tab
+      const detailErrors = {};
+
+      if (!formData.storeSection) {
+        detailErrors.storeSection = "Store section is required";
+      }
+
+      if (!formData.location) {
+        detailErrors.location = "Location is required";
+      }
+
+      if (!formData.requestedFor.value) {
+        detailErrors.requestedFor = `${formData.requestedFor.type} is required`;
+      }
+
+      if (!formData.preparedBy) {
+        detailErrors.preparedBy = "Prepared by is required";
+      }
+
+      setErrors(detailErrors);
+
+      if (Object.keys(detailErrors).length === 0) {
+        setActiveTab("items");
+      } else {
+        toast({
+          title: "Validation Error",
+          description: "Please fill in all required fields.",
+          variant: "destructive",
+        });
+      }
+    } else if (activeTab === "items") {
+      if (formData.items.length === 0) {
+        toast({
+          title: "No Items Added",
+          description: "Please add at least one item to the requisition.",
+          variant: "destructive",
+        });
+      } else {
+        setActiveTab("review");
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {!showPdf ? (
+        <>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/requisitions")}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only">Back</span>
+            </Button>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Create Material Requisition
+            </h1>
+          </div>
+
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-4"
+          >
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="items">Items</TabsTrigger>
+              <TabsTrigger value="review">Review & Submit</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="details" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Requisition Details</CardTitle>
+                  <CardDescription>
+                    Enter the basic details for the material requisition
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="requisitionNo">Requisition No</Label>
+                      <Input
+                        id="requisitionNo"
+                        value={formData.requisitionNo}
+                        readOnly
+                        disabled
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="date">Date and Time</Label>
+                      <Input
+                        id="date"
+                        type="datetime-local"
+                        value={new Date(formData.date)
+                          .toISOString()
+                          .slice(0, 16)}
+                        readOnly
+                        disabled
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="storeSection">Store Section *</Label>
+                      <Select
+                        value={formData.storeSection}
+                        onValueChange={(value) =>
+                          handleSelectChange("storeSection", value)
+                        }
+                      >
+                        <SelectTrigger id="storeSection">
+                          <SelectValue placeholder="Select store section" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="main">Main Store</SelectItem>
+                          <SelectItem value="secondary">
+                            Secondary Store
+                          </SelectItem>
+                          <SelectItem value="warehouse">Warehouse</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.storeSection && (
+                        <p className="text-sm text-destructive">
+                          {errors.storeSection}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="location">Location *</Label>
+                      <Select
+                        value={formData.location}
+                        onValueChange={(value) =>
+                          handleSelectChange("location", value)
+                        }
+                      >
+                        <SelectTrigger id="location">
+                          <SelectValue placeholder="Select location" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MARKONA-036">
+                            MARKONA-036
+                          </SelectItem>
+                          <SelectItem value="site-b">Site B</SelectItem>
+                          <SelectItem value="headquarters">
+                            Headquarters
+                          </SelectItem>
+                          <SelectItem value="branch-office">
+                            Branch Office
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.location && (
+                        <p className="text-sm text-destructive">
+                          {errors.location}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Requested For *</Label>
+                    <RadioGroup
+                      value={formData.requestedFor.type}
+                      onValueChange={handleRequestedForTypeChange}
+                      className="flex flex-wrap gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="party" id="party" />
+                        <Label htmlFor="party">Party</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="vehicle" id="vehicle" />
+                        <Label htmlFor="vehicle">Vehicle</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="project" id="project" />
+                        <Label htmlFor="project">Project</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="other" id="other" />
+                        <Label htmlFor="other">Other</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="employee" id="employee" />
+                        <Label htmlFor="employee">Employee</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="department" id="department" />
+                        <Label htmlFor="department">Department</Label>
+                      </div>
+                    </RadioGroup>
+
+                    <div className="pt-2">
+                      <Input
+                        placeholder={`Enter ${formData.requestedFor.type} details`}
+                        value={formData.requestedFor.value}
+                        onChange={(e) =>
+                          handleRequestedForValueChange(e.target.value)
+                        }
+                      />
+                      {errors.requestedFor && (
+                        <p className="text-sm text-destructive">
+                          {errors.requestedFor}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Charge Type</Label>
+                    <RadioGroup
+                      value={formData.chargeType}
+                      onValueChange={(value) =>
+                        handleSelectChange("chargeType", value)
+                      }
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="foc" id="foc" />
+                        <Label htmlFor="foc">FOC</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="chargeable" id="chargeable" />
+                        <Label htmlFor="chargeable">Chargeable</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Request Priority</Label>
+                      <RadioGroup
+                        value={formData.priority}
+                        onValueChange={(value) =>
+                          handleSelectChange("priority", value)
+                        }
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="low" id="low" />
+                          <Label htmlFor="low">Low</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="medium" id="medium" />
+                          <Label htmlFor="medium">Medium</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="urgent" id="urgent" />
+                          <Label htmlFor="urgent">Urgent</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="dueDate">Due Date</Label>
+                      <Input
+                        id="dueDate"
+                        name="dueDate"
+                        type="date"
+                        value={formData.dueDate}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="preparedBy">Prepared By *</Label>
+                    <Input
+                      id="preparedBy"
+                      name="preparedBy"
+                      value={formData.preparedBy}
+                      onChange={handleChange}
+                      placeholder="Enter name of person preparing this requisition"
+                    />
+                    {errors.preparedBy && (
+                      <p className="text-sm text-destructive">
+                        {errors.preparedBy}
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate("/requisitions")}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="button" onClick={goToNextTab}>
+                    Next: Add Items
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="items" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Add Items</CardTitle>
+                  <CardDescription>
+                    Add items to the material requisition
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="itemGroup">Item Group</Label>
+                      <Select
+                        value={selectedItemGroup}
+                        onValueChange={setSelectedItemGroup}
+                      >
+                        <SelectTrigger id="itemGroup">
+                          <SelectValue placeholder="Select item group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {itemGroups.length === 0 ? (
+                            <SelectItem value="" disabled>
+                              No item groups available
+                            </SelectItem>
+                          ) : (
+                            itemGroups.map((group) => (
+                              <SelectItem key={group?.id} value={group?.id}>
+                                {group?.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="item">Item *</Label>
+                      <Select
+                        value={selectedItem}
+                        onValueChange={setSelectedItem}
+                        disabled={!selectedItemGroup}
+                      >
+                        <SelectTrigger id="item">
+                          <SelectValue
+                            placeholder={
+                              selectedItemGroup
+                                ? "Select item"
+                                : "Select item group first"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filteredItems.length === 0 ? (
+                            <SelectItem value={null} disabled>
+                              {selectedItemGroup
+                                ? "No items in this group"
+                                : "Select item group first"}
+                            </SelectItem>
+                          ) : (
+                            filteredItems.map((item) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="size">Size/Part No</Label>
+                      <Input
+                        id="size"
+                        value={itemSize}
+                        onChange={(e) => setItemSize(e.target.value)}
+                        placeholder="Enter size or part number"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="quantity">Quantity *</Label>
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          id="quantity"
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          value={itemQuantity}
+                          onChange={(e) => setItemQuantity(e.target.value)}
+                          placeholder="Enter quantity"
+                        />
+                        <div className="w-20">
+                          {selectedItem && (
+                            <span className="text-sm text-muted-foreground">
+                              {getUnitName(getItemUnit(selectedItem))}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="weight">Weight/Unit</Label>
+                      <Input
+                        id="weight"
+                        value={itemWeight}
+                        onChange={(e) => setItemWeight(e.target.value)}
+                        placeholder="Enter weight per unit"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      onClick={addItem}
+                      disabled={!selectedItem || !itemQuantity}
+                    >
+                      <Plus className="mr-2 h-4 w-4" /> Add Item
+                    </Button>
+                  </div>
+
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Sr. No</TableHead>
+                          <TableHead>Item Group</TableHead>
+                          <TableHead>Item</TableHead>
+                          <TableHead>Part No</TableHead>
+                          <TableHead>Qty/Unit</TableHead>
+                          <TableHead>Weight/Unit</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {formData.items.length === 0 ? (
+                          <TableRow>
+                            <TableCell
+                              colSpan={7}
+                              className="text-center py-6 text-muted-foreground"
+                            >
+                              No items added yet.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          formData.items.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{index + 1}</TableCell>
+                              <TableCell>
+                                {getItemGroupName(item.itemGroupId)}
+                              </TableCell>
+                              <TableCell>{getItemName(item.itemId)}</TableCell>
+                              <TableCell>{item.partNo || "-"}</TableCell>
+                              <TableCell>
+                                {item.quantity} {getUnitName(item.unitId)}
+                              </TableCell>
+                              <TableCell>{item.weight || "-"}</TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeItem(index)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  <span className="sr-only">Remove</span>
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {errors.items && (
+                    <p className="text-sm text-destructive">{errors.items}</p>
+                  )}
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setActiveTab("details")}
+                  >
+                    Back to Details
+                  </Button>
+                  <Button type="button" onClick={goToNextTab}>
+                    Next: Review
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="review" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Review & Submit</CardTitle>
+                  <CardDescription>
+                    Review the material requisition details before submitting
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">
+                        Requisition No
+                      </Label>
+                      <p className="font-medium">{formData.requisitionNo}</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">
+                        Date and Time
+                      </Label>
+                      <p className="font-medium">
+                        {new Date(formData.date).toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">
+                        Store Section
+                      </Label>
+                      <p className="font-medium">
+                        {formData.storeSection === "main"
+                          ? "Main Store"
+                          : formData.storeSection === "secondary"
+                          ? "Secondary Store"
+                          : formData.storeSection === "warehouse"
+                          ? "Warehouse"
+                          : formData.storeSection}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">Location</Label>
+                      <p className="font-medium">{formData.location}</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">
+                        Requested For
+                      </Label>
+                      <p className="font-medium">
+                        {formData.requestedFor.type.charAt(0).toUpperCase() +
+                          formData.requestedFor.type.slice(1)}
+                        : {formData.requestedFor.value}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">
+                        Charge Type
+                      </Label>
+                      <p className="font-medium">
+                        {formData.chargeType === "foc" ? "FOC" : "Chargeable"}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">Priority</Label>
+                      <p className="font-medium">
+                        {formData.priority.charAt(0).toUpperCase() +
+                          formData.priority.slice(1)}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">Due Date</Label>
+                      <p className="font-medium">
+                        {formData.dueDate
+                          ? new Date(formData.dueDate).toLocaleDateString()
+                          : "Not specified"}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">
+                        Prepared By
+                      </Label>
+                      <p className="font-medium">{formData.preparedBy}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Items</h3>
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Sr. No</TableHead>
+                            <TableHead>Item Group</TableHead>
+                            <TableHead>Item</TableHead>
+                            <TableHead>Part No</TableHead>
+                            <TableHead>Qty/Unit</TableHead>
+                            <TableHead>Weight/Unit</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {formData.items.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{index + 1}</TableCell>
+                              <TableCell>
+                                {getItemGroupName(item.itemGroupId)}
+                              </TableCell>
+                              <TableCell>{getItemName(item.itemId)}</TableCell>
+                              <TableCell>{item.partNo || "-"}</TableCell>
+                              <TableCell>
+                                {item.quantity} {getUnitName(item.unitId)}
+                              </TableCell>
+                              <TableCell>{item.weight || "-"}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setActiveTab("items")}
+                  >
+                    Back to Items
+                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSubmit}
+                    >
+                      <Save className="mr-2 h-4 w-4" /> Save
+                    </Button>
+                    <Button type="button" onClick={handlePrint}>
+                      <Printer className="mr-2 h-4 w-4" /> Print
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </>
+      ) : (
+        <div className="flex flex-col h-screen">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">Material Requisition Slip</h1>
+            <Button variant="outline" onClick={() => setShowPdf(false)}>
+              Back to Form
+            </Button>
+          </div>
+          <div className="flex-1 border rounded">
+            <PDFViewer width="100%" height="100%" className="border">
+              <MaterialRequisitionPDF
+                formData={formData}
+                items={formData.items.map((item) => ({
+                  ...item,
+                  itemName: getItemName(item.itemId),
+                  unit: getUnitName(item.unitId),
+                  issueTo: formData.requestedFor.type,
+                  vehicleNumber:
+                    formData.requestedFor.type === "vehicle"
+                      ? formData.requestedFor.value
+                      : "",
+                  siteName:
+                    formData.requestedFor.type !== "vehicle"
+                      ? formData.requestedFor.value
+                      : "",
+                }))}
+              />
+            </PDFViewer>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MaterialRequisitionForm;

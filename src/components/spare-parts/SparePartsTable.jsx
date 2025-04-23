@@ -16,7 +16,39 @@ import {
 import { Edit, MoreHorizontal, Trash2, History, FileText } from "lucide-react"
 import { EditSparePartModal } from "./EditSparePartModal"
 
-export function SparePartsTable({ spareParts }) {
+export function SparePartsTable() {
+  const spareParts = [
+    {
+      id: 1,
+      name: "Brake Pad",
+      partNo: "BP-123",
+      category: "Brakes",
+      currentStock: 10,
+      minStockLevel: 5,
+      site: "Warehouse A",
+      lastUpdated: "2023-06-01",
+    },
+    {
+      id: 2,
+      name: "Oil Filter",
+      partNo: "OF-456",
+      category: "Engine",
+      currentStock: 0,
+      minStockLevel: 3,
+      site: "Warehouse B",
+      lastUpdated: "2023-06-05",
+    },
+    {
+      id: 3,
+      name: "Air Filter",
+      partNo: "AF-789",
+      category: "Engine",
+      currentStock: 20,
+      minStockLevel: 10,
+      site: "Warehouse A",
+      lastUpdated: "2023-06-10",
+    }
+  ]
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null })
   const [editModal, setEditModal] = useState({ open: false, part: null })
   const [historyModal, setHistoryModal] = useState({ open: false, part: null })
