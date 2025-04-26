@@ -25,7 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { Edit, Info, MoreHorizontal, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import api from "@/services/api/api-service";
 import Loader from "../ui/loader";
@@ -47,6 +47,15 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
 
   const confirmDelete = () => {
     if (deleteConfirm.id) {
+      api
+        .delete(`/logbook/${deleteConfirm.id}`)
+        .then((response) => {
+          console.log("Logbook delete successfully:", response.data);
+        })
+        .catch((error) => {
+          console.error("Error deleting Logbook:", error);
+        });
+
       onDelete(deleteConfirm.id);
       setDeleteConfirm({ open: false, id: null });
     }
@@ -106,13 +115,13 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
                         <DropdownMenuItem
                           onClick={() => navigate(`/logbook/${entry.id}`)}
                         >
-                          <Edit className="mr-2 h-4 w-4" />
+                          <Info className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(entry)}>
+                        {/* <DropdownMenuItem onClick={() => onEdit(entry)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                         <DropdownMenuItem
                           onClick={() => handleDeleteClick(entry.id)}
                           className="text-red-600"
@@ -131,7 +140,7 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
                   colSpan={8}
                   className="text-center py-6 text-muted-foreground"
                 >
-                  {tableLoader ? <Loader /> : 'No logbook entries found'}
+                  {tableLoader ? <Loader /> : "No logbook entries found"}
                 </TableCell>
               </TableRow>
             )}

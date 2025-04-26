@@ -52,6 +52,17 @@ import MaterialIssueForm from "@/app/material-issue/MatrialIssueForm";
 import MaterialIssueList from "@/app/material-issue/MaterialIssueList.";
 import MaterialIssueDetails from "@/app/material-issue/MaterialIssueDetails";
 import { SparePartsTable } from "@/components/spare-parts/SparePartsTable";
+import MaterialRequisitionApproval from "@/app/material-requisition/pages/MaterialRequisitionApproval";
+import InventoryList from "@/app/spare-parts/Pages/InventoryList";
+import MaterialIssue from "@/app/material/MaterialIssue";
+import MaterialReceive from "@/app/material/MaterialReceive";
+import MaterialRequisitionForward from "@/app/material-requisition/pages/MaterialRequisitionForward";
+import MaterialRequisitionRespond from "@/app/material-requisition/pages/MaterialRequisitionRespond";
+import MaterialRequisitionReview from "@/app/material-requisition/pages/MaterialRequisitionReview";
+import MaterialDetails from "@/app/material/MaterialDetails";
+import { fetchItems } from "@/features/items/items-slice";
+import { fetchItemGroups } from "@/features/item-groups/item-groups-slice";
+import { fetchUnits } from "@/features/units/units-slice";
 
 function AppRouter() {
   const dispatch = useDispatch();
@@ -62,6 +73,9 @@ function AppRouter() {
     dispatch(fetchMachineCategories());
     dispatch(fetchMachines());
     dispatch(fetchPrimaryCategories());
+    dispatch(fetchItems());
+    dispatch(fetchItemGroups());
+    dispatch(fetchUnits());
   }, [dispatch]);
 
   return (
@@ -250,6 +264,24 @@ function AppRouter() {
           path="/requisitions/view/:id"
           element={<MaterialRequisitionView />}
         />
+        <Route
+          path="/requisitions/approve/:id"
+          element={<MaterialRequisitionApproval />}
+        />
+        <Route
+          path="/requisitions/forward/:id"
+          element={<MaterialRequisitionForward />}
+        />
+        <Route path="/requisitions/issue/:id" element={<MaterialIssue />} />
+        <Route path="/requisitions/receive/:id" element={<MaterialReceive />} />
+        <Route path="/requisitions/review/:id" element={<MaterialRequisitionReview />} />
+        <Route path="/requisitions/respond/:id" element={<MaterialRequisitionRespond />} />
+
+        {/* Inventory */}
+        <Route path="/inventory" element={<InventoryList />} />
+        <Route path="/inventory/:id" element={<MaterialDetails />} />
+
+        
         <Route path="/issues" element={<MaterialIssueList />} />
         <Route path="/issues/:id" element={<MaterialIssueDetails />} />
         <Route path="/issues/new" element={<MaterialIssueForm />} />

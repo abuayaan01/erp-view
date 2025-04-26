@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { AddSparePartModal } from "@/components/spare-parts/AddSparePartModal";
+import { SparePartsTable } from "@/components/spare-parts/SparePartsTable";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -8,21 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Search,
-  Package,
-  AlertTriangle,
-  Clock,
-  PlusCircle,
-  Layers,
-} from "lucide-react";
-import { SparePartsTable } from "@/components/spare-parts/SparePartsTable";
-import { RequestsTable } from "@/components/spare-parts/RequestsTable";
-import { AddSparePartModal } from "@/components/spare-parts/AddSparePartModal";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export function SparePartsPage() {
   const [searchQuery, setSearchQuery] = useState("");

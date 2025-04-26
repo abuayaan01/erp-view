@@ -19,6 +19,9 @@ import sitesReducer from "@/features/sites/sites-slice";
 import machineCategoryReducer from "@/features/machine-category/machine-category-slice";
 import primaryCategoryReducer from "@/features/primary-category/primary-category-slice";
 import machineReducer from "@/features/machine/machine-slice";
+import itemGroupsReducer from "@/features/item-groups/item-groups-slice";
+import itemsReducer from "@/features/items/items-slice";
+import unitsReducer from "@/features/units/units-slice";
 
 const persistConfig = {
   key: "root", // key for storing in localStorage
@@ -33,6 +36,9 @@ const rootReducer = combineReducers({
   machineCategories: machineCategoryReducer,
   primaryCategories: primaryCategoryReducer,
   machines: machineReducer,
+  itemGroups: itemGroupsReducer,
+  items: itemsReducer,
+  units: unitsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

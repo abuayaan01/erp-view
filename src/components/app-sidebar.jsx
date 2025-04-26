@@ -21,6 +21,9 @@ import {
   Truck,
   Book,
   ClipboardList,
+  Puzzle,
+  Send,
+  Warehouse,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -187,10 +190,16 @@ const data = {
       icon: Book,
       collapsible: false,
     },
+    // {
+    //   title: "Spare Parts",
+    //   url: "/spare-parts",
+    //   icon: Settings2,
+    //   collapsible: false,
+    // },
     {
-      title: "Spare Parts",
-      url: "/spare-parts",
-      icon: Settings2,
+      title: "Inventory",
+      url: "/inventory",
+      icon: Warehouse,
       collapsible: false,
     },
     {
@@ -209,13 +218,13 @@ const data = {
     {
       title: "Material Issue",
       url: "/issues",
-      icon: ClipboardList,
+      icon: Send,
       collapsible: false,
     },
     {
       title: "Parts & Units Setup",
       url: "#",
-      icon: ClipboardList,
+      icon: Puzzle,
       collapsible: true,
       items: [
         {

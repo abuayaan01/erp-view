@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { PDFViewer } from "@react-pdf/renderer";
 import MaterialRequisitionPDF from "./MaterialRequisitionPDF";
+import { useSelector } from "react-redux";
 
 const MaterialRequisitionView = () => {
   const { id } = useParams();
@@ -30,25 +31,62 @@ const MaterialRequisitionView = () => {
   const [items, setItems] = useState([]);
   const [units, setUnits] = useState([]);
   const [showPdf, setShowPdf] = useState(false);
+  const storedItemGroups = useSelector((state) => state.itemGroups) || [];
+  const storedItems = useSelector((state) => state.items) || [];
+  const storedUnits = useSelector((state) => state.units) || [];
 
   const shouldPrint =
     new URLSearchParams(location.search).get("print") === "true";
 
   useEffect(() => {
     // Load data from localStorage
-    const requisitions = JSON.parse(localStorage.getItem("requisitions")) || [];
-    const storedItemGroups =
-      JSON.parse(localStorage.getItem("itemGroups")) || [];
-    const storedItems = JSON.parse(localStorage.getItem("items")) || [];
-    const storedUnits = JSON.parse(localStorage.getItem("units")) || [];
+    const requisitions = [
+      {
+        id: "1",
+        requisitionNo: "REQ-1001",
+        date: "2025-04-20",
+        location: "Site A",
+        requestedFor: {
+          type: "machine",
+          value: "Excavator #3",
+        },
+        priority: "high",
+        preparedBy: "John Doe",
+        status: "approved",
+        items: [
+          {
+            itemId: "1",
+            name: "Hammer",
+            itemGroupId: "1",
+            unitId: "1",
+            quantity: 5,
+            partNumber: "PN-12345",
+            ItemGroup: { name: "Tools" },
+            Unit: { shortName: "pcs" },
+            weight: "1.5 kg",
+          },
+          {
+            itemId: "2",
+            name: "Wrench",
+            itemGroupId: "1",
+            unitId: "2",
+            quantity: 12,
+            partNumber: "PN-123456",
+            ItemGroup: { name: "Tools" },
+            Unit: { shortName: "pcs" },
+            weight: "0.5 kg",
+          },
+        ],
+      },
+    ];
 
     const foundRequisition = requisitions.find((req) => req.id === id);
 
     if (foundRequisition) {
       setRequisition(foundRequisition);
-      setItemGroups(storedItemGroups);
-      setItems(storedItems);
-      setUnits(storedUnits);
+      setItemGroups(storedItemGroups.data);
+      setItems(storedItems.data);
+      setUnits(storedUnits.data);
     } else {
       toast({
         title: "Requisition Not Found",
@@ -67,17 +105,17 @@ const MaterialRequisitionView = () => {
   }, [shouldPrint, requisition]);
 
   const getItemGroupName = (id) => {
-    const group = itemGroups.find((g) => g.id === id);
+    const group = itemGroups.find((g) => g.id == id);
     return group ? group.name : "Unknown Group";
   };
 
   const getItemName = (id) => {
-    const item = items.find((i) => i.id === id);
+    const item = items.find((i) => i.id == id);
     return item ? item.name : "Unknown Item";
   };
 
   const getUnitName = (id) => {
-    const unit = units.find((u) => u.id === id);
+    const unit = units.find((u) => u.id == id);
     return unit ? unit.shortName || unit.name : "";
   };
 
@@ -236,13 +274,11 @@ const MaterialRequisitionView = () => {
                     {requisition.items.map((item, index) => (
                       <TableRow key={index}>
                         <TableCell>{index + 1}</TableCell>
+                        <TableCell>{item.ItemGroup.name}</TableCell>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>{item.partNumber || "-"}</TableCell>
                         <TableCell>
-                          {getItemGroupName(item.itemGroupId)}
-                        </TableCell>
-                        <TableCell>{getItemName(item.itemId)}</TableCell>
-                        <TableCell>{item.partNo || "-"}</TableCell>
-                        <TableCell>
-                          {item.quantity} {getUnitName(item.unitId)}
+                          {item.quantity} {item.Unit?.shortName}
                         </TableCell>
                         <TableCell>{item.weight || "-"}</TableCell>
                       </TableRow>

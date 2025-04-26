@@ -1,167 +1,186 @@
-"use client"
-import { Link } from "react-router-dom"
-import { useState, useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
+"use client";
+import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useDispatch, useSelector } from "react-redux";
+import api from "@/services/api/api-service";
+import { fetchItems } from "@/features/items/items-slice";
 
 const ItemForm = () => {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const { toast } = useToast()
-  const isEditMode = !!id
+  const dispatch = useDispatch();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const isEditMode = !!id;
 
   const [formData, setFormData] = useState({
     name: "",
     shortName: "",
-    itemGroup: "",
-    partNo: "",
-    unit: "",
+    itemGroupId: "",
+    partNumber: "",
+    unitId: "",
     hsnCode: "",
-  })
+  });
 
-  const [itemGroups, setItemGroups] = useState([])
-  const [units, setUnits] = useState([])
-  const [errors, setErrors] = useState({})
+  const [itemGroups, setItemGroups] = useState([]);
+  const [units, setUnits] = useState([]);
+  const [errors, setErrors] = useState({});
+  const storedItemGroups = useSelector((state) => state.itemGroups) || [];
+  const storedItems = useSelector((state) => state.items) || [];
+  const storedUnits = useSelector((state) => state.units) || [];
 
   useEffect(() => {
-    // Load item groups and units
-    // const storedItemGroups = JSON.parse(localStorage.getItem("itemGroups")) || []
-    // const storedUnits = JSON.parse(localStorage.getItem("units")) || []
-    const storedItemGroups = [
-      { id: "grp1", name: "Electrical" },
-      { id: "grp2", name: "Mechanical" },
-      { id: "grp3", name: "Safety Equipment" },
-    ];
-
-    const storedUnits = [
-      { id: "unit1", name: "Meter" },
-      { id: "unit2", name: "Piece" },
-      { id: "unit3", name: "Set" },
-    ];
-
-    setItemGroups(storedItemGroups)
-    setUnits(storedUnits)
+    setItemGroups(storedItemGroups.data);
+    setUnits(storedUnits.data);
 
     if (isEditMode) {
       // Load item data for editing
-      const items = JSON.parse(localStorage.getItem("items")) || []
-      const item = items.find((item) => item.id === id)
+      const items = storedItems.data;
+      const item = items.find((item) => item.id == id);
+      console.log(item)
 
       if (item) {
         setFormData({
           name: item.name,
           shortName: item.shortName || "",
-          itemGroup: item.itemGroup,
-          partNo: item.partNo || "",
-          unit: item.unit,
+          itemGroupId: String(item.itemGroupId),
+          partNumber: item.partNumber || "",
+          unitId: String(item.unitId),
           hsnCode: item.hsnCode || "",
-        })
+        });
       } else {
         // If item not found, redirect to list
-        navigate("/items")
+        navigate("/items");
         toast({
           title: "Item Not Found",
           description: "The item you're trying to edit doesn't exist.",
           variant: "destructive",
-        })
+        });
       }
     }
-  }, [id, isEditMode, navigate, toast])
+  }, [id, isEditMode, navigate, toast]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
 
     // Clear error when field is edited
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
-      }))
+      }));
     }
-  }
+  };
 
   const handleSelectChange = (name, value) => {
+    console.log(name, value);
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
 
     // Clear error when field is edited
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
-      }))
+      }));
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors = {}
+    const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = "Item name is required"
+      newErrors.name = "Item name is required";
     }
 
-    if (!formData.itemGroup) {
-      newErrors.itemGroup = "Item group is required"
+    if (!formData.itemGroupId) {
+      newErrors.itemGroupId = "Item group is required";
     }
 
-    if (!formData.unit) {
-      newErrors.unit = "Unit is required"
+    if (!formData.unitId) {
+      newErrors.unitId = "Unit is required";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
     // Get existing items
-    const items = JSON.parse(localStorage.getItem("items")) || []
+    const items = storedItems.data || [];
 
     if (isEditMode) {
       // Update existing item
-      const updatedItems = items.map((item) => (item.id === id ? { ...item, ...formData } : item))
+      const updatedItems = items.map((item) =>
+        item.id === id ? { ...item, ...formData } : item
+      );
 
-      localStorage.setItem("items", JSON.stringify(updatedItems))
+      // localStorage.setItem("items", JSON.stringify(updatedItems))
+      api
+        .put(`/items/${id}`, formData)
+        .then((response) => {
+          console.log("Item updated successfully:", response.data);
+        })
+        .catch((error) => {
+          console.error("Error updating item:", error);
+        });
+      dispatch(fetchItems());
 
       toast({
         title: "Item Updated",
         description: "The item has been updated successfully.",
-      })
+      });
     } else {
       // Create new item
-      const newItem = {
-        id: Date.now().toString(),
-        ...formData,
-      }
-
-      localStorage.setItem("items", JSON.stringify([...items, newItem]))
-
+      api
+        .post("/items", formData)
+        .then((response) => {
+          console.log("Item created successfully:", response.data);
+        })
+        .catch((error) => {
+          console.error("Error creating item:", error);
+        });
       toast({
         title: "Item Created",
         description: "The new item has been created successfully.",
-      })
+      });
     }
-
+    dispatch(fetchItems());
     // Redirect to items list
-    navigate("/items")
-  }
+    navigate("/items");
+  };
 
   return (
     <div className="space-y-6">
@@ -170,14 +189,18 @@ const ItemForm = () => {
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
-        <h1 className="text-3xl font-bold tracking-tight">{isEditMode ? "Edit Item" : "Add Item"}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {isEditMode ? "Edit Item" : "Add Item"}
+        </h1>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>{isEditMode ? "Edit Item" : "Create New Item"}</CardTitle>
           <CardDescription>
-            {isEditMode ? "Update the details of an existing item" : "Add a new item to your inventory"}
+            {isEditMode
+              ? "Update the details of an existing item"
+              : "Add a new item to your inventory"}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -191,7 +214,9 @@ const ItemForm = () => {
                 onChange={handleChange}
                 placeholder="Enter item name"
               />
-              {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -207,8 +232,13 @@ const ItemForm = () => {
 
             <div className="space-y-2">
               <Label htmlFor="itemGroup">Item Group *</Label>
-              <Select value={formData.itemGroup} onValueChange={(value) => handleSelectChange("itemGroup", value)}>
-                <SelectTrigger id="itemGroup">
+              <Select
+                value={formData.itemGroupId}
+                onValueChange={(value) =>
+                  handleSelectChange("itemGroupId", value)
+                }
+              >
+                <SelectTrigger id="itemGroupId">
                   <SelectValue placeholder="Select item group" />
                 </SelectTrigger>
                 <SelectContent>
@@ -218,14 +248,17 @@ const ItemForm = () => {
                     </SelectItem>
                   ) : (
                     itemGroups.map((group) => (
-                      <SelectItem key={group.id} value={group.id}>
+                      <SelectItem key={group.id} value={String(group.id)}>
                         {group.name}
                       </SelectItem>
                     ))
                   )}
                 </SelectContent>
               </Select>
-              {errors.itemGroup && <p className="text-sm text-destructive">{errors.itemGroup}</p>}
+
+              {errors.itemGroup && (
+                <p className="text-sm text-destructive">{errors.itemGroup}</p>
+              )}
               {itemGroups.length === 0 && (
                 <p className="text-sm text-amber-500">
                   No item groups available. Please{" "}
@@ -238,11 +271,11 @@ const ItemForm = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="partNo">Part No</Label>
+              <Label htmlFor="partNumber">Part No</Label>
               <Input
-                id="partNo"
-                name="partNo"
-                value={formData.partNo}
+                id="partNumber"
+                name="partNumber"
+                value={formData.partNumber}
                 onChange={handleChange}
                 placeholder="Enter part number (optional)"
               />
@@ -250,8 +283,11 @@ const ItemForm = () => {
 
             <div className="space-y-2">
               <Label htmlFor="unit">Unit *</Label>
-              <Select value={formData.unit} onValueChange={(value) => handleSelectChange("unit", value)}>
-                <SelectTrigger id="unit">
+              <Select
+                value={formData.unitId}
+                onValueChange={(value) => handleSelectChange("unitId", value)}
+              >
+                <SelectTrigger id="unitId">
                   <SelectValue placeholder="Select unit" />
                 </SelectTrigger>
                 <SelectContent>
@@ -261,14 +297,17 @@ const ItemForm = () => {
                     </SelectItem>
                   ) : (
                     units.map((unit) => (
-                      <SelectItem key={unit.id} value={unit.id}>
+                      <SelectItem key={unit.id} value={String(unit.id)}>
                         {unit.name}
                       </SelectItem>
                     ))
                   )}
                 </SelectContent>
               </Select>
-              {errors.unit && <p className="text-sm text-destructive">{errors.unit}</p>}
+
+              {errors.unit && (
+                <p className="text-sm text-destructive">{errors.unit}</p>
+              )}
               {units.length === 0 && (
                 <p className="text-sm text-amber-500">
                   No units available. Please{" "}
@@ -292,7 +331,11 @@ const ItemForm = () => {
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button type="button" variant="outline" onClick={() => navigate("/items")}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/items")}
+            >
               Cancel
             </Button>
             <Button type="submit">{isEditMode ? "Update" : "Create"}</Button>
@@ -300,7 +343,7 @@ const ItemForm = () => {
         </form>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default ItemForm
+export default ItemForm;

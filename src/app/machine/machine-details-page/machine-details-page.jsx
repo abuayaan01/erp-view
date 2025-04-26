@@ -19,98 +19,10 @@ import {
   Settings,
   User,
 } from "lucide-react";
-import PlacehoolderImage from "@/assets/images/placeholder-image.webp"
+import PlacehoolderImage from "@/assets/images/placeholder-image.webp";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-
-// This would typically come from an API call
-const machineryData = {
-  status: true,
-  message: "Machinery retrieved successfully",
-  data: {
-    id: 30,
-    primaryCategoryId: 21,
-    machineCategoryId: 8,
-    erpCode: "ERP23",
-    registrationNumber: "1672",
-    machineNumber: "4263",
-    machineCode: "MC025",
-    chassisNumber: "9908",
-    engineNumber: "9908",
-    serialNumber: "9908",
-    model: "V03",
-    make: "Burgery",
-    yom: 2023,
-    purchaseDate: "2025-03-17T00:00:00.000Z",
-    capacity: "20L",
-    ownerName: "Abu Ayaan",
-    ownerType: "Company",
-    siteId: 14,
-    isActive: true,
-    machineName: "Light Box",
-    fitnessCertificateExpiry: "1971-11-26T00:00:00.000Z",
-    motorVehicleTaxDue: "1982-09-15T00:00:00.000Z",
-    permitExpiryDate: "2024-12-16T00:00:00.000Z",
-    nationalPermitExpiry: "1970-10-08T00:00:00.000Z",
-    insuranceExpiry: "1982-04-25T00:00:00.000Z",
-    pollutionCertificateExpiry: "1995-10-02T00:00:00.000Z",
-    fitnessCertificateFile:
-      "https://res.cloudinary.com/dzxk9rpao/image/upload/v1741393734/mani/zzjssqktwysbmapzzyh8.jpg",
-    pollutionCertificateFile:
-      "https://res.cloudinary.com/dzxk9rpao/image/upload/v1741393734/mani/tl0mdjlpidrtenzvrnwi.jpg",
-    insuranceFile:
-      "https://res.cloudinary.com/dzxk9rpao/image/upload/v1741393734/mani/irj2jb4eewmicuerwq0m.jpg",
-    permitFile:
-      "https://res.cloudinary.com/dzxk9rpao/image/upload/v1741393734/mani/iabrhni8yuz8zpveeapi.jpg",
-    nationalPermitFile:
-      "https://res.cloudinary.com/dzxk9rpao/image/upload/v1741393734/mani/n8khicg9mba1soe5umk3.jpg",
-    motorVehicleTaxFile:
-      "https://res.cloudinary.com/dzxk9rpao/image/upload/v1741393734/mani/wpienhr4n2290r44mjfc.jpg",
-    machineImageFile:
-      "https://res.cloudinary.com/dzxk9rpao/image/upload/v1741393734/mani/rjtfbkoxkb1wj0sm9bs4.jpg",
-    status: "Idle",
-    createdAt: "2025-03-08T00:28:55.550Z",
-    updatedAt: "2025-03-08T00:28:55.550Z",
-    deletedAt: null,
-    primaryCategory: {
-      id: 21,
-      name: "LIGHT TOWER",
-      createdAt: "2025-01-30T18:41:14.143Z",
-      updatedAt: "2025-01-30T18:41:14.143Z",
-    },
-    machineCategory: {
-      id: 8,
-      name: "LIGHT TOWER",
-      primaryCategoryId: 21,
-      averageBase: "Time",
-      standardKmRun: null,
-      standardMileage: null,
-      standardHrsRun: 200,
-      ltrPerHour: null,
-      remarks: "Portable lighting",
-      useFor: "Construction",
-      machineType: "Machine",
-      unitPerHour: null,
-      isApplicable: null,
-      other: null,
-      createdAt: "2025-01-30T18:44:14.232Z",
-      updatedAt: "2025-01-30T18:44:14.232Z",
-    },
-    site: {
-      id: 14,
-      name: "Hazaribagh",
-      code: "HZB",
-      address: "Main Road",
-      departmentId: 1,
-      status: "active",
-      createdAt: "2025-02-07T01:10:40.091Z",
-      updatedAt: "2025-02-07T01:10:40.091Z",
-      deletedAt: null,
-    },
-  },
-  timestamp: "2025-03-15T20:25:35.892Z",
-};
-
+import MaintenanceLogModal from "@/app/maintanance-log/MaintenanceLogModal";
 // Helper function to format dates
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -131,7 +43,7 @@ const isExpired = (dateString) => {
 
 const isExpiringSoon = (dateString, days = 30) => {
   if (!dateString) return false;
-  
+
   const expiryDate = new Date(dateString);
   const today = new Date();
   const futureDate = new Date();
@@ -145,6 +57,7 @@ export default function MachineryDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState();
+  const [showMaintenanceLog, setShowMaintenanceLog] = useState(false);
   const params = useParams();
   // const { data } = siteData
 
@@ -236,7 +149,9 @@ export default function MachineryDetailPage() {
               {/* <Button variant="outline" size="sm">
                 Edit
               </Button> */}
-              <Button size="sm">Maintenance Log</Button>
+              <Button size="sm" onClick={() => setShowMaintenanceLog(true)}>
+                Maintenance Log
+              </Button>
             </div>
           </div>
 
@@ -346,9 +261,7 @@ export default function MachineryDetailPage() {
                             <p className="text-sm font-medium text-muted-foreground">
                               Owner Name
                             </p>
-                            <p className="font-semibold">
-                              {data.ownerName}
-                            </p>
+                            <p className="font-semibold">{data.ownerName}</p>
                           </div>
                           <div>
                             <p className="text-sm font-medium text-muted-foreground">
@@ -486,7 +399,9 @@ export default function MachineryDetailPage() {
                                 className={`text-sm ${
                                   isExpired(cert.expiry)
                                     ? "text-destructive"
-                                    : isExpiringSoon(cert.expiry) ? "text-yellow-400" : "text-green-400"
+                                    : isExpiringSoon(cert.expiry)
+                                    ? "text-yellow-400"
+                                    : "text-green-400"
                                 }`}
                               >
                                 Expires: {formatDate(cert.expiry)}
@@ -497,7 +412,11 @@ export default function MachineryDetailPage() {
                                   href={cert.file}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className={`text-sm ${cert.file ? "text-primary hover:underline" : "text-muted-foreground"}`}
+                                  className={`text-sm ${
+                                    cert.file
+                                      ? "text-primary hover:underline"
+                                      : "text-muted-foreground"
+                                  }`}
                                 >
                                   View Document
                                 </a>
@@ -599,6 +518,12 @@ export default function MachineryDetailPage() {
           </div>
         </div>
       )}
+      <MaintenanceLogModal
+        isOpen={showMaintenanceLog}
+        onClose={() => setShowMaintenanceLog(false)}
+        machineId={data?.id}
+        machineName={data?.name}
+      />
     </div>
   );
 }

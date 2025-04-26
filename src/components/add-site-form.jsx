@@ -28,11 +28,13 @@ import api from "@/services/api/api-service";
 import { useDispatch } from "react-redux";
 import { fetchSites } from "@/features/sites/sites-slice";
 
-
+// ⬇️ UPDATED: Added mobileNumber and pincode
 const formSchema = z.object({
   name: z.string().trim().min(1, "Site Name is required"),
   code: z.string().trim().min(1, "Site Code is required"),
   address: z.string().trim().min(1, "Site Address is required"),
+  mobileNumber: z.string().trim().min(10, "Mobile Number is required"),
+  pincode: z.string().trim().min(6, "Pincode is required"),
   departmentId: z.number(),
 });
 
@@ -40,12 +42,15 @@ export default function AddSiteForm({ close }) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const dispatch = useDispatch();
+  
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "", // Set initial value for name
-      code: "", // Set initial value for code
-      address: "", // Set initial value for address
+      name: "",
+      code: "",
+      address: "",
+      mobileNumber: "",
+      pincode: "",
       departmentId: 1,
     },
   });
@@ -55,7 +60,7 @@ export default function AddSiteForm({ close }) {
     try {
       const res = await api.post("/sites", values);
       toast({
-        title: "Success! ",
+        title: "Success!",
         description: "Site created successfully",
       });
       dispatch(fetchSites());
@@ -66,7 +71,7 @@ export default function AddSiteForm({ close }) {
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
         description:
-          error.response.data.message || "Failed to submit the form.",
+          error.response?.data?.message || "Failed to submit the form.",
       });
     } finally {
       setLoading(false);
@@ -88,13 +93,14 @@ export default function AddSiteForm({ close }) {
                 <FormItem>
                   <FormLabel>Site Name</FormLabel>
                   <FormControl>
-                    <Input type="text" placeholder="" {...field} />
+                    <Input type="text" placeholder="Enter site name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+
           <div className="col-span-6">
             <FormField
               control={form.control}
@@ -103,7 +109,39 @@ export default function AddSiteForm({ close }) {
                 <FormItem>
                   <FormLabel>Site Code</FormLabel>
                   <FormControl>
-                    <Input type="text" placeholder="" {...field} />
+                    <Input type="text" placeholder="Enter site code" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-6">
+            <FormField
+              control={form.control}
+              name="mobileNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mobile Number</FormLabel>
+                  <FormControl>
+                    <Input type="text" placeholder="Enter mobile number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-6">
+            <FormField
+              control={form.control}
+              name="pincode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pincode</FormLabel>
+                  <FormControl>
+                    <Input type="text" placeholder="Enter pincode" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -111,6 +149,7 @@ export default function AddSiteForm({ close }) {
             />
           </div>
         </div>
+
         <FormField
           control={form.control}
           name="address"
@@ -118,24 +157,26 @@ export default function AddSiteForm({ close }) {
             <FormItem>
               <FormLabel>Site Address</FormLabel>
               <FormControl>
-                <Textarea placeholder="" className="resize-none" {...field} />
+                <Textarea placeholder="Enter address" className="resize-none" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button loading={loading} type="submit">Submit</Button>
+
+        <Button loading={loading} type="submit">
+          Submit
+        </Button>
       </form>
     </Form>
   );
 }
 
+// UPDATE FORM
 export function UpdateSite({ data }) {
-  const [openForm, setOpenForm] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const closeForm = () => {
-    setOpenForm(false);
-  };
+  const [openForm, setOpenForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const closeForm = () => setOpenForm(false);
 
   const { toast } = useToast();
   const dispatch = useDispatch();
@@ -146,16 +187,16 @@ export function UpdateSite({ data }) {
       name: data.name || "",
       code: data.code || "",
       address: data.address || "",
+      mobileNumber: data.mobileNumber || "",
+      pincode: data.pincode || "",
       departmentId: 1,
     },
   });
 
   async function onSubmit(values) {
-    console.log("asdasdasdasd")
     setLoading(true);
     try {
       const res = await api.put(`/sites/${data.id}`, values);
-      console.log(res);
       toast({
         title: "Success!",
         description: "Site updated successfully",
@@ -176,7 +217,11 @@ export function UpdateSite({ data }) {
   }
 
   return (
-    <Dialog open={openForm} onOpenChange={setOpenForm} onKeyDown={(event) => event.stopPropagation()}>
+    <Dialog
+      open={openForm}
+      onOpenChange={setOpenForm}
+      onKeyDown={(e) => e.stopPropagation()}
+    >
       <DialogTrigger asChild>
         <button onClick={() => setOpenForm(true)} variant="outline">
           Edit
@@ -186,7 +231,7 @@ export function UpdateSite({ data }) {
         <DialogHeader>
           <DialogTitle>Update the site</DialogTitle>
           <DialogDescription>
-            Add site detail to update the site. Click submit when you're done.
+            Update the site details and click submit.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -203,13 +248,14 @@ export function UpdateSite({ data }) {
                     <FormItem>
                       <FormLabel>Site Name</FormLabel>
                       <FormControl>
-                        <Input type="text" placeholder="" {...field} onKeyDown={(event) => event.stopPropagation()} />
+                        <Input {...field} onKeyDown={(e) => e.stopPropagation()} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
               <div className="col-span-6">
                 <FormField
                   control={form.control}
@@ -218,7 +264,39 @@ export function UpdateSite({ data }) {
                     <FormItem>
                       <FormLabel>Site Code</FormLabel>
                       <FormControl>
-                        <Input type="text" placeholder="" {...field} onKeyDown={(event) => event.stopPropagation()} />
+                        <Input {...field} onKeyDown={(e) => e.stopPropagation()} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="col-span-6">
+                <FormField
+                  control={form.control}
+                  name="mobileNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mobile Number</FormLabel>
+                      <FormControl>
+                        <Input {...field} onKeyDown={(e) => e.stopPropagation()} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="col-span-6">
+                <FormField
+                  control={form.control}
+                  name="pincode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pincode</FormLabel>
+                      <FormControl>
+                        <Input {...field} onKeyDown={(e) => e.stopPropagation()} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -226,6 +304,7 @@ export function UpdateSite({ data }) {
                 />
               </div>
             </div>
+
             <FormField
               control={form.control}
               name="address"
@@ -233,13 +312,16 @@ export function UpdateSite({ data }) {
                 <FormItem>
                   <FormLabel>Site Address</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="" className="resize-none" {...field} onKeyDown={(event) => event.stopPropagation()} />
+                    <Textarea className="resize-none" {...field} onKeyDown={(e) => e.stopPropagation()} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button loading={loading} type="submit">Submit</Button>
+
+            <Button loading={loading} type="submit">
+              Submit
+            </Button>
           </form>
         </Form>
       </DialogContent>

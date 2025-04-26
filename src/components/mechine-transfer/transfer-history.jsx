@@ -26,10 +26,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Search, FileText } from "lucide-react";
+import { Search, FileText, BookDown, MoreHorizontal } from "lucide-react";
 import api from "@/services/api/api-service";
 import Loader from "../ui/loader";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 // Update the mock data to include the new transfer types
 // Replace the historyTransfers array with this updated one
@@ -72,6 +79,7 @@ export function TransferHistory() {
   const [typeFilter, setTypeFilter] = useState("All Types");
   const [selectedTransfer, setSelectedTransfer] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Update the filteredTransfers function to include type filtering
   // Replace the filteredTransfers constant with this updated one
@@ -141,12 +149,40 @@ export function TransferHistory() {
   };
 
   useEffect(() => {
+    let logs = [
+      {
+        action: "Transfer Requested",
+        date: "2025-04-20 10:15 AM",
+        user: "John Doe",
+        reason: "Machine needed for Site B expansion",
+      },
+      {
+        action: "Approved by Mechanical Head",
+        date: "2025-04-21 03:40 PM",
+        user: "Sarah Connor",
+        reason: "Urgent project requirement",
+      },
+      {
+        action: "Dispatched from Site A",
+        date: "2025-04-22 09:00 AM",
+        user: "Michael Scott",
+      },
+      {
+        action: "Received at Site B",
+        date: "2025-04-23 04:25 PM",
+        user: "Dwight Schrute",
+      },
+    ];
     const fetchHistory = async () => {
       try {
         setLoading(true);
         const res = await api.get("/transfers");
         if (res) {
-          setTransfers(res.data);
+          setTransfers(
+            res.data.map((d) => {
+              return { ...d, logs };
+            })
+          );
         }
       } catch (error) {
         console.log(error);
@@ -250,126 +286,148 @@ export function TransferHistory() {
 
       <div className="rounded-md border">
         {/* Update the table header to include Type column */}
-        <TableHeader>
-          <TableRow className="text-sm">
-            <TableHead className="text-center">Transfer ID</TableHead>
-            <TableHead className="text-center">Machine Name</TableHead>
-            <TableHead className="text-center">Type</TableHead>
-            <TableHead className="w-[250px] text-center">From → To</TableHead>
-            <TableHead className="text-center">Transfer Date</TableHead>
-            <TableHead className="text-center">Status</TableHead>
-            <TableHead className="text-center">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        {/* Update the table body to display the transfer type and handle different types */}
-        <TableBody>
-          {transfers.length > 0 ? (
-            transfers.map((transfer) => (
-              <TableRow className="text-sm text-center" key={transfer.id}>
-                <TableCell>{transfer.id}</TableCell>
-                <TableCell>{transfer.machine?.machineName || "NA"}</TableCell>
-                <TableCell>
-                  {transfer.requestType === "Site Transfer"
-                    ? "Site Transfer"
-                    : transfer.requestType === "Sell"
-                    ? "Sell"
-                    : "Scrap"}
-                </TableCell>
-                <TableCell>
-                  {transfer.currentSite?.name || "NA"} →{" "}
-                  {transfer.requestType === "Site Transfer"
-                    ? transfer.destinationSite?.name || "NA"
-                    : transfer.requestType === "Sell"
-                    ? transfer.buyerName || "Buyer"
-                    : transfer.scrapVendor || "Scrap"}
-                </TableCell>
-                <TableCell>
-                  {new Date(transfer.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    className={getStatusColor(transfer.status)}
-                    variant="outline"
-                  >
-                    {transfer.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => viewTransferLogs(transfer)}
-                      >
-                        <FileText className="h-4 w-4 mr-1" />
-                        View Logs
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Transfer Logs: {transfer.id}</DialogTitle>
-                        <DialogDescription>
-                          History of actions for this transfer
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <h3 className="text-sm font-medium">
-                            Machine: {transfer.machine?.machineName}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {transfer.requestType === "Site Transfer"
-                              ? `From ${transfer.currentSite?.name} to ${transfer.destinationSite?.name}`
-                              : transfer.requestType === "Sell"
-                              ? `From ${transfer.currentSite?.name} to buyer: ${
-                                  transfer.buyerName || "N/A"
-                                }`
-                              : `From ${
-                                  transfer.currentSite?.name
-                                } to scrap vendor: ${
-                                  transfer.scrapVendor || "N/A"
-                                }`}
-                          </p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <h3 className="text-sm font-medium">Activity Log</h3>
-                          <div className="space-y-2">
-                            {transfer?.logs?.map((log, index) => (
-                              <div
-                                key={index}
-                                className="border-l-2 border-muted pl-4 py-1"
-                              >
-                                <p className="text-sm font-medium">
-                                  {log?.action}
+        <table className="w-full">
+          <TableHeader>
+            <TableRow className="text-sm">
+              <TableHead className="text-center">Transfer ID</TableHead>
+              <TableHead className="text-center">Machine Name</TableHead>
+              <TableHead className="text-center">Type</TableHead>
+              <TableHead className="w-[250px] text-center">From → To</TableHead>
+              <TableHead className="text-center">Transfer Date</TableHead>
+              <TableHead className="text-center">Status</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          {/* Update the table body to display the transfer type and handle different types */}
+          <TableBody>
+            {transfers.length > 0 ? (
+              transfers.map((transfer) => (
+                <TableRow className="text-sm text-center" key={transfer.id}>
+                  <TableCell>{transfer.id}</TableCell>
+                  <TableCell>{transfer.machine?.machineName || "NA"}</TableCell>
+                  <TableCell>
+                    {transfer.requestType === "Site Transfer"
+                      ? "Site Transfer"
+                      : transfer.requestType === "Sell"
+                      ? "Sell"
+                      : "Scrap"}
+                  </TableCell>
+                  <TableCell>
+                    {transfer.currentSite?.name || "NA"} →{" "}
+                    {transfer.requestType === "Site Transfer"
+                      ? transfer.destinationSite?.name || "NA"
+                      : transfer.requestType === "Sell"
+                      ? transfer.buyerName || "Buyer"
+                      : transfer.scrapVendor || "Scrap"}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(transfer.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      className={getStatusColor(transfer.status)}
+                      variant="outline"
+                    >
+                      {transfer.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              // onClick={() => viewTransferLogs(transfer)}
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              View Logs
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>
+                                Transfer Logs: {transfer.id}
+                              </DialogTitle>
+                              <DialogDescription>
+                                History of actions for this transfer
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="space-y-2">
+                                <h3 className="text-sm font-medium">
+                                  Machine: {transfer.machine?.machineName}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {transfer.requestType === "Site Transfer"
+                                    ? `From ${transfer.currentSite?.name} to ${transfer.destinationSite?.name}`
+                                    : transfer.requestType === "Sell"
+                                    ? `From ${
+                                        transfer.currentSite?.name
+                                      } to buyer: ${
+                                        transfer.buyerName || "N/A"
+                                      }`
+                                    : `From ${
+                                        transfer.currentSite?.name
+                                      } to scrap vendor: ${
+                                        transfer.scrapVendor || "N/A"
+                                      }`}
                                 </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {log?.date} by {log.user}
-                                </p>
-                                {log?.reason && (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    Reason: {log.reason}
-                                  </p>
-                                )}
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+
+                              <div className="space-y-2">
+                                <h3 className="text-sm font-medium">
+                                  Activity Log
+                                </h3>
+                                <div className="space-y-2">
+                                  {transfer?.logs?.map((log, index) => (
+                                    <div
+                                      key={index}
+                                      className="border-l-2 border-muted pl-4 py-1"
+                                    >
+                                      <p className="text-sm font-medium">
+                                        {log?.action}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {log?.date} by {log.user}
+                                      </p>
+                                      {log?.reason && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          Reason: {log.reason}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                        <DropdownMenuItem className="text-red-600">
+                          <BookDown className="mr-2 h-4 w-4" />
+                          Download Challan
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-4">
+                  No transfers found
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-4">
-                No transfers found
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
+            )}
+          </TableBody>
+        </table>
       </div>
     </div>
   );

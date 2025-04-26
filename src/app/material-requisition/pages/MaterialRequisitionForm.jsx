@@ -34,6 +34,42 @@ import {
 } from "@/components/ui/table";
 import { PDFViewer } from "@react-pdf/renderer";
 import MaterialRequisitionPDF from "./MaterialRequisitionPDF";
+import { useDispatch, useSelector } from "react-redux";
+
+// const storedItemGroups = [
+//   { id: "grp1", name: "Electrical" },
+//   { id: "grp2", name: "Mechanical" },
+//   { id: "grp3", name: "Safety Equipment" },
+// ];
+
+// const storedItems = [
+//   {
+//     id: "item1",
+//     name: "Cable Roll",
+//     itemGroup: "grp1",
+//     unitId: "unit1",
+//   },
+//   { id: "item2", name: "Switch", itemGroup: "grp1", unitId: "unit2" },
+//   {
+//     id: "item3",
+//     name: "Gearbox",
+//     itemGroup: "grp2",
+//     unitId: "unit3",
+//   },
+//   {
+//     id: "item4",
+//     name: "Hard Hat",
+//     itemGroup: "grp3",
+//     unitId: "unit2",
+//   },
+//   { id: "item5", name: "Gloves", itemGroup: "grp3", unitId: "unit2" },
+// ];
+
+// const storedUnits = [
+//   { id: "unit1", name: "Meter" },
+//   { id: "unit2", name: "Piece" },
+//   { id: "unit3", name: "Set" },
+// ];
 
 const MaterialRequisitionForm = () => {
   const navigate = useNavigate();
@@ -44,6 +80,7 @@ const MaterialRequisitionForm = () => {
     requisitionNo: `REQ-${Date.now().toString().slice(-6)}`,
     date: new Date().toISOString(),
     time: new Date().toLocaleTimeString(),
+    requestingSite: "Site A", // Default site
     storeSection: "",
     location: "",
     requestedFor: {
@@ -55,6 +92,7 @@ const MaterialRequisitionForm = () => {
     dueDate: "",
     preparedBy: "",
     items: [],
+    status: "pending",
   });
 
   const [itemGroups, setItemGroups] = useState([]);
@@ -68,53 +106,21 @@ const MaterialRequisitionForm = () => {
   const [filteredItems, setFilteredItems] = useState([]);
   const [errors, setErrors] = useState({});
   const [activeTab, setActiveTab] = useState("details");
-
+  const [sites, setSites] = useState(["Site A", "Site B", "Site C"]); // Mock sites
+  const storedItemGroups = useSelector((state) => state.itemGroups) || [];
+  const storedItems = useSelector((state) => state.items) || [];
+  const storedUnits = useSelector((state) => state.units) || [];
   useEffect(() => {
-    const storedItemGroups = [
-      { id: "grp1", name: "Electrical" },
-      { id: "grp2", name: "Mechanical" },
-      { id: "grp3", name: "Safety Equipment" },
-    ];
-
-    const storedItems = [
-      {
-        id: "item1",
-        name: "Cable Roll",
-        itemGroup: "grp1",
-        unitId: "unit1",
-      },
-      { id: "item2", name: "Switch", itemGroup: "grp1", unitId: "unit2" },
-      {
-        id: "item3",
-        name: "Gearbox",
-        itemGroup: "grp2",
-        unitId: "unit3",
-      },
-      {
-        id: "item4",
-        name: "Hard Hat",
-        itemGroup: "grp3",
-        unitId: "unit2",
-      },
-      { id: "item5", name: "Gloves", itemGroup: "grp3", unitId: "unit2" },
-    ];
-
-    const storedUnits = [
-      { id: "unit1", name: "Meter" },
-      { id: "unit2", name: "Piece" },
-      { id: "unit3", name: "Set" },
-    ];
-
-    setItemGroups(storedItemGroups);
-    setItems(storedItems);
-    setUnits(storedUnits);
+    setItemGroups(storedItemGroups.data);
+    setItems(storedItems.data);
+    setUnits(storedUnits.data);
   }, []);
 
   useEffect(() => {
     // Filter items based on selected item group
     if (selectedItemGroup) {
       const filtered = items.filter(
-        (item) => item.itemGroup === selectedItemGroup
+        (item) => item.itemGroupId === selectedItemGroup
       );
       setFilteredItems(filtered);
     } else {
@@ -246,6 +252,7 @@ const MaterialRequisitionForm = () => {
         size: itemSize,
         weight: itemWeight,
         partNo: getItemPartNo(selectedItem),
+        status: "pending", // Initial status for each item
       };
 
       setFormData((prev) => ({
@@ -283,6 +290,10 @@ const MaterialRequisitionForm = () => {
 
   const validateForm = () => {
     const newErrors = {};
+
+    if (!formData.requestingSite) {
+      newErrors.requestingSite = "Requesting site is required";
+    }
 
     if (!formData.storeSection) {
       newErrors.storeSection = "Store section is required";
@@ -360,6 +371,10 @@ const MaterialRequisitionForm = () => {
     if (activeTab === "details") {
       // Validate details before moving to items tab
       const detailErrors = {};
+
+      if (!formData.requestingSite) {
+        detailErrors.requestingSite = "Requesting site is required";
+      }
 
       if (!formData.storeSection) {
         detailErrors.storeSection = "Store section is required";
@@ -461,6 +476,32 @@ const MaterialRequisitionForm = () => {
                         readOnly
                         disabled
                       />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="requestingSite">Requesting Site *</Label>
+                      <Select
+                        value={formData.requestingSite}
+                        onValueChange={(value) =>
+                          handleSelectChange("requestingSite", value)
+                        }
+                      >
+                        <SelectTrigger id="requestingSite">
+                          <SelectValue placeholder="Select requesting site" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {sites.map((site, index) => (
+                            <SelectItem key={index} value={site}>
+                              {site}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.requestingSite && (
+                        <p className="text-sm text-destructive">
+                          {errors.requestingSite}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -679,13 +720,13 @@ const MaterialRequisitionForm = () => {
                         </SelectTrigger>
                         <SelectContent>
                           {itemGroups.length === 0 ? (
-                            <SelectItem value="" disabled>
+                            <SelectItem value={null} disabled>
                               No item groups available
                             </SelectItem>
                           ) : (
                             itemGroups.map((group) => (
-                              <SelectItem key={group?.id} value={group?.id}>
-                                {group?.name}
+                              <SelectItem key={group.id} value={group.id}>
+                                {group.name}
                               </SelectItem>
                             ))
                           )}
@@ -878,6 +919,13 @@ const MaterialRequisitionForm = () => {
                       <p className="font-medium">
                         {new Date(formData.date).toLocaleString()}
                       </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">
+                        Requesting Site
+                      </Label>
+                      <p className="font-medium">{formData.requestingSite}</p>
                     </div>
 
                     <div className="space-y-1">

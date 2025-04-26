@@ -88,7 +88,7 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
     };
 
     fetchMachines();
-    fetchSites();
+    // fetchSites();
   }, []);
 
   useEffect(() => {
@@ -144,6 +144,9 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
         registrationNumber: selectedMachine.registrationNumber,
         machineNumber: selectedMachine.machineNumber,
         assetCode: selectedMachine.erpCode,
+        siteName: selectedMachine.site.name,
+        siteId: selectedMachine.site.id,
+        location: selectedMachine.site.address,
       });
     }
     setMachineOpen(false);
@@ -349,7 +352,7 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
         {/* Site Selection */}
         <div className="space-y-2">
           <Label htmlFor="siteId">Site Name</Label>
-          <Popover open={siteOpen} onOpenChange={setSiteOpen}>
+          {/* <Popover open={siteOpen} onOpenChange={setSiteOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -396,7 +399,15 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
                 </CommandGroup>
               </Command>
             </PopoverContent>
-          </Popover>
+          </Popover> */}
+          <Input
+            id="siteName"
+            name="siteName"
+            value={formData.siteName}
+            onChange={handleChange}
+            readOnly
+            className="bg-muted"
+          />
           {errors.siteId && (
             <p className="text-red-500 text-sm">{errors.siteId}</p>
           )}
@@ -410,6 +421,8 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
             name="location"
             value={formData.location}
             onChange={handleChange}
+            readOnly
+            className="bg-muted"
           />
         </div>
 

@@ -42,8 +42,16 @@ export const columns = [
     header: "Site Code",
   },
   {
+    accessorKey: "mobileNumber",
+    header: "Mobile Number",
+  },
+  {
     accessorKey: "address",
     header: "Address",
+  },
+  {
+    accessorKey: "pincode",
+    header: "Pincode",
   },
   {
     accessorKey: "status",

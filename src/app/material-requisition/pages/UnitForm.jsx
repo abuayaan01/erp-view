@@ -1,140 +1,160 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { useDispatch, useSelector } from "react-redux";
+import api from "@/services/api/api-service";
+import { fetchUnits } from "@/features/units/units-slice";
 
 const UnitForm = () => {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const { toast } = useToast()
-  const isEditMode = !!id
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { toast } = useToast();
+  const storedItemGroups = useSelector((state) => state.itemGroups) || [];
+  const storedItems = useSelector((state) => state.items) || [];
+  const storedUnits = useSelector((state) => state.units) || [];
+  const isEditMode = !!id;
 
   const [formData, setFormData] = useState({
     name: "",
     shortName: "",
     decimalPlaces: "0",
-  })
+  });
 
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (isEditMode) {
       // Load unit data for editing
-      const units = JSON.parse(localStorage.getItem("units")) || []
-      const unit = units.find((unit) => unit.id === id)
+      const units = storedUnits.data || [];
+      const unit = units.find((unit) => unit.id == id);
 
       if (unit) {
         setFormData({
           name: unit.name,
           shortName: unit.shortName,
           decimalPlaces: unit.decimalPlaces.toString(),
-        })
+        });
       } else {
         // If unit not found, redirect to list
-        navigate("/units")
+        navigate("/units");
         toast({
           title: "Unit Not Found",
-          description: "The measurement unit you're trying to edit doesn't exist.",
+          description:
+            "The measurement unit you're trying to edit doesn't exist.",
           variant: "destructive",
-        })
+        });
       }
     }
-  }, [id, isEditMode, navigate, toast])
+  }, [id, isEditMode, navigate, toast]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
 
     // For decimal places, only allow numbers
     if (name === "decimalPlaces" && value !== "") {
-      const numValue = Number.parseInt(value, 10)
+      const numValue = Number.parseInt(value, 10);
       if (isNaN(numValue) || numValue < 0) {
-        return
+        return;
       }
     }
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
 
     // Clear error when field is edited
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
-      }))
+      }));
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors = {}
+    const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = "Unit name is required"
+      newErrors.name = "Unit name is required";
     }
 
     if (!formData.shortName.trim()) {
-      newErrors.shortName = "Short name is required"
+      newErrors.shortName = "Short name is required";
     }
 
     if (formData.decimalPlaces === "") {
-      newErrors.decimalPlaces = "Decimal places is required"
+      newErrors.decimalPlaces = "Decimal places is required";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
     // Get existing units
-    const units = JSON.parse(localStorage.getItem("units")) || []
+    const units = storedUnits.data || [];
 
     // Format the data
     const unitData = {
       ...formData,
       decimalPlaces: Number.parseInt(formData.decimalPlaces, 10),
-    }
+    };
 
     if (isEditMode) {
-      // Update existing unit
-      const updatedUnits = units.map((unit) => (unit.id === id ? { ...unit, ...unitData } : unit))
-
-      localStorage.setItem("units", JSON.stringify(updatedUnits))
+      api
+        .put(`/units/${id}`, unitData)
+        .then((response) => {
+          console.log("Item created successfully:", response.data);
+        })
+        .catch((error) => {
+          console.error("Error creating item:", error);
+        });
 
       toast({
         title: "Unit Updated",
         description: "The measurement unit has been updated successfully.",
-      })
+      });
     } else {
-      // Create new unit
-      const newUnit = {
-        id: Date.now().toString(),
-        ...unitData,
-      }
-
-      localStorage.setItem("units", JSON.stringify([...units, newUnit]))
+      api
+        .post("/units", unitData)
+        .then((response) => {
+          console.log("Unit created successfully:", response.data);
+        })
+        .catch((error) => {
+          console.error("Error creating uznit:", error);
+        });
 
       toast({
         title: "Unit Created",
         description: "The new measurement unit has been created successfully.",
-      })
+      });
     }
-
+    dispatch(fetchUnits());
     // Redirect to units list
-    navigate("/units")
-  }
+    navigate("/units");
+  };
 
   return (
     <div className="space-y-6">
@@ -150,7 +170,11 @@ const UnitForm = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>{isEditMode ? "Edit Measurement Unit" : "Create New Measurement Unit"}</CardTitle>
+          <CardTitle>
+            {isEditMode
+              ? "Edit Measurement Unit"
+              : "Create New Measurement Unit"}
+          </CardTitle>
           <CardDescription>
             {isEditMode
               ? "Update the details of an existing measurement unit"
@@ -168,7 +192,9 @@ const UnitForm = () => {
                 onChange={handleChange}
                 placeholder="Enter unit name"
               />
-              {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -180,7 +206,9 @@ const UnitForm = () => {
                 onChange={handleChange}
                 placeholder="Enter short name"
               />
-              {errors.shortName && <p className="text-sm text-destructive">{errors.shortName}</p>}
+              {errors.shortName && (
+                <p className="text-sm text-destructive">{errors.shortName}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -194,11 +222,19 @@ const UnitForm = () => {
                 onChange={handleChange}
                 placeholder="Enter decimal places"
               />
-              {errors.decimalPlaces && <p className="text-sm text-destructive">{errors.decimalPlaces}</p>}
+              {errors.decimalPlaces && (
+                <p className="text-sm text-destructive">
+                  {errors.decimalPlaces}
+                </p>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button type="button" variant="outline" onClick={() => navigate("/units")}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/units")}
+            >
               Cancel
             </Button>
             <Button type="submit">{isEditMode ? "Update" : "Create"}</Button>
@@ -206,7 +242,7 @@ const UnitForm = () => {
         </form>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default UnitForm
+export default UnitForm;
