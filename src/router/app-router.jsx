@@ -53,13 +53,13 @@ import MaterialIssueList from "@/app/material-issue/MaterialIssueList.";
 import MaterialIssueDetails from "@/app/material-issue/MaterialIssueDetails";
 import { SparePartsTable } from "@/components/spare-parts/SparePartsTable";
 import MaterialRequisitionApproval from "@/app/material-requisition/pages/MaterialRequisitionApproval";
-import InventoryList from "@/app/spare-parts/Pages/InventoryList";
+import InventoryList from "@/app/inventory/page";
 import MaterialIssue from "@/app/material/MaterialIssue";
 import MaterialReceive from "@/app/material/MaterialReceive";
 import MaterialRequisitionForward from "@/app/material-requisition/pages/MaterialRequisitionForward";
 import MaterialRequisitionRespond from "@/app/material-requisition/pages/MaterialRequisitionRespond";
 import MaterialRequisitionReview from "@/app/material-requisition/pages/MaterialRequisitionReview";
-import MaterialDetails from "@/app/material/MaterialDetails";
+import MaterialDetails from "@/app/inventory/material-details/page";
 import { fetchItems } from "@/features/items/items-slice";
 import { fetchItemGroups } from "@/features/item-groups/item-groups-slice";
 import { fetchUnits } from "@/features/units/units-slice";
@@ -276,7 +276,7 @@ function AppRouter() {
 
 
         {/* Material Requisition */}
-        <Route path="/requisitions" element={<MaterialRequisitionList />} />
+        <Route path="/requisitions/list" element={<MaterialRequisitionList />} />
         <Route path="/requisitions/new" element={<MaterialRequisitionForm />} />
         <Route
           path="/requisitions/view/:id"

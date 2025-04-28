@@ -1,4 +1,4 @@
-import { TransferList } from "@/components/mechine-transfer/transfer-list"
+import { TransferList } from "@/components/machine-transfer/transfer-list";
 
 export default function MachineTransferPage() {
   return (
@@ -8,6 +8,5 @@ export default function MachineTransferPage() {
       </div>
       <TransferList />
     </div>
-  )
+  );
 }
-

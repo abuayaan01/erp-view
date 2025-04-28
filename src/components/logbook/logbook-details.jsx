@@ -11,8 +11,8 @@ import {
 import { format } from "date-fns";
 import { ArrowLeft, Printer } from "lucide-react";
 import { useEffect, useState } from "react";
-import { PDFViewer } from "@react-pdf/renderer";
-import LogbookPDF from "./LogbookPDF";
+import { pdf, PDFViewer } from "@react-pdf/renderer";
+import LogbookPDF from "./logbook-pdf";
 import api from "@/services/api/api-service";
 import { useNavigate, useParams } from "react-router";
 
@@ -20,6 +20,7 @@ export function LogbookDetails() {
   const [showPdf, setShowPdf] = useState(false);
   const [entry, setEntry] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [pdfloading, setPdfLoading] = useState(false);
   const params = useParams();
 
   const navigate = useNavigate();
@@ -68,186 +69,179 @@ export function LogbookDetails() {
   const dieselUsed =
     entry.dieselOpeningBalance + entry.dieselIssue - entry.dieselClosingBalance;
 
-  const handlePrint = () => {
-    setShowPdf(true);
-  };
   const handleBack = () => {
-    navigate('/logbook')
+    navigate("/logbook");
+  };
+
+  const handleGeneratePdf = async () => {
+    setPdfLoading(true);
+    try {
+      const blob = await pdf(<LogbookPDF entry={entry} />).toBlob();
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, "_blank");
+    } catch (error) {
+      console.error("Failed to generate PDF", error);
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   return (
     <div className="space-y-6">
-      {!showPdf ? (
-        <>
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleBack}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to List
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrint}
-              className="flex items-center gap-2"
-            >
-              <Printer className="h-4 w-4" />
-              Print
-            </Button>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-                <div>
-                  <CardTitle>Logbook Entry Details</CardTitle>
-                  <CardDescription>
-                    Complete information for the selected logbook entry
-                  </CardDescription>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-semibold">
-                    {format(new Date(entry.date), "PPP")}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Entry #{entry.id}
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Machine Information</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="text-sm text-muted-foreground">
-                      Registration No:
-                    </div>
-                    <div>{entry.registrationNo}</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      Asset Code:
-                    </div>
-                    <div>{entry.assetCode}</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      Site Name:
-                    </div>
-                    <div>{entry.siteName}</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      Location:
-                    </div>
-                    <div>{entry.location}</div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Diesel Consumption</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="text-sm text-muted-foreground">
-                      Opening Balance:
-                    </div>
-                    <div>{entry.dieselOpeningBalance} L</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      Diesel Issue:
-                    </div>
-                    <div>{entry.dieselIssue} L</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      Closing Balance:
-                    </div>
-                    <div>{entry.dieselClosingBalance} L</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      Diesel Used:
-                    </div>
-                    <div className="font-medium">{dieselUsed} L</div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Performance Metrics</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="text-sm text-muted-foreground">
-                      KM Reading (Start):
-                    </div>
-                    <div>{entry.openingKMReading}</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      KM Reading (End):
-                    </div>
-                    <div>{entry.closingKMReading}</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      Total KM Run:
-                    </div>
-                    <div className="font-medium">{entry.totalRunKM}</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      Diesel Efficiency:
-                    </div>
-                    <div className="font-medium">{entry.dieselAvgKM} KM/L</div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Hours Meter</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="text-sm text-muted-foreground">
-                      Hours Meter (Start):
-                    </div>
-                    <div>{entry.openingHrsMeter}</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      Hours Meter (End):
-                    </div>
-                    <div>{entry.closingHrsMeter}</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      Total Hours Run:
-                    </div>
-                    <div className="font-medium">{entry.totalRunHrsMeter}</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      Diesel per Hour:
-                    </div>
-                    <div className="font-medium">
-                      {entry.dieselAvgHrsMeter} L/Hr
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-6 border-t">
-                <h3 className="font-semibold text-lg mb-2">Working Details</h3>
-                <p className="text-muted-foreground">
-                  {entry.workingDetail || "No working details provided."}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </>
-      ) : (
-        <div className="flex flex-col h-screen">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">Machine Logbook Entry</h1>
-            <Button variant="outline" onClick={() => setShowPdf(false)}>
-              Back to Details
-            </Button>
-          </div>
-          <div className="flex-1 border rounded">
-            <PDFViewer width="100%" height="100%" className="border">
-              <LogbookPDF entry={entry} />
-            </PDFViewer>
-          </div>
+      <>
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleBack}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4 mx-1" />
+            Back to List
+          </Button>
+          <Button
+            loading={pdfloading}
+            variant="outline"
+            size="sm"
+            onClick={handleGeneratePdf}
+            className="flex items-center gap-2"
+          >
+            <Printer className="h-4 w-4 mx-1" />
+            Print
+          </Button>
         </div>
-      )}
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+              <div>
+                <CardTitle>Logbook Entry Details</CardTitle>
+                <CardDescription>
+                  Complete information for the selected logbook entry
+                </CardDescription>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-semibold">
+                  {format(new Date(entry.date), "PPP")}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Entry #{entry.id}
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Machine Information</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-sm text-muted-foreground">
+                    Registration No:
+                  </div>
+                  <div>{entry.registrationNo}</div>
+
+                  <div className="text-sm text-muted-foreground">
+                    Asset Code:
+                  </div>
+                  <div>{entry.assetCode}</div>
+
+                  <div className="text-sm text-muted-foreground">
+                    Site Name:
+                  </div>
+                  <div>{entry.siteName}</div>
+
+                  <div className="text-sm text-muted-foreground">Location:</div>
+                  <div>{entry.location}</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Diesel Consumption</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-sm text-muted-foreground">
+                    Opening Balance:
+                  </div>
+                  <div>{entry.dieselOpeningBalance} L</div>
+
+                  <div className="text-sm text-muted-foreground">
+                    Diesel Issue:
+                  </div>
+                  <div>{entry.dieselIssue} L</div>
+
+                  <div className="text-sm text-muted-foreground">
+                    Closing Balance:
+                  </div>
+                  <div>{entry.dieselClosingBalance} L</div>
+
+                  <div className="text-sm text-muted-foreground">
+                    Diesel Used:
+                  </div>
+                  <div className="font-medium">{dieselUsed} L</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Performance Metrics</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-sm text-muted-foreground">
+                    KM Reading (Start):
+                  </div>
+                  <div>{entry.openingKMReading}</div>
+
+                  <div className="text-sm text-muted-foreground">
+                    KM Reading (End):
+                  </div>
+                  <div>{entry.closingKMReading}</div>
+
+                  <div className="text-sm text-muted-foreground">
+                    Total KM Run:
+                  </div>
+                  <div className="font-medium">{entry.totalRunKM}</div>
+
+                  <div className="text-sm text-muted-foreground">
+                    Diesel Efficiency:
+                  </div>
+                  <div className="font-medium">{entry.dieselAvgKM} KM/L</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Hours Meter</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-sm text-muted-foreground">
+                    Hours Meter (Start):
+                  </div>
+                  <div>{entry.openingHrsMeter}</div>
+
+                  <div className="text-sm text-muted-foreground">
+                    Hours Meter (End):
+                  </div>
+                  <div>{entry.closingHrsMeter}</div>
+
+                  <div className="text-sm text-muted-foreground">
+                    Total Hours Run:
+                  </div>
+                  <div className="font-medium">{entry.totalRunHrsMeter}</div>
+
+                  <div className="text-sm text-muted-foreground">
+                    Diesel per Hour:
+                  </div>
+                  <div className="font-medium">
+                    {entry.dieselAvgHrsMeter} L/Hr
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-6 border-t">
+              <h3 className="font-semibold text-lg mb-2">Working Details</h3>
+              <p className="text-muted-foreground">
+                {entry.workingDetail || "No working details provided."}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </>
     </div>
   );
 }

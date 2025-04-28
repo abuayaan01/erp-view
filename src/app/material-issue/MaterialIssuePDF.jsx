@@ -137,8 +137,13 @@ const MaterialIssuePDF = ({ formData, items }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.companyInfo}>
-            <Text style={{ fontWeight: "bold", fontSize: 12 }}>MARKONA</Text>
-            <Text>Phone No.: 7004401809 Email: tejsler@yahoo.co.in</Text>
+          <Text style={styles.companyName}>
+              M/s B. P. C INFRAPROJECTS PVT LTD
+            </Text>
+            <Text style={styles.companyAddress}>
+              Galaxia Mall, Unit - 12, 2nd Floor, Piska More, Ratu Road
+            </Text>
+            <Text style={styles.companyAddress}>Ranchi - 834005</Text>
           </View>
           <View style={styles.dateInfo}>
             <Text>Date: {format(new Date(formData.issueDate), "dd-MMM-yyyy")}</Text>

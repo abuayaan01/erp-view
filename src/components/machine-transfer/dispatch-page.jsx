@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import {
   Card,
@@ -15,9 +13,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Send, FileDown } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { TransferChallan } from "./transfer-challan";
+// import { TransferChallan } from "./transfer-challan";
 import api from "@/services/api/api-service";
 import Loader from "../ui/loader";
+import TransferChallanPDF from "./transfer-challan-pdf";
+import { PDFViewer } from "@react-pdf/renderer";
+import { pdf } from "@react-pdf/renderer";
 
 // Update the mock data to include the new transfer types
 // Replace the approvedTransfers array with this updated one
@@ -30,6 +31,25 @@ export function DispatchPage() {
   const [challanOpen, setChallanOpen] = useState(false);
   const [dispatchLoader, setDispatchLoader] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pdfloading, setPdfLoading] = useState(false);
+  const [files, setFiles] = useState([]);
+
+  const handleFileChange = () => {
+    const selectedFiles = e.target.files
+    if (selectedFiles) {
+      setFiles(Array.from(selectedFiles))
+    }
+  }
+
+  const handleUpload = () => {
+    if (files.length === 0) {
+      alert("Please select files to upload.")
+      return
+    }
+    // Upload logic goes here
+    console.log("Uploading files:", files)
+  }
+
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -82,17 +102,9 @@ export function DispatchPage() {
         description: "Please fill all transport details",
         variant: "destructive",
       });
+      setDispatchLoader(false);
       return;
     }
-
-    // In a real application, you would send this data to your API
-    console.log(`Dispatching transfer ${transfer.id} with transport details:`, {
-      transportDetails: {
-        vehicleNumber: details.vehicleNumber,
-        driverName: details.driverName,
-        mobileNumber: details.mobileNumber,
-      },
-    });
 
     api
       .put(`/transfer/${transfer.id}/dispatch`, {
@@ -144,8 +156,21 @@ export function DispatchPage() {
     };
 
     setSelectedTransfer(updatedTransfer);
-    setChallanOpen(true);
+    handleGeneratePdf();
   };
+
+  const handleGeneratePdf = async () => {
+    setPdfLoading(true)
+    try {
+      const blob = await pdf(<TransferChallanPDF transfer={selectedTransfer} />).toBlob()
+      const blobUrl = URL.createObjectURL(blob)
+      window.open(blobUrl, "_blank")
+    } catch (error) {
+      console.error("Failed to generate PDF", error)
+    } finally {
+      setPdfLoading(false)
+    }
+  }
 
   return loading ? (
     <div className="mx-auto min-h-[70vh] flex flex-col">
@@ -319,11 +344,24 @@ export function DispatchPage() {
             <CardFooter className="flex justify-between">
               <Button
                 variant="outline"
+                loading={pdfloading}
                 onClick={() => handleViewChallan(transfer)}
               >
                 <FileDown className="mr-2 h-4 w-4" />
                 View Challan
               </Button>
+
+              <div className="flex flex-col items-start gap-4">
+                <Input
+                  disabled={true}
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  className="w-full"
+                />
+              </div>
+
+
               {/* Update the Button text based on transfer type
               Replace the Button in the CardFooter with this updated one */}
               <Button
@@ -353,8 +391,11 @@ export function DispatchPage() {
       )}
 
       <Dialog open={challanOpen} onOpenChange={setChallanOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          {selectedTransfer && <TransferChallan transfer={selectedTransfer} />}
+        <DialogContent className="max-w-4xl h-full my-4">
+          {/* {selectedTransfer && <TransferChallan transfer={selectedTransfer} />} */}
+          <PDFViewer width="100%" height="100%" className="mx-0">
+            <TransferChallanPDF transfer={selectedTransfer} />
+          </PDFViewer>
         </DialogContent>
       </Dialog>
     </div>

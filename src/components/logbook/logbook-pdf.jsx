@@ -1,5 +1,5 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
-import { format } from "date-fns"
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { format } from "date-fns";
 
 // Create styles for PDF
 const styles = StyleSheet.create({
@@ -138,10 +138,11 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 1.5,
   },
-})
+});
 
 const LogbookPDF = ({ entry }) => {
-  const dieselUsed = entry.dieselOpeningBalance + entry.dieselIssue - entry.dieselClosingBalance
+  const dieselUsed =
+    entry.dieselOpeningBalance + entry.dieselIssue - entry.dieselClosingBalance;
 
   return (
     <Document>
@@ -149,10 +150,13 @@ const LogbookPDF = ({ entry }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>TRIVENI ENGICONS PVT LTD</Text>
-            <Text style={styles.companyAddress}>Triveni Engicons Pvt Ltd, 3/6, H. S Tower, L Road,</Text>
-            <Text style={styles.companyAddress}>Bistupur, Jamshedpur</Text>
-            <Text style={styles.companyAddress}>JAMSHEDPUR</Text>
+            <Text style={styles.companyName}>
+              M/s B. P. C INFRAPROJECTS PVT LTD
+            </Text>
+            <Text style={styles.companyAddress}>
+              Galaxia Mall, Unit - 12, 2nd Floor, Piska More, Ratu Road
+            </Text>
+            <Text style={styles.companyAddress}>Ranchi - 834005</Text>
           </View>
           <View style={styles.locationInfo}>
             <Text style={{ fontWeight: "bold" }}>{entry.siteName}</Text>
@@ -312,7 +316,9 @@ const LogbookPDF = ({ entry }) => {
         {/* Working Details */}
         <View style={styles.workingDetails}>
           <Text style={styles.workingDetailsTitle}>Working Details:</Text>
-          <Text style={styles.workingDetailsText}>{entry.workingDetail || "No working details provided."}</Text>
+          <Text style={styles.workingDetailsText}>
+            {entry.workingDetail || "No working details provided."}
+          </Text>
         </View>
 
         {/* Footer with signatures */}
@@ -329,7 +335,7 @@ const LogbookPDF = ({ entry }) => {
         </View>
       </Page>
     </Document>
-  )
-}
+  );
+};
 
-export default LogbookPDF
+export default LogbookPDF;

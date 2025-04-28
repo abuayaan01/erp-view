@@ -211,15 +211,11 @@ const data = {
       items: [
         {
           title: "List",
-          url: "/requisitions",
+          url: "/requisitions/list",
         },
         {
           title: "New ",
           url: "/requisitions/new",
-        },
-        {
-          title: "List",
-          url: "/requisitions",
         },
       ]
     },

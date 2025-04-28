@@ -170,26 +170,26 @@ const TransferChallanPDF = ({ transfer }) => {
   }
 
   const getChallanTitle = () => {
-    if (transfer.type === "site_transfer") return "MACHINE TRANSFER CHALLAN"
-    if (transfer.type === "sell") return "MACHINE SALE CHALLAN"
+    if (transfer.requestType === "Site Transfer") return "MACHINE TRANSFER CHALLAN"
+    if (transfer.requestType === "Sell") return "MACHINE SALE CHALLAN"
     return "MACHINE SCRAP CHALLAN"
   }
 
   const getToTitle = () => {
-    if (transfer.type === "site_transfer") return "TO"
-    if (transfer.type === "sell") return "BUYER"
+    if (transfer.requestType === "Site Transfer") return "TO"
+    if (transfer.requestType === "Sell") return "BUYER"
     return "SCRAP VENDOR"
   }
 
   const getSignatureTitle = () => {
-    if (transfer.type === "site_transfer") return "Receiver's Signature"
-    if (transfer.type === "sell") return "Buyer's Signature"
+    if (transfer.requestType === "Site Transfer") return "Receiver's Signature"
+    if (transfer.requestType === "Sell") return "Buyer's Signature"
     return "Vendor's Signature"
   }
 
   const getSignatureSubtitle = () => {
-    if (transfer.type === "site_transfer") return "(Receiver)"
-    if (transfer.type === "sell") return "(Buyer)"
+    if (transfer.requestType === "Site Transfer") return "(Receiver)"
+    if (transfer.requestType === "Sell") return "(Buyer)"
     return "(Vendor)"
   }
 
@@ -199,10 +199,14 @@ const TransferChallanPDF = ({ transfer }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>YOUR COMPANY LOGO</Text>
-            <Text style={styles.companyAddress}>Your Company Name</Text>
-            <Text style={styles.companyAddress}>Address Line 1, Address Line 2</Text>
-            <Text style={styles.companyAddress}>Contact: +XX XXXX XXXXX</Text>
+          <Text style={styles.companyName}>
+              M/s B. P. C INFRAPROJECTS PVT LTD
+            </Text>
+            <Text style={styles.companyAddress}>
+              Galaxia Mall, Unit - 12, 2nd Floor, Piska More, Ratu Road
+            </Text>
+            <Text style={styles.companyAddress}>Ranchi - 834005</Text>
+            <Text style={styles.companyAddress}>Contact: +91 9471100887</Text>
           </View>
           <View style={styles.challanInfo}>
             <Text style={styles.title}>{getChallanTitle()}</Text>
@@ -220,10 +224,10 @@ const TransferChallanPDF = ({ transfer }) => {
             <View>
               <Text style={styles.challanLabel}>Reference:</Text>
               <Text style={styles.referenceValue}>
-                {transfer.type === "site_transfer"
+                {transfer.requestType === "Site Transfer"
                   ? "Site Transfer"
-                  : transfer.type === "sell"
-                    ? "Machine Sale"
+                  : transfer.requestType === "Sell"
+                    ? "Machine Sell"
                     : "Machine Scrap"}
               </Text>
             </View>
@@ -235,39 +239,35 @@ const TransferChallanPDF = ({ transfer }) => {
           <View style={styles.fromSection}>
             <Text style={styles.sectionTitle}>From</Text>
             <Text style={styles.sectionName}>{transfer.fromSite}</Text>
-            <Text style={styles.sectionText}>Your Company Name</Text>
-            <Text style={styles.sectionText}>Address Line 1</Text>
-            <Text style={styles.sectionText}>Address Line 2</Text>
-            <Text style={styles.sectionText}>Contact: +XX XXXX XXXXX</Text>
+            <Text style={styles.sectionText}>Site : {transfer?.currentSite.name}</Text>
+            <Text style={styles.sectionText}>Site Id : {transfer?.currentSite.id}</Text>
           </View>
 
           <View style={styles.toSection}>
             <Text style={styles.sectionTitle}>{getToTitle()}</Text>
             <Text style={styles.sectionName}>
-              {transfer.type === "site_transfer"
+              {transfer.requestType === "Site Transfer"
                 ? transfer.toSite
-                : transfer.type === "sell"
+                : transfer.requestType === "Sell"
                   ? transfer.buyerName
                   : transfer.scrapVendor}
             </Text>
-            {transfer.type === "sell" && (
+            {transfer.requestType === "Sell" && (
               <>
                 <Text style={styles.sectionText}>Contact: {transfer.buyerContact || "N/A"}</Text>
                 {transfer.buyerAddress && <Text style={styles.sectionText}>{transfer.buyerAddress}</Text>}
               </>
             )}
-            {transfer.type === "scrap" && (
+            {transfer.requestType === "Scrap" && (
               <>
                 <Text style={styles.sectionText}>Contact: {transfer.scrapVendorContact || "N/A"}</Text>
                 {transfer.scrapVendorAddress && <Text style={styles.sectionText}>{transfer.scrapVendorAddress}</Text>}
               </>
             )}
-            {transfer.type === "site_transfer" && (
+            {transfer.requestType === "Site Transfer" && (
               <>
-                <Text style={styles.sectionText}>Your Company Name</Text>
-                <Text style={styles.sectionText}>Address Line 1</Text>
-                <Text style={styles.sectionText}>Address Line 2</Text>
-                <Text style={styles.sectionText}>Contact: +XX XXXX XXXXX</Text>
+                 <Text style={styles.sectionText}>Site : {transfer?.destinationSite.name}</Text>
+                 <Text style={styles.sectionText}>Site Id : {transfer?.destinationSite.id}</Text>
               </>
             )}
           </View>
@@ -279,7 +279,7 @@ const TransferChallanPDF = ({ transfer }) => {
           <View style={styles.detailsGrid}>
             <View style={styles.detailsColumn}>
               <Text style={styles.detailsLabel}>Machine Name:</Text>
-              <Text style={styles.detailsValue}>{transfer.machineName}</Text>
+              <Text style={styles.detailsValue}>{transfer.machine.machineName}</Text>
             </View>
             <View style={styles.detailsColumn}>
               <Text style={styles.detailsLabel}>Machine ID:</Text>
@@ -299,28 +299,28 @@ const TransferChallanPDF = ({ transfer }) => {
         {/* Transfer Details */}
         <View style={styles.detailsSection}>
           <Text style={styles.detailsTitle}>
-            {transfer.type === "site_transfer"
+            {transfer.requestType === "Site Transfer"
               ? "Transfer Details"
-              : transfer.type === "sell"
+              : transfer.requestType === "Sell"
                 ? "Sale Details"
                 : "Scrap Details"}
           </Text>
           <View style={styles.detailsGrid}>
             <View style={styles.detailsColumn}>
               <Text style={styles.detailsLabel}>Date:</Text>
-              <Text style={styles.detailsValue}>{formatDate(transfer.transferDate)}</Text>
+              <Text style={styles.detailsValue}>{formatDate(transfer.approvedAt)}</Text>
             </View>
             <View style={styles.detailsColumn}>
               <Text style={styles.detailsLabel}>Approved By:</Text>
-              <Text style={styles.detailsValue}>{transfer.approvedBy}</Text>
+              <Text style={styles.detailsValue}>{transfer?.approver?.name}</Text>
             </View>
-            {transfer.type === "sell" && (
+            {transfer.requestType === "Sell" && (
               <View style={styles.detailsColumn}>
                 <Text style={styles.detailsLabel}>Sale Amount:</Text>
                 <Text style={styles.detailsValue}>{transfer.saleAmount ? `$${transfer.saleAmount}` : "N/A"}</Text>
               </View>
             )}
-            {transfer.type === "scrap" && (
+            {transfer.requestType === "Scrap" && (
               <View style={styles.detailsColumn}>
                 <Text style={styles.detailsLabel}>Scrap Value:</Text>
                 <Text style={styles.detailsValue}>{transfer.scrapValue ? `$${transfer.scrapValue}` : "N/A"}</Text>
@@ -335,7 +335,7 @@ const TransferChallanPDF = ({ transfer }) => {
           <View style={styles.detailsGrid}>
             <View style={styles.detailsColumnThird}>
               <Text style={styles.detailsLabel}>Vehicle Number:</Text>
-              <Text style={styles.detailsValue}>{transfer.transportDetails?.vehicleNo || "N/A"}</Text>
+              <Text style={styles.detailsValue}>{transfer.transportDetails?.vehicleNumber || "N/A"}</Text>
             </View>
             <View style={styles.detailsColumnThird}>
               <Text style={styles.detailsLabel}>Driver Name:</Text>
@@ -343,7 +343,7 @@ const TransferChallanPDF = ({ transfer }) => {
             </View>
             <View style={styles.detailsColumnThird}>
               <Text style={styles.detailsLabel}>Driver Contact:</Text>
-              <Text style={styles.detailsValue}>{transfer.transportDetails?.driverContact || "N/A"}</Text>
+              <Text style={styles.detailsValue}>{transfer.transportDetails?.mobileNumber || "N/A"}</Text>
             </View>
           </View>
         </View>
@@ -357,7 +357,7 @@ const TransferChallanPDF = ({ transfer }) => {
             <Text style={styles.termsItem}>3. Any discrepancies must be reported within 24 hours of receipt.</Text>
             <Text style={styles.termsItem}>
               4. This document serves as proof of{" "}
-              {transfer.type === "site_transfer" ? "transfer" : transfer.type === "sell" ? "sale" : "scrapping"}.
+              {transfer.requestType === "Site Transfer" ? "transfer" : transfer.requestType === "Sell" ? "sale" : "scrapping"}.
             </Text>
           </View>
         </View>

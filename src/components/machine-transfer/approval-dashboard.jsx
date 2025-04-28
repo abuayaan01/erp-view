@@ -123,18 +123,6 @@ export function ApprovalDashboard() {
     });
   };
 
-  // {
-  //   id: "TR-005",
-  //   machine.machineName: "Excavator XL1000",
-  //   machineId: "M005",
-  //   currentSite.name: "Site D",
-  //   destinationSite.name: "Site B",
-  //   requester.name: "Jane Smith",
-  //   createdAt: "2023-10-01",
-  //   reason: "Machine maintenance completed, returning to original site",
-  //   requestType: "Site Transfer",
-  // },
-
   return loading ? (
     <div className="mx-auto min-h-[70vh] flex flex-col">
       <div className="flex-1 flex justify-center items-center">

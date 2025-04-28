@@ -514,7 +514,7 @@ export function TransferForm({ baseUrl = "/machine-transfer/history" }) {
                   htmlFor="self-carrying"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  Self-Carrying Vehicle
+                  Other-Carrying Vehicle
                 </label>
               </div>
             )}

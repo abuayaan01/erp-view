@@ -138,10 +138,9 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>TRIVENI ENGICONS PVT LTD</Text>
-            <Text style={styles.companyAddress}>Triveni Engicons Pvt Ltd, 3/6, H. S Tower, L Road,</Text>
-            <Text style={styles.companyAddress}>Bistupur, Jamshedpur</Text>
-            <Text style={styles.companyAddress}>JAMSHEDPUR</Text>
+            <Text style={styles.companyName}>M/s B. P. C INFRAPROJECTS PVT LTD</Text>
+            <Text style={styles.companyAddress}>Galaxia Mall, Unit - 12, 2nd Floor, Piska More, Ratu Road</Text>
+            <Text style={styles.companyAddress}>Ranchi - 834005</Text>
           </View>
           <View style={styles.locationInfo}>
             <Text style={{ fontWeight: "bold" }}>MARKONA 30547M TO 36247M</Text>
