@@ -85,6 +85,9 @@ function AppRouter() {
         element={<AppLayout />} // Wrap these routes in layout
       >
         <Route path="/" element={<MainDashboard />} />
+
+
+        {/* Site Management */}
         <Route
           path="/manage-sites"
           element={
@@ -111,6 +114,11 @@ function AppRouter() {
             />
           }
         />
+        {/* Site Management End*/}
+
+
+
+        {/* Category Management*/}
         <Route
           path="/add-machine-category"
           element={
@@ -141,6 +149,11 @@ function AppRouter() {
           path="/list-machine-category"
           element={<MachineCategoryPage />}
         />
+        {/* Category Management End*/}
+
+
+
+        {/* Machines Management */}
         <Route
           path="/add-machine"
           element={
@@ -155,7 +168,14 @@ function AppRouter() {
           }
         />
         <Route path="/list-machine" element={<MachineTable />} />
+        <Route path="/machines/:id" element={<MachineryDetailPage />} />
+        {/* Machines Management End*/}
 
+
+        
+        {/* Logbook */}
+        <Route path="/logbook" element={<LogbookPage />} />
+        <Route path="/logbook/:id" element={<LogbookDetails />} />
         <Route
           path="/add-logbook"
           element={
@@ -169,9 +189,11 @@ function AppRouter() {
             />
           }
         />
-        <Route path="/logbook" element={<LogbookPage />} />
-        <Route path="/logbook/:id" element={<LogbookDetails />} />
-        <Route path="/machines/:id" element={<MachineryDetailPage />} />
+        {/* Logbook End*/}
+
+
+
+        {/* Machine Transfer */}
         <Route
           path="/machine-transfer/home"
           element={<MachineTransferPage />}
@@ -232,20 +254,11 @@ function AppRouter() {
           path="/machine-transfer/history"
           element={<TransferHistoryPage />}
         />
+        {/* Machine Transfer End */}
 
-        <Route
-          path="/manage-users"
-          element={
-            <ProtectedRoute
-              element={<ManageUsers />}
-              allowedRoleIds={[
-                ROLES.ADMIN.id,
-                ROLES.MECHANICAL_HEAD.id,
-                ROLES.MECHANICAL_MANAGER.id,
-              ]}
-            />
-          }
-        />
+
+
+        {/* Spare Parts ans Items */}
         <Route path="/spare-parts" element={<SparePartsPage />} />
         <Route path="/spare-parts/request" element={<RequestSparePartPage />} />
         <Route path="/spare-parts/add" element={<AddSparePartModal />} />
@@ -258,6 +271,11 @@ function AppRouter() {
         <Route path="/units" element={<UnitList />} />
         <Route path="/units/new" element={<UnitForm />} />
         <Route path="/units/edit/:id" element={<UnitForm />} />
+        {/* Spare Parts ans Items End*/}
+
+
+
+        {/* Material Requisition */}
         <Route path="/requisitions" element={<MaterialRequisitionList />} />
         <Route path="/requisitions/new" element={<MaterialRequisitionForm />} />
         <Route
@@ -274,17 +292,47 @@ function AppRouter() {
         />
         <Route path="/requisitions/issue/:id" element={<MaterialIssue />} />
         <Route path="/requisitions/receive/:id" element={<MaterialReceive />} />
-        <Route path="/requisitions/review/:id" element={<MaterialRequisitionReview />} />
-        <Route path="/requisitions/respond/:id" element={<MaterialRequisitionRespond />} />
+        <Route
+          path="/requisitions/review/:id"
+          element={<MaterialRequisitionReview />}
+        />
+        <Route
+          path="/requisitions/respond/:id"
+          element={<MaterialRequisitionRespond />}
+        />
+        {/* Material Requisition End*/}
+
+
 
         {/* Inventory */}
         <Route path="/inventory" element={<InventoryList />} />
         <Route path="/inventory/:id" element={<MaterialDetails />} />
+        {/* Inventory End*/}
 
-        
+
+
+        {/* Material Issue */}
         <Route path="/issues" element={<MaterialIssueList />} />
         <Route path="/issues/:id" element={<MaterialIssueDetails />} />
         <Route path="/issues/new" element={<MaterialIssueForm />} />
+        {/* Material Issue End*/}
+
+
+
+        {/* Users Management */}
+        <Route
+          path="/manage-users"
+          element={
+            <ProtectedRoute
+              element={<ManageUsers />}
+              allowedRoleIds={[
+                ROLES.ADMIN.id,
+                ROLES.MECHANICAL_HEAD.id,
+                ROLES.MECHANICAL_MANAGER.id,
+              ]}
+            />
+          }
+        />
       </Route>
 
       {/* Routes WITHOUT Layout */}

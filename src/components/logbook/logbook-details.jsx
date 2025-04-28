@@ -14,13 +14,15 @@ import { useEffect, useState } from "react";
 import { PDFViewer } from "@react-pdf/renderer";
 import LogbookPDF from "./LogbookPDF";
 import api from "@/services/api/api-service";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 export function LogbookDetails() {
   const [showPdf, setShowPdf] = useState(false);
   const [entry, setEntry] = useState(null);
   const [loading, setLoading] = useState(true);
   const params = useParams();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLogbookEntry = async () => {
@@ -70,8 +72,7 @@ export function LogbookDetails() {
     setShowPdf(true);
   };
   const handleBack = () => {
-    // Add your back navigation logic here
-    console.log("Go back to list");
+    navigate('/logbook')
   };
 
   return (

@@ -202,18 +202,26 @@ const data = {
       icon: Warehouse,
       collapsible: false,
     },
-    {
-      title: "Users",
-      url: "/manage-users",
-      icon: Users,
-      collapsible: false,
-      allowedRoles: [ROLES.ADMIN.id],
-    },
+    
     {
       title: "Material Requisition",
       url: "/requisitions",
       icon: ClipboardList,
-      collapsible: false,
+      collapsible: true,
+      items: [
+        {
+          title: "List",
+          url: "/requisitions",
+        },
+        {
+          title: "New ",
+          url: "/requisitions/new",
+        },
+        {
+          title: "List",
+          url: "/requisitions",
+        },
+      ]
     },
     {
       title: "Material Issue",
@@ -240,6 +248,13 @@ const data = {
           url: "/units",
         },
       ],
+    },
+    {
+      title: "Users",
+      url: "/manage-users",
+      icon: Users,
+      collapsible: false,
+      allowedRoles: [ROLES.ADMIN.id],
     },
   ],
   projects: [
