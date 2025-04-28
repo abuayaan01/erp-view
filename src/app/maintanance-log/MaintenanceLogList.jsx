@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CheckCircle, Clock, AlertTriangle, Search, FileText } from "lucide-react"
 import { format } from "date-fns"
+import api from "@/services/api/api-service"
 
 // Mock data for demonstration
 const mockMaintenanceLogs = [
@@ -92,13 +93,20 @@ const MaintenanceLogList = ({ machineId, onViewLog }) => {
   const [filterType, setFilterType] = useState("all")
   const [filterStatus, setFilterStatus] = useState("all")
 
+  const fetchMaintenanceLogsByMachine = async (machineId) => {
+    const res = await api.get(`/maintanance/logs/machine/${machineId}`);
+    return res.data;
+  };
+  
+
   useEffect(() => {
     // In a real app, you would fetch data from your API
     // For demo purposes, we'll use the mock data
-    setTimeout(() => {
-      setLogs(mockMaintenanceLogs)
+    setTimeout(async () => {
+      const logsData = await fetchMaintenanceLogsByMachine(machineId)
+      setLogs(logsData)
       setLoading(false)
-    }, 500)
+    }, 200)
   }, [machineId])
 
   const getStatusBadge = (status) => {

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, AlertTriangle, Clock, CheckCircle } from "lucide-react"
 import { format, isPast, isToday, addDays } from "date-fns"
+import api from "@/services/api/api-service"
 
 // Mock data for demonstration
 const mockScheduledMaintenance = [
@@ -70,13 +71,21 @@ const ScheduledMaintenanceList = ({ machineId }) => {
   const [scheduledMaintenance, setScheduledMaintenance] = useState([])
   const [loading, setLoading] = useState(true)
 
+  const fetchScheduledMaintenancesByMachine = async (machineId) => {
+    const res = await api.get(`/maintanance/scheduled/machine/${machineId}`);
+    return res.data;
+  };
+  
+
   useEffect(() => {
     // In a real app, you would fetch data from your API
     // For demo purposes, we'll use the mock data
-    setTimeout(() => {
-      setScheduledMaintenance(mockScheduledMaintenance)
-      setLoading(false)
-    }, 500)
+    const fetchData = async () => {
+      const data = await fetchScheduledMaintenancesByMachine(machineId);
+      setScheduledMaintenance(data);
+      setLoading(false);
+    };
+    fetchData();
   }, [machineId])
 
   const getPriorityBadge = (priority) => {

@@ -522,7 +522,7 @@ export default function MachineryDetailPage() {
         isOpen={showMaintenanceLog}
         onClose={() => setShowMaintenanceLog(false)}
         machineId={data?.id}
-        machineName={data?.name}
+        machineName={data?.machineName}
       />
     </div>
   );
