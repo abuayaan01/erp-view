@@ -1,67 +1,56 @@
-import { Route, Routes, useNavigate } from "react-router";
-import ProtectedRoute from "@/router/protected-route";
-import { ROLES } from "@/utils/roles";
-import AppLayout from "@/app/layout/page";
 import { MainDashboard } from "@/app/dashboard/page";
-import ManageSite from "@/app/sites/manage-site/page";
+import AppLayout from "@/app/layout/page";
+import AddMachineCategory from "@/app/machine-category/add-machine-category/add-machine-category";
 import AddMachine from "@/app/machine/add-machine/page";
 import MachineTable from "@/app/machine/machine-table/page";
+import ManageSite from "@/app/sites/manage-site/page";
 import ManageUsers from "@/app/users/manage-users/manage-users";
-import AddMachineCategory from "@/app/machine-category/add-machine-category/add-machine-category";
+import { fetchSites } from "@/features/sites/sites-slice";
+import ProtectedRoute from "@/router/protected-route";
+import { ROLES } from "@/utils/roles";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { fetchSites } from "@/features/sites/sites-slice";
+import { Route, Routes, useNavigate } from "react-router";
 // import { fetchCategories } from "@/features/categories/categories-slice";
-import { fetchMachineCategories } from "@/features/machine-category/machine-category-slice";
-import { fetchPrimaryCategories } from "@/features/primary-category/primary-category-slice";
-import { fetchMachines } from "@/features/machine/machine-slice";
-import MachineCategoryPage from "@/app/machine-category/machine-category-table/page";
-import SiteDetailPage from "@/app/sites/site-detail-page/site-detail-page";
-import MachineryDetailPage from "@/app/machine/machine-details-page/machine-details-page";
-import MachineTransfer from "@/app/machine/machine-transfer/page";
-import ApprovePage from "@/app/machine-transfer/approve/page";
-import NewTransferPage from "@/app/machine-transfer/new/page";
-import DispatchTransferPage from "@/app/machine-transfer/dispatch/page";
-import TransferHistoryPage from "@/app/machine-transfer/history/page";
-import ReceiveTransferPage from "@/app/machine-transfer/receive/page";
-import MachineTransferPage from "@/app/machine-transfer/page";
-import { LogbookPage } from "@/app/logbook/page";
-import { LogbookForm } from "@/components/logbook/logbook-form";
-import { SparePartsPage } from "@/app/spare-parts/page";
-import { AddSparePartModal } from "@/components/spare-parts/AddSparePartModal";
-import { RequisitionsPage } from "@/app/material-requisition/page";
-import { MaterialRequestForm } from "@/components/material-requisition/MaterialRequestForm";
-import { RequisitionDetail } from "@/components/material-requisition/RequisitionDetail";
-import { ProcurementPage } from "@/components/material-requisition/ProcurementPage";
-import { DispatchPage } from "@/components/material-requisition/DispatchPage";
-import { ReceivePage } from "@/components/material-requisition/ReceivePage";
-import { LogbookDetails } from "@/components/logbook/logbook-details";
-import { RequestSparePartPage } from "@/components/spare-parts/RequestSparePartPage";
 import ForbiddenPage from "@/app/error/403/page";
 import NotFoundPage from "@/app/error/404/page";
-import ItemGroupList from "@/app/material-requisition/pages/ItemGroupList";
-import ItemGroupForm from "@/app/material-requisition/pages/ItemGroupForm";
-import ItemList from "@/app/material-requisition/pages/ItemList";
-import ItemForm from "@/app/material-requisition/pages/ItemForm";
-import UnitList from "@/app/material-requisition/pages/UnitList";
-import UnitForm from "@/app/material-requisition/pages/UnitForm";
-import MaterialRequisitionList from "@/app/material-requisition/pages/MaterialRequisitionList";
-import MaterialRequisitionForm from "@/app/material-requisition/pages/MaterialRequisitionForm";
-import MaterialRequisitionView from "@/app/material-requisition/pages/MaterialRequisitionView";
-import MaterialIssueForm from "@/app/material-issue/MatrialIssueForm";
-import MaterialIssueList from "@/app/material-issue/MaterialIssueList.";
-import MaterialIssueDetails from "@/app/material-issue/MaterialIssueDetails";
-import { SparePartsTable } from "@/components/spare-parts/SparePartsTable";
-import MaterialRequisitionApproval from "@/app/material-requisition/pages/MaterialRequisitionApproval";
+import MaterialDetails from "@/app/inventory/material-details/page";
 import InventoryList from "@/app/inventory/page";
-import MaterialIssue from "@/app/material/MaterialIssue";
-import MaterialReceive from "@/app/material/MaterialReceive";
+import { LogbookPage } from "@/app/logbook/page";
+import MachineCategoryPage from "@/app/machine-category/machine-category-table/page";
+import ApprovePage from "@/app/machine-transfer/approve/page";
+import DispatchTransferPage from "@/app/machine-transfer/dispatch/page";
+import TransferHistoryPage from "@/app/machine-transfer/history/page";
+import NewTransferPage from "@/app/machine-transfer/new/page";
+import MachineTransferPage from "@/app/machine-transfer/page";
+import ReceiveTransferPage from "@/app/machine-transfer/receive/page";
+import MachineryDetailPage from "@/app/machine/machine-details-page/machine-details-page";
+import MaterialIssueDetails from "@/app/material-issue/MaterialIssueDetails";
+import MaterialIssueList from "@/app/material-issue/MaterialIssueList.";
+import MaterialIssueForm from "@/app/material-issue/MatrialIssueForm";
+import ItemForm from "@/app/material-requisition/pages/ItemForm";
+import ItemGroupForm from "@/app/material-requisition/pages/ItemGroupForm";
+import ItemGroupList from "@/app/material-requisition/pages/ItemGroupList";
+import ItemList from "@/app/material-requisition/pages/ItemList";
+import MaterialRequisitionApproval from "@/app/material-requisition/pages/MaterialRequisitionApproval";
+import MaterialRequisitionForm from "@/app/material-requisition/pages/MaterialRequisitionForm";
 import MaterialRequisitionForward from "@/app/material-requisition/pages/MaterialRequisitionForward";
+import MaterialRequisitionList from "@/app/material-requisition/pages/MaterialRequisitionList";
 import MaterialRequisitionRespond from "@/app/material-requisition/pages/MaterialRequisitionRespond";
 import MaterialRequisitionReview from "@/app/material-requisition/pages/MaterialRequisitionReview";
-import MaterialDetails from "@/app/inventory/material-details/page";
-import { fetchItems } from "@/features/items/items-slice";
+import MaterialRequisitionView from "@/app/material-requisition/pages/MaterialRequisitionView";
+import UnitForm from "@/app/material-requisition/pages/UnitForm";
+import UnitList from "@/app/material-requisition/pages/UnitList";
+import MaterialIssue from "@/app/material/MaterialIssue";
+import MaterialReceive from "@/app/material/MaterialReceive";
+import SiteDetailPage from "@/app/sites/site-detail-page/site-detail-page";
+import { LogbookDetails } from "@/components/logbook/logbook-details";
+import { LogbookForm } from "@/components/logbook/logbook-form";
 import { fetchItemGroups } from "@/features/item-groups/item-groups-slice";
+import { fetchItems } from "@/features/items/items-slice";
+import { fetchMachineCategories } from "@/features/machine-category/machine-category-slice";
+import { fetchMachines } from "@/features/machine/machine-slice";
+import { fetchPrimaryCategories } from "@/features/primary-category/primary-category-slice";
 import { fetchUnits } from "@/features/units/units-slice";
 
 function AppRouter() {
@@ -255,13 +244,6 @@ function AppRouter() {
           element={<TransferHistoryPage />}
         />
         {/* Machine Transfer End */}
-
-
-
-        {/* Spare Parts ans Items */}
-        <Route path="/spare-parts" element={<SparePartsPage />} />
-        <Route path="/spare-parts/request" element={<RequestSparePartPage />} />
-        <Route path="/spare-parts/add" element={<AddSparePartModal />} />
         <Route path="/item-groups" element={<ItemGroupList />} />
         <Route path="/item-groups/new" element={<ItemGroupForm />} />
         <Route path="/item-groups/edit/:id" element={<ItemGroupForm />} />

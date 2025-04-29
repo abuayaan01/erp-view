@@ -131,7 +131,7 @@ const MaterialRequisitionRespond = () => {
     ];
     const storedInventory = mockInventoryData;
 
-    const foundRequisition = requisitions?.find((req) => req.id === id);
+    const foundRequisition = requisitions?.find((req) => req.id == id);
 
     if (foundRequisition) {
       setRequisition(foundRequisition);
@@ -285,7 +285,7 @@ const MaterialRequisitionRespond = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/requisitions")}
+            onClick={() => navigate("/requisitions/list")}
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>

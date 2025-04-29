@@ -191,7 +191,7 @@ const MaterialRequisitionForward = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/requisitions")}
+            onClick={() => navigate("/requisitions/list")}
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>

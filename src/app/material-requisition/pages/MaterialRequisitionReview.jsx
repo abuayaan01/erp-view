@@ -37,7 +37,7 @@ const MaterialRequisitionReview = () => {
     // Load data from localStorage
     const requisitions = [
         {
-          id: "1",
+          id: 4,
           requisitionNo: "REQ-1001",
           date: "2025-04-20",
           location: "Site A",
@@ -63,7 +63,7 @@ const MaterialRequisitionReview = () => {
         },
       ];
 
-    const foundRequisition = requisitions.find((req) => req.id === id)
+    const foundRequisition = requisitions.find((req) => req.id == id)
 
     if (foundRequisition) {
       setRequisition(foundRequisition)
@@ -190,7 +190,7 @@ const MaterialRequisitionReview = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/requisitions")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/requisitions/list")}>
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Button>
