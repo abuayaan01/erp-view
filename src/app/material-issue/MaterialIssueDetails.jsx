@@ -1,246 +1,270 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, useNavigate, useLocation, Link } from "react-router-dom"
-import { ArrowLeft, Printer, CheckCircle, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
-import { PDFViewer } from "@react-pdf/renderer"
-import MaterialIssuePDF from "./MaterialIssuePDF"
-
-// Mock data for material issues (same as in MaterialIssueList.jsx)
-const mockIssues = [
-  {
-    id: "ISS-0001",
-    issueDate: "2023-04-15",
-    issueTime: "09:30",
-    issueType: "consumption",
-    issueLocation: "MARKONA CANAL SITE",
-    fromSite: "MARKONA CANAL",
-    toSite: "",
-    items: [
-      {
-        id: "1",
-        itemId: "6",
-        itemName: "Diesel",
-        itemGroup: "Fuels",
-        quantity: 50,
-        unit: "LTR",
-        balance: 950,
-        issueTo: "vehicle",
-        vehicleId: "1",
-        vehicleNumber: "JH01AB1234",
-        vehicleKm: "12500",
-        vehicleHours: "350",
-        siteId: "",
-        siteName: "",
-      },
-    ],
-    status: "completed",
-  },
-  {
-    id: "ISS-0002",
-    issueDate: "2023-04-16",
-    issueTime: "14:15",
-    issueType: "transfer",
-    issueLocation: "MARKONA CANAL SITE",
-    fromSite: "MARKONA CANAL",
-    toSite: "TATA OFFICE",
-    items: [
-      {
-        id: "2",
-        itemId: "3",
-        itemName: "Air Filter",
-        itemGroup: "Spare Parts",
-        quantity: 5,
-        unit: "PCS",
-        balance: 45,
-        issueTo: "site",
-        vehicleId: "",
-        vehicleNumber: "",
-        vehicleKm: "",
-        vehicleHours: "",
-        siteId: "2",
-        siteName: "TATA OFFICE",
-      },
-      {
-        id: "3",
-        itemId: "4",
-        itemName: "Oil Filter",
-        itemGroup: "Spare Parts",
-        quantity: 10,
-        unit: "PCS",
-        balance: 65,
-        issueTo: "site",
-        vehicleId: "",
-        vehicleNumber: "",
-        vehicleKm: "",
-        vehicleHours: "",
-        siteId: "2",
-        siteName: "TATA OFFICE",
-      },
-    ],
-    status: "completed",
-  },
-  {
-    id: "ISS-0003",
-    issueDate: "2023-04-17",
-    issueTime: "11:45",
-    issueType: "consumption",
-    issueLocation: "JAMSHEDPUR SITE",
-    fromSite: "JAMSHEDPUR SITE",
-    toSite: "",
-    items: [
-      {
-        id: "4",
-        itemId: "1",
-        itemName: "Engine Oil",
-        itemGroup: "Lubricants",
-        quantity: 20,
-        unit: "LTR",
-        balance: 480,
-        issueTo: "vehicle",
-        vehicleId: "2",
-        vehicleNumber: "JH02CD5678",
-        vehicleKm: "8700",
-        vehicleHours: "420",
-        siteId: "",
-        siteName: "",
-      },
-    ],
-    status: "completed",
-  },
-  {
-    id: "ISS-0004",
-    issueDate: "2023-04-18",
-    issueTime: "16:30",
-    issueType: "transfer",
-    issueLocation: "TATA OFFICE",
-    fromSite: "TATA OFFICE",
-    toSite: "JAMSHEDPUR SITE",
-    items: [
-      {
-        id: "5",
-        itemId: "5",
-        itemName: "Grease",
-        itemGroup: "Consumables",
-        quantity: 15,
-        unit: "KG",
-        balance: 185,
-        issueTo: "site",
-        vehicleId: "",
-        vehicleNumber: "",
-        vehicleKm: "",
-        vehicleHours: "",
-        siteId: "3",
-        siteName: "JAMSHEDPUR SITE",
-      },
-    ],
-    status: "pending",
-  },
-  {
-    id: "ISS-0005",
-    issueDate: "2023-04-19",
-    issueTime: "10:00",
-    issueType: "consumption",
-    issueLocation: "MARKONA CANAL SITE",
-    fromSite: "MARKONA CANAL",
-    toSite: "",
-    items: [
-      {
-        id: "6",
-        itemId: "7",
-        itemName: "Petrol",
-        itemGroup: "Fuels",
-        quantity: 30,
-        unit: "LTR",
-        balance: 770,
-        issueTo: "vehicle",
-        vehicleId: "3",
-        vehicleNumber: "JH03EF9012",
-        vehicleKm: "5600",
-        vehicleHours: "280",
-        siteId: "",
-        siteName: "",
-      },
-    ],
-    status: "pending",
-  },
-]
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
+import {
+  ArrowLeft,
+  Printer,
+  CheckCircle,
+  Clock,
+  RotateCcw,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { format, parseISO } from "date-fns";
+import { PDFViewer } from "@react-pdf/renderer";
+import MaterialIssuePDF from "./MaterialIssuePDF";
+import api from "@/services/api/api-service";
 
 const MaterialIssueDetails = () => {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [issue, setIssue] = useState(null)
-  const [showPdf, setShowPdf] = useState(false)
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [issue, setIssue] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showPdf, setShowPdf] = useState(false);
 
-  const shouldPrint = new URLSearchParams(location.search).get("print") === "true"
+  const shouldPrint =
+    new URLSearchParams(location.search).get("print") === "true";
 
   useEffect(() => {
-    // Find the issue with the matching ID
-    const foundIssue = mockIssues.find((issue) => issue.id === id)
+    const fetchIssueDetails = async () => {
+      try {
+        setLoading(true);
+        // Replace with your actual API endpoint
+        const response = await api.get(`/material-issues/${id}`);
 
-    if (foundIssue) {
-      setIssue(foundIssue)
+        const data = response.data;
+        setIssue(data);
 
-      // If print parameter is present, show PDF
-      if (shouldPrint) {
-        setShowPdf(true)
+        // If print parameter is present, show PDF
+        if (shouldPrint) {
+          setShowPdf(true);
+        }
+      } catch (err) {
+        setError(err.message);
+
+        // For development - using mock data when API fails
+        // In production, you might want to show an error message instead
+        if (mockIssue.id === parseInt(id)) {
+          setIssue(mockIssue);
+
+          if (shouldPrint) {
+            setShowPdf(true);
+          }
+        } else {
+          // If issue not found, navigate back to list
+          navigate("/");
+        }
+      } finally {
+        setLoading(false);
       }
-    } else {
-      // If issue not found, navigate back to list
-      navigate("/")
-    }
-  }, [id, navigate, shouldPrint])
+    };
+
+    fetchIssueDetails();
+  }, [id, navigate, shouldPrint]);
+
+  // Sample API data for development/testing
+  const mockIssue = {
+    id: 29,
+    issueNumber: "ISS-029",
+    issueDate: "2025-05-10T07:22:40.968Z",
+    issueType: "Site Transfer",
+    status: "Returned",
+    createdAt: "2025-05-10T07:22:40.969Z",
+    updatedAt: "2025-05-10T07:22:41.203Z",
+    items: [
+      {
+        id: 60,
+        materialIssueId: 29,
+        itemId: 1,
+        quantity: 1,
+        issueTo: "Vehicle A",
+        siteId: 35,
+        otherSiteId: 33,
+        Item: {
+          id: 1,
+          name: "Cable Roll",
+          shortName: "Cable",
+          partNumber: "CR-001",
+          hsnCode: "8544",
+          itemGroupId: 1,
+          unitId: 1,
+          itemGroup: null,
+        },
+        fromSite: {
+          id: 35,
+          name: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
+          code: "SITE-035",
+          address: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
+          pincode: "835201",
+          mobileNumber: "9471185488",
+          departmentId: 1,
+          status: "active",
+          createdAt: "2025-05-09T06:15:54.139Z",
+          updatedAt: "2025-05-09T06:15:54.185Z",
+          deletedAt: null,
+        },
+        toSite: {
+          id: 33,
+          name: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
+          code: "SITE-033",
+          address: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
+          pincode: "828205",
+          mobileNumber: "7739039393",
+          departmentId: 1,
+          status: "active",
+          createdAt: "2025-05-09T06:09:25.974Z",
+          updatedAt: "2025-05-09T06:09:26.032Z",
+          deletedAt: null,
+        },
+      },
+      {
+        id: 59,
+        materialIssueId: 29,
+        itemId: 2,
+        quantity: 5,
+        issueTo: "Vehicle A",
+        siteId: 35,
+        otherSiteId: 33,
+        Item: {
+          id: 2,
+          name: "Switch",
+          shortName: "Switch",
+          partNumber: "SW-001",
+          hsnCode: "8536",
+          itemGroupId: 1,
+          unitId: 2,
+          itemGroup: null,
+        },
+        fromSite: {
+          id: 35,
+          name: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
+          code: "SITE-035",
+          address: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
+          pincode: "835201",
+          mobileNumber: "9471185488",
+          departmentId: 1,
+          status: "active",
+          createdAt: "2025-05-09T06:15:54.139Z",
+          updatedAt: "2025-05-09T06:15:54.185Z",
+          deletedAt: null,
+        },
+        toSite: {
+          id: 33,
+          name: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
+          code: "SITE-033",
+          address: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
+          pincode: "828205",
+          mobileNumber: "7739039393",
+          departmentId: 1,
+          status: "active",
+          createdAt: "2025-05-09T06:09:25.974Z",
+          updatedAt: "2025-05-09T06:09:26.032Z",
+          deletedAt: null,
+        },
+      },
+    ],
+  };
 
   const formatDate = (dateString) => {
     try {
-      return format(new Date(dateString), "dd/MM/yyyy")
+      return format(parseISO(dateString), "dd/MM/yyyy");
     } catch (error) {
-      return dateString
+      return dateString;
     }
-  }
+  };
+
+  const formatTime = (dateString) => {
+    try {
+      return format(parseISO(dateString), "HH:mm");
+    } catch (error) {
+      return "";
+    }
+  };
 
   const getStatusBadge = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case "completed":
         return (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
+          <Badge
+            variant="outline"
+            className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1"
+          >
             <CheckCircle className="h-3 w-3" /> Completed
           </Badge>
-        )
+        );
       case "pending":
         return (
-          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1">
+          <Badge
+            variant="outline"
+            className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1"
+          >
             <Clock className="h-3 w-3" /> Pending
           </Badge>
-        )
+        );
+      case "returned":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1"
+          >
+            <RotateCcw className="h-3 w-3" /> Returned
+          </Badge>
+        );
       default:
-        return <Badge variant="secondary">{status}</Badge>
+        return <Badge variant="secondary">{status || "Unknown"}</Badge>;
     }
-  }
+  };
 
   const handlePrint = () => {
-    setShowPdf(true)
+    setShowPdf(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">Loading...</div>
+    );
+  }
+
+  if (error && !issue) {
+    return (
+      <div className="text-red-500">Error loading issue details: {error}</div>
+    );
   }
 
   if (!issue) {
-    return <div className="flex justify-center items-center h-64">Loading...</div>
+    return (
+      <div className="flex justify-center items-center h-64">
+        Issue not found
+      </div>
+    );
   }
+
+  // Get from and to site data
+  const fromSite = issue.items?.[0]?.fromSite || {};
+  const toSite = issue.items?.[0]?.toSite || {};
 
   // Format data for PDF
   const pdfData = {
-    issueNo: issue.id,
+    issueNo: issue.issueNumber,
     issueDate: issue.issueDate,
-    issueTime: issue.issueTime,
-    issueLocation: issue.issueLocation,
-    fromSite: issue.fromSite,
-    toSite: issue.toSite,
-  }
+    issueTime: formatTime(issue.issueDate),
+    issueLocation: fromSite.name,
+    fromSite: fromSite.name,
+    toSite: toSite.name,
+    status: issue.status,
+  };
 
   return (
     <div className="space-y-6">
@@ -252,7 +276,9 @@ const MaterialIssueDetails = () => {
                 <ArrowLeft className="h-4 w-4" />
                 <span className="sr-only">Back</span>
               </Button>
-              <h1 className="text-3xl font-bold tracking-tight">Material Issue: {issue.id}</h1>
+              <h1 className="text-3xl font-bold tracking-tight">
+                Material Issue: {issue.issueNumber}
+              </h1>
             </div>
             <div className="flex items-center gap-2">
               {getStatusBadge(issue.status)}
@@ -271,12 +297,13 @@ const MaterialIssueDetails = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Issue No</p>
-                    <p className="font-medium">{issue.id}</p>
+                    <p className="font-medium">{issue.issueNumber}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Date & Time</p>
                     <p className="font-medium">
-                      {formatDate(issue.issueDate)} {issue.issueTime}
+                      {formatDate(issue.issueDate)}{" "}
+                      {formatTime(issue.issueDate)}
                     </p>
                   </div>
                   <div>
@@ -285,11 +312,17 @@ const MaterialIssueDetails = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Status</p>
-                    <div className="font-medium">{getStatusBadge(issue.status)}</div>
+                    <div className="font-medium">
+                      {getStatusBadge(issue.status)}
+                    </div>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Issue Location</p>
-                    <p className="font-medium">{issue.issueLocation}</p>
+                    <p className="text-sm text-muted-foreground">Created At</p>
+                    <p className="font-medium">{formatDate(issue.createdAt)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Updated At</p>
+                    <p className="font-medium">{formatDate(issue.updatedAt)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -303,34 +336,32 @@ const MaterialIssueDetails = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">From Site</p>
-                    <p className="font-medium">{issue.fromSite}</p>
+                    <p className="font-medium">{fromSite.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      From Site Code
+                    </p>
+                    <p className="font-medium">{fromSite.code}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">To Site</p>
+                    <p className="font-medium">{toSite.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      To Site Code
+                    </p>
+                    <p className="font-medium">{toSite.code}</p>
                   </div>
 
-                  {issue.issueType === "transfer" ? (
+                  {issue.items?.[0]?.issueTo
+                    ?.toLowerCase()
+                    ?.includes("vehicle") && (
                     <div>
-                      <p className="text-sm text-muted-foreground">To Site</p>
-                      <p className="font-medium">{issue.toSite}</p>
+                      <p className="text-sm text-muted-foreground">Vehicle</p>
+                      <p className="font-medium">{issue.items[0].issueTo}</p>
                     </div>
-                  ) : (
-                    issue.items[0].issueTo === "vehicle" && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">Vehicle</p>
-                        <p className="font-medium">{issue.items[0].vehicleNumber}</p>
-                      </div>
-                    )
-                  )}
-
-                  {issue.items[0].issueTo === "vehicle" && (
-                    <>
-                      <div>
-                        <p className="text-sm text-muted-foreground">KM Reading</p>
-                        <p className="font-medium">{issue.items[0].vehicleKm || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Hours Meter</p>
-                        <p className="font-medium">{issue.items[0].vehicleHours || "N/A"}</p>
-                      </div>
-                    </>
                   )}
                 </div>
               </CardContent>
@@ -348,28 +379,24 @@ const MaterialIssueDetails = () => {
                     <TableRow>
                       <TableHead>Sr. No</TableHead>
                       <TableHead>Item</TableHead>
-                      <TableHead>Item Group</TableHead>
+                      <TableHead>Part No.</TableHead>
+                      <TableHead>HSN Code</TableHead>
                       <TableHead>Quantity</TableHead>
-                      <TableHead>Unit</TableHead>
                       <TableHead>Issue To</TableHead>
-                      <TableHead>Details</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {issue.items.map((item, index) => (
                       <TableRow key={item.id}>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell className="font-medium">{item.itemName}</TableCell>
-                        <TableCell>{item.itemGroup}</TableCell>
+                        <TableCell className="font-medium">
+                          {item.Item?.name || "N/A"}
+                        </TableCell>
+                        <TableCell>{item.Item?.partNumber || "N/A"}</TableCell>
+                        <TableCell>{item.Item?.hsnCode || "N/A"}</TableCell>
                         <TableCell>{item.quantity}</TableCell>
-                        <TableCell>{item.unit}</TableCell>
-                        <TableCell className="capitalize">{item.issueTo}</TableCell>
-                        <TableCell>
-                          {item.issueTo === "vehicle"
-                            ? `${item.vehicleNumber} (KM: ${item.vehicleKm || "N/A"}, Hours: ${
-                                item.vehicleHours || "N/A"
-                              })`
-                            : item.siteName}
+                        <TableCell className="capitalize">
+                          {item.issueTo || "N/A"}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -404,7 +431,7 @@ const MaterialIssueDetails = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default MaterialIssueDetails
+export default MaterialIssueDetails;

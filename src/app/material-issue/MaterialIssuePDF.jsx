@@ -1,6 +1,6 @@
-import React from "react"
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
-import { format } from "date-fns"
+import React from "react";
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { format, parseISO } from "date-fns";
 
 // Create styles
 const styles = StyleSheet.create({
@@ -16,6 +16,14 @@ const styles = StyleSheet.create({
   },
   companyInfo: {
     width: "60%",
+  },
+  companyName: {
+    fontWeight: "bold",
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  companyAddress: {
+    marginBottom: 1,
   },
   dateInfo: {
     width: "40%",
@@ -122,14 +130,25 @@ const styles = StyleSheet.create({
     paddingTop: 5,
     textAlign: "center",
   },
-})
+});
 
 const MaterialIssuePDF = ({ formData, items }) => {
-  // Calculate total value
-  const totalValue = items.reduce((sum, item) => sum + item.quantity, 0)
+  // Format date if needed
+  const formatDisplayDate = (dateString) => {
+    try {
+      return format(parseISO(dateString), "dd-MMM-yyyy");
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  // Calculate total quantity
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
   // Determine if it's a transfer or consumption
-  const isTransfer = formData.toSite !== ""
+  const isTransfer =
+    formData.issueType === "Site Transfer" ||
+    (formData.toSite && formData.toSite !== "");
 
   return (
     <Document>
@@ -137,7 +156,7 @@ const MaterialIssuePDF = ({ formData, items }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.companyInfo}>
-          <Text style={styles.companyName}>
+            <Text style={styles.companyName}>
               M/s B. P. C INFRAPROJECTS PVT LTD
             </Text>
             <Text style={styles.companyAddress}>
@@ -146,13 +165,16 @@ const MaterialIssuePDF = ({ formData, items }) => {
             <Text style={styles.companyAddress}>Ranchi - 834005</Text>
           </View>
           <View style={styles.dateInfo}>
-            <Text>Date: {format(new Date(formData.issueDate), "dd-MMM-yyyy")}</Text>
+            <Text>Issue No: {formData.issueNo}</Text>
+            <Text>Date: {formatDisplayDate(formData.issueDate)}</Text>
             <Text>Time: {formData.issueTime}</Text>
           </View>
         </View>
 
         {/* Title */}
-        <Text style={styles.title}>{isTransfer ? "STOCK TRANSFER NOTE" : "MATERIAL ISSUE SLIP"}</Text>
+        <Text style={styles.title}>
+          {isTransfer ? "STOCK TRANSFER NOTE" : "MATERIAL ISSUE SLIP"}
+        </Text>
 
         {/* From/To Sections */}
         <View style={styles.sectionContainer}>
@@ -160,11 +182,11 @@ const MaterialIssuePDF = ({ formData, items }) => {
             <Text style={styles.sectionTitle}>From</Text>
             <View style={styles.row}>
               <Text style={styles.label}>Site:</Text>
-              <Text style={styles.value}>{formData.fromSite || formData.issueLocation}</Text>
+              <Text style={styles.value}>{formData.fromSite}</Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Location:</Text>
-              <Text style={styles.value}>{formData.issueLocation}</Text>
+              <Text style={styles.value}>{formData.fromSite}</Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>GST No.:</Text>
@@ -185,7 +207,7 @@ const MaterialIssuePDF = ({ formData, items }) => {
                 </View>
                 <View style={styles.row}>
                   <Text style={styles.label}>Location:</Text>
-                  <Text style={styles.value}>HQ-{formData.toSite.split(" ")[0]}</Text>
+                  <Text style={styles.value}>{formData.toSite}</Text>
                 </View>
                 <View style={styles.row}>
                   <Text style={styles.label}>GST No.:</Text>
@@ -193,39 +215,15 @@ const MaterialIssuePDF = ({ formData, items }) => {
                 </View>
               </>
             ) : (
-              items.map((item, index) => {
-                if (item.issueTo === "vehicle") {
-                  return (
-                    <React.Fragment key={index}>
-                      <View style={styles.row}>
-                        <Text style={styles.label}>Vehicle No:</Text>
-                        <Text style={styles.value}>{item.vehicleNumber}</Text>
-                      </View>
-                      {item.vehicleKm && (
-                        <View style={styles.row}>
-                          <Text style={styles.label}>KM Reading:</Text>
-                          <Text style={styles.value}>{item.vehicleKm}</Text>
-                        </View>
-                      )}
-                      {item.vehicleHours && (
-                        <View style={styles.row}>
-                          <Text style={styles.label}>Hours Meter:</Text>
-                          <Text style={styles.value}>{item.vehicleHours}</Text>
-                        </View>
-                      )}
-                    </React.Fragment>
-                  )
-                } else {
-                  return (
-                    <React.Fragment key={index}>
-                      <View style={styles.row}>
-                        <Text style={styles.label}>Site:</Text>
-                        <Text style={styles.value}>{item.siteName}</Text>
-                      </View>
-                    </React.Fragment>
-                  )
-                }
-              })
+              // For consumption issues, show the issue destination
+              <View style={styles.row}>
+                <Text style={styles.label}>
+                  {items[0]?.issueTo?.toLowerCase()?.includes("vehicle")
+                    ? "Vehicle:"
+                    : "Issue To:"}
+                </Text>
+                <Text style={styles.value}>{items[0]?.issueTo || "N/A"}</Text>
+              </View>
             )}
           </View>
         </View>
@@ -233,10 +231,12 @@ const MaterialIssuePDF = ({ formData, items }) => {
         {/* Note */}
         <View style={styles.noteBox}>
           <Text style={styles.noteText}>
-            We are dispatching the following items basis for OUR OWN USE and Not For Sale/Resale.
+            We are dispatching the following items basis for OUR OWN USE and Not
+            For Sale/Resale.
           </Text>
           <Text style={styles.noteText}>
-            And the concerned/Authority are requested to allow uninterrupted transport/Non of these materials.
+            And the concerned/Authority are requested to allow uninterrupted
+            transport/Non of these materials.
           </Text>
         </View>
 
@@ -275,24 +275,31 @@ const MaterialIssuePDF = ({ formData, items }) => {
 
           {/* Table Body */}
           {items.map((item, index) => (
-            <View style={index === items.length - 1 ? styles.tableRowLast : styles.tableRow} key={index}>
+            <View
+              style={
+                index === items.length - 1
+                  ? styles.tableRowLast
+                  : styles.tableRow
+              }
+              key={index}
+            >
               <View style={[styles.tableCol, { width: "8%" }]}>
                 <Text>{index + 1}</Text>
               </View>
               <View style={[styles.tableCol, { width: "8%" }]}>
-                <Text>{item.itemId}</Text>
+                <Text>{item.itemId || item.Item?.id || "-"}</Text>
               </View>
               <View style={[styles.tableCol, { width: "8%" }]}>
-                <Text>-</Text>
+                <Text>{item.Item?.hsnCode || "-"}</Text>
               </View>
               <View style={[styles.tableCol, { width: "30%" }]}>
-                <Text>{item.itemName}</Text>
+                <Text>{item.Item?.name || "-"}</Text>
               </View>
               <View style={[styles.tableCol, { width: "10%" }]}>
-                <Text>-</Text>
+                <Text>{item.Item?.partNumber || "-"}</Text>
               </View>
               <View style={[styles.tableCol, { width: "8%" }]}>
-                <Text>{item.unit}</Text>
+                <Text>{item.Item?.unitId || "Nos"}</Text>
               </View>
               <View style={[styles.tableCol, { width: "8%" }]}>
                 <Text>0</Text>
@@ -315,7 +322,7 @@ const MaterialIssuePDF = ({ formData, items }) => {
               <Text>0</Text>
             </View>
             <View style={[styles.tableCol, { width: "10%" }]}>
-              <Text>{totalValue}</Text>
+              <Text>{totalQuantity}</Text>
             </View>
             <View style={[styles.tableColLast, { width: "10%" }]}>
               <Text></Text>
@@ -326,7 +333,11 @@ const MaterialIssuePDF = ({ formData, items }) => {
         {/* Narrative */}
         <View style={{ marginBottom: 20 }}>
           <Text style={{ fontWeight: "bold" }}>Narration:</Text>
-          <Text>Material issued for {isTransfer ? "transfer to " + formData.toSite : "consumption"}</Text>
+          <Text>
+            Material issued for{" "}
+            {isTransfer ? "transfer to " + formData.toSite : "consumption"}
+          </Text>
+          <Text>Status: {formData.status}</Text>
         </View>
 
         {/* Footer with signatures */}
@@ -343,7 +354,7 @@ const MaterialIssuePDF = ({ formData, items }) => {
         </View>
       </Page>
     </Document>
-  )
-}
+  );
+};
 
-export default MaterialIssuePDF
+export default MaterialIssuePDF;

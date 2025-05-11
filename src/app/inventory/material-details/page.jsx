@@ -37,58 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-const mockInventoryData = [
-  {
-    id: "1",
-    name: "Hydraulic Pump",
-    partNo: "HP-234",
-    category: "Hydraulics",
-    quantity: 10,
-    minLevel: 5,
-    site: "Kolkata Site A",
-    lastUpdated: "2025-04-10T10:30:00Z",
-  },
-  {
-    id: "2",
-    name: "Bearing Block",
-    partNo: "BB-112",
-    category: "Mechanical",
-    quantity: 3,
-    minLevel: 5,
-    site: "Delhi Site B",
-    lastUpdated: "2025-04-15T12:00:00Z",
-  },
-  {
-    id: "3",
-    name: "Control Valve",
-    partNo: "CV-556",
-    category: "Pneumatics",
-    quantity: 0,
-    minLevel: 2,
-    site: "Kolkata Site A",
-    lastUpdated: "2025-04-12T08:45:00Z",
-  },
-  {
-    id: "4",
-    name: "Pressure Gauge",
-    partNo: "PG-789",
-    category: "Instruments",
-    quantity: 15,
-    minLevel: 4,
-    site: "Mumbai Site C",
-    lastUpdated: "2025-04-18T14:10:00Z",
-  },
-  {
-    id: "5",
-    name: "Rubber Seal Kit",
-    partNo: "RSK-321",
-    category: "Seals",
-    quantity: 6,
-    minLevel: 6,
-    site: "Delhi Site B",
-    lastUpdated: "2025-04-17T16:00:00Z",
-  },
-];
+import api from "@/services/api/api-service";
 
 const MaterialDetails = () => {
   const { id } = useParams();
@@ -107,84 +56,62 @@ const MaterialDetails = () => {
   const [sites, setSites] = useState([]);
 
   useEffect(() => {
-    // Load data from localStorage
-    const storedItemGroups = [
-      {
-        id: "item-001",
-        name: "Hydraulic Hose",
-        partNo: "HH-4567",
-        groupId: "group-001",
-      },
-      {
-        id: "item-002",
-        name: "Oil Filter",
-        partNo: "OF-8821",
-        groupId: "group-002",
-      },
-    ];
+    const fetchInventoryByItemId = async () => {
+      try {
+        const response = await api.get(`/inventory/item/${id}`);
+        if (!response.status || !response.data || response.data.length === 0) {
+          toast({
+            title: "No Inventory Found",
+            description: "No inventory data available for this item.",
+            variant: "destructive",
+          });
+          navigate("/inventory");
+          return;
+        }
 
-    const storedItems = [
-      {
-        id: "1",
-        name: "Hydraulics",
-      },
-      {
-        id: "group-002",
-        name: "Engine Parts",
-      },
-    ];
+        const firstRecord = response.data[0];
+        const itemData = firstRecord.Item;
+        const inventoryList = response.data.map((inv) => ({
+          id: inv.id,
+          itemId: inv.itemId,
+          name: inv.Item?.name || "-",
+          partNo: inv.Item?.partNumber || "-",
+          hsnCode: inv.Item?.hsnCode || "-",
+          category: inv.Item?.ItemGroup?.name || "Unknown",
+          quantity: inv.quantity,
+          minLevel: inv.minimumLevel,
+          site: inv.Site?.name || "Unknown Site",
+          lastUpdated: inv.updatedAt,
+        }));
+        const uniqueSites = [
+          ...new Set(
+            response.data.map((inv) => inv.Site?.name || "Unknown Site")
+          ),
+        ];
 
-    const storedUnits = [
-      {
-        id: "unit-001",
-        name: "Piece",
-        shortName: "pc",
-      },
-      {
-        id: "unit-002",
-        name: "Box",
-        shortName: "box",
-      },
-    ];
-    const storedInventory = mockInventoryData;
-    const storedStockLogs = [];
+        setItem({
+          id: itemData.id,
+          name: itemData.name,
+          partNo: itemData.partNumber,
+        });
 
-    const foundItem = storedItems.find((i) => i.id === id);
+        setItemGroup(itemData.ItemGroup);
+        setUnit(itemData.Unit);
+        setInventory(inventoryList);
+        setSites(uniqueSites);
+      } catch (error) {
+        console.log(error)
+        toast({
+          title: "Error fetching data",
+          description: "Something went wrong while fetching inventory.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (foundItem) {
-      setItem(foundItem);
-
-      // Get item group
-      const foundItemGroup = storedItemGroups.find(
-        (g) => g.id === foundItem.itemGroup
-      );
-      setItemGroup(foundItemGroup);
-
-      // Get unit
-      const foundUnit = storedUnits.find((u) => u.id === foundItem.unit);
-      setUnit(foundUnit);
-
-      // Get inventory for this item
-      const itemInventory = storedInventory.filter((inv) => inv.itemId === id);
-      setInventory(itemInventory);
-
-      // Get stock logs for this item
-      const itemStockLogs = storedStockLogs.filter((log) => log.itemId === id);
-      setStockLogs(itemStockLogs);
-
-      // Extract unique sites
-      const uniqueSites = [...new Set(itemInventory.map((inv) => inv.site))];
-      setSites(uniqueSites);
-    } else {
-      toast({
-        title: "Item Not Found",
-        description: "The item you're looking for doesn't exist.",
-        variant: "destructive",
-      });
-      navigate("/items");
-    }
-
-    setLoading(false);
+    fetchInventoryByItemId();
   }, [id, navigate, toast]);
 
   // Mock stock logs if none exist

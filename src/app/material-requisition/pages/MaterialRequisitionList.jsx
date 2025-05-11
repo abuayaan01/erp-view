@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -30,103 +30,55 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-const mockRequisitions = [
-  {
-    id: 1,
-    requisitionNo: "REQ-001",
-    date: "2025-04-20",
-    requestingSite: "Site A",
-    forwardedToSite: "Site B",
-    priority: "urgent",
-    status: "pending",
-    preparedBy: "John Doe",
-  },
-  {
-    id: 2,
-    requisitionNo: "REQ-002",
-    date: "2025-04-21",
-    requestingSite: "Site B",
-    forwardedToSite: "Site C",
-    priority: "medium",
-    status: "forwarded",
-    preparedBy: "Alice Smith",
-  },
-  {
-    id: 3,
-    requisitionNo: "REQ-003",
-    date: "2025-04-22",
-    requestingSite: "Site C",
-    forwardedToSite: "Site A",
-    priority: "low",
-    status: "approved",
-    preparedBy: "Mark Taylor",
-  },
-  {
-    id: 4,
-    requisitionNo: "REQ-004",
-    date: "2025-04-23",
-    requestingSite: "Site A",
-    forwardedToSite: "Site B",
-    priority: "medium",
-    status: "partially_approved",
-    preparedBy: "Jane Williams",
-  },
-  {
-    id: 5,
-    requisitionNo: "REQ-005",
-    date: "2025-04-24",
-    requestingSite: "Site B",
-    forwardedToSite: "Site A",
-    priority: "urgent",
-    status: "rejected",
-    preparedBy: "Charlie Johnson",
-  },
-  {
-    id: 6,
-    requisitionNo: "REQ-006",
-    date: "2025-04-25",
-    requestingSite: "Site C",
-    forwardedToSite: "Site A",
-    priority: "low",
-    status: "issued",
-    preparedBy: "Natalie Brown",
-  },
-  {
-    id: 7,
-    requisitionNo: "REQ-007",
-    date: "2025-04-25",
-    requestingSite: "Site A",
-    forwardedToSite: "Site B",
-    priority: "medium",
-    status: "received",
-    preparedBy: "Ethan Davis",
-  },
-];
+import api from "@/services/api/api-service";
+
 const MaterialRequisitionList = () => {
   const [requisitions, setRequisitions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterSite, setFilterSite] = useState("all");
   const [sites, setSites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState("admin"); // In a real app, this would come from auth
-  const [userSite, setUserSite] = useState("Site A"); // In a real app, this would come from auth
+  const [userSite, setUserSite] = useState(null); // In a real app, this would come from auth
 
   useEffect(() => {
-    // Load requisitions from localStorage
-    const storedRequisitions =
-      JSON.parse(localStorage.getItem("requisitions")) || mockRequisitions;
-    setRequisitions(mockRequisitions);
+    // Fetch requisitions from API
+    const fetchRequisitions = async () => {
+      try {
+        setLoading(true);
+        // Replace with your actual API endpoint
+        const response = await api.get("/requisitions");
+        setRequisitions(response.data);
 
-    // Extract unique sites
-    const uniqueSites = [
-      ...new Set(storedRequisitions.map((req) => req.requestingSite)),
-    ];
-    setSites(uniqueSites);
+        // Extract unique sites
+        const uniqueSites = [
+          ...new Set(response?.data?.map((req) => req.requestingSite?.name)),
+        ]?.filter(Boolean);
+        setSites(uniqueSites);
+
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch requisitions:", err);
+        setError(err.message);
+        setLoading(false);
+
+        // For development purposes, use mock data if API fails
+        // In production, you might want to show an error message instead
+        // setRequisitions(mockRequisitions);
+      }
+    };
+
+    fetchRequisitions();
   }, []);
 
   const getPriorityBadge = (priority) => {
+    if (!priority) return <Badge variant="secondary">Not Set</Badge>;
+
     switch (priority.toLowerCase()) {
       case "urgent":
+      case "high":
         return <Badge variant="destructive">Urgent</Badge>;
       case "medium":
         return <Badge variant="default">Medium</Badge>;
@@ -138,7 +90,9 @@ const MaterialRequisitionList = () => {
   };
 
   const getStatusBadge = (status) => {
-    switch (status) {
+    if (!status) return <Badge variant="secondary">Unknown</Badge>;
+
+    switch (status.toLowerCase()) {
       case "pending":
         return (
           <Badge
@@ -208,27 +162,31 @@ const MaterialRequisitionList = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "-";
     try {
-      return format(new Date(dateString), "dd/MM/yyyy");
+      return format(parseISO(dateString), "dd/MM/yyyy");
     } catch (error) {
       return dateString;
     }
   };
 
-  const filteredRequisitions = requisitions.filter((req) => {
+  const filteredRequisitions = requisitions?.filter((req) => {
     // Filter by search term
     const matchesSearch =
-      req.requisitionNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      req.requestingSite.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      req.preparedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      req.priority.toLowerCase().includes(searchTerm.toLowerCase());
+      req.requisitionNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      req.requestingSite?.name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      req.preparedBy?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      req.requestPriority?.toLowerCase().includes(searchTerm.toLowerCase());
 
     // Filter by status
-    const matchesStatus = filterStatus === "all" || req.status === filterStatus;
+    const matchesStatus =
+      filterStatus === "all" || req.status?.toLowerCase() === filterStatus;
 
     // Filter by site
     const matchesSite =
-      filterSite === "all" || req.requestingSite === filterSite;
+      filterSite === "all" || req.requestingSite?.name === filterSite;
 
     // Filter by user role and site
     if (userRole === "admin") {
@@ -240,7 +198,8 @@ const MaterialRequisitionList = () => {
         matchesSearch &&
         matchesStatus &&
         matchesSite &&
-        (req.requestingSite === userSite || req.forwardedToSite === userSite)
+        (req.requestingSite?.name === userSite ||
+          req.forwardedToSite === userSite)
       );
     }
   });
@@ -248,17 +207,17 @@ const MaterialRequisitionList = () => {
   const getActionButtons = (req) => {
     if (userRole === "admin") {
       // Admin actions
-      switch (req.status) {
+      switch (req.status?.toLowerCase()) {
         case "pending":
           return (
             <>
-              <Button variant="ghost" size="icon" >
+              <Button variant="ghost" size="icon">
                 <Link to={`/requisitions/view/${req.id}`}>
                   <Eye className="h-4 w-4" />
                   <span className="sr-only">View</span>
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" >
+              <Button variant="ghost" size="icon">
                 <Link to={`/requisitions/forward/${req.id}`}>
                   <Truck className="h-4 w-4" />
                   <span className="sr-only">Forward</span>
@@ -268,7 +227,7 @@ const MaterialRequisitionList = () => {
           );
         case "forwarded":
           return (
-            <Button variant="ghost" size="icon" >
+            <Button variant="ghost" size="icon">
               <Link to={`/requisitions/view/${req.id}`}>
                 <Eye className="h-4 w-4" />
                 <span className="sr-only">View</span>
@@ -278,13 +237,13 @@ const MaterialRequisitionList = () => {
         case "partially_approved":
           return (
             <>
-              <Button variant="ghost" size="icon" >
+              <Button variant="ghost" size="icon">
                 <Link to={`/requisitions/view/${req.id}`}>
                   <Eye className="h-4 w-4" />
                   <span className="sr-only">View</span>
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" >
+              <Button variant="ghost" size="icon">
                 <Link to={`/requisitions/review/${req.id}`}>
                   <CheckCircle className="h-4 w-4" />
                   <span className="sr-only">Review</span>
@@ -294,7 +253,7 @@ const MaterialRequisitionList = () => {
           );
         default:
           return (
-            <Button variant="ghost" size="icon" >
+            <Button variant="ghost" size="icon">
               <Link to={`/requisitions/view/${req.id}`}>
                 <Eye className="h-4 w-4" />
                 <span className="sr-only">View</span>
@@ -304,18 +263,18 @@ const MaterialRequisitionList = () => {
       }
     } else {
       // Regular user actions
-      if (req.requestingSite === userSite) {
+      if (req.requestingSite?.name === userSite) {
         // This is the user's own requisition
-        if (req.status === "issued") {
+        if (req.status?.toLowerCase() === "issued") {
           return (
             <>
-              <Button variant="ghost" size="icon" >
+              <Button variant="ghost" size="icon">
                 <Link to={`/requisitions/view/${req.id}`}>
                   <Eye className="h-4 w-4" />
                   <span className="sr-only">View</span>
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" >
+              <Button variant="ghost" size="icon">
                 <Link to={`/requisitions/receive/${req.id}`}>
                   <CheckCircle className="h-4 w-4" />
                   <span className="sr-only">Receive</span>
@@ -325,7 +284,7 @@ const MaterialRequisitionList = () => {
           );
         } else {
           return (
-            <Button variant="ghost" size="icon" >
+            <Button variant="ghost" size="icon">
               <Link to={`/requisitions/view/${req.id}`}>
                 <Eye className="h-4 w-4" />
                 <span className="sr-only">View</span>
@@ -335,16 +294,16 @@ const MaterialRequisitionList = () => {
         }
       } else if (req.forwardedToSite === userSite) {
         // This requisition was forwarded to the user's site
-        if (req.status === "forwarded") {
+        if (req.status?.toLowerCase() === "forwarded") {
           return (
             <>
-              <Button variant="ghost" size="icon" >
+              <Button variant="ghost" size="icon">
                 <Link to={`/requisitions/view/${req.id}`}>
                   <Eye className="h-4 w-4" />
                   <span className="sr-only">View</span>
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" >
+              <Button variant="ghost" size="icon">
                 <Link to={`/requisitions/respond/${req.id}`}>
                   <CheckCircle className="h-4 w-4" />
                   <span className="sr-only">Respond</span>
@@ -352,16 +311,16 @@ const MaterialRequisitionList = () => {
               </Button>
             </>
           );
-        } else if (req.status === "approved") {
+        } else if (req.status?.toLowerCase() === "approved") {
           return (
             <>
-              <Button variant="ghost" size="icon" >
+              <Button variant="ghost" size="icon">
                 <Link to={`/requisitions/view/${req.id}`}>
                   <Eye className="h-4 w-4" />
                   <span className="sr-only">View</span>
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" >
+              <Button variant="ghost" size="icon">
                 <Link to={`/requisitions/issue/${req.id}`}>
                   <Truck className="h-4 w-4" />
                   <span className="sr-only">Issue</span>
@@ -371,7 +330,7 @@ const MaterialRequisitionList = () => {
           );
         } else {
           return (
-            <Button variant="ghost" size="icon" >
+            <Button variant="ghost" size="icon">
               <Link to={`/requisitions/view/${req.id}`}>
                 <Eye className="h-4 w-4" />
                 <span className="sr-only">View</span>
@@ -382,6 +341,20 @@ const MaterialRequisitionList = () => {
       }
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        Loading requisitions...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-500">Error loading requisitions: {error}</div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -432,7 +405,7 @@ const MaterialRequisitionList = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Sites</SelectItem>
-                {sites.map((site, index) => (
+                {sites?.map((site, index) => (
                   <SelectItem key={index} value={site}>
                     {site}
                   </SelectItem>
@@ -450,18 +423,18 @@ const MaterialRequisitionList = () => {
               <TableHead>Requisition No</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Requesting Site</TableHead>
-              {userRole === "admin" && <TableHead>Forwarded To</TableHead>}
               <TableHead>Priority</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Prepared By</TableHead>
+              <TableHead>Charge Type</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredRequisitions.length === 0 ? (
+            {filteredRequisitions?.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={userRole === "admin" ? 8 : 7}
+                  colSpan={8}
                   className="text-center py-6 text-muted-foreground"
                 >
                   {searchTerm || filterStatus !== "all" || filterSite !== "all"
@@ -470,26 +443,28 @@ const MaterialRequisitionList = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredRequisitions.map((req) => (
-                <TableRow key={req.id}>
-                  <TableCell className="font-medium">
-                    {req.requisitionNo}
-                  </TableCell>
-                  <TableCell>{formatDate(req.date)}</TableCell>
-                  <TableCell>{req.requestingSite}</TableCell>
-                  {userRole === "admin" && (
-                    <TableCell>{req.forwardedToSite || "-"}</TableCell>
-                  )}
-                  <TableCell>{getPriorityBadge(req.priority)}</TableCell>
-                  <TableCell>{getStatusBadge(req.status)}</TableCell>
-                  <TableCell>{req.preparedBy}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {getActionButtons(req)}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              filteredRequisitions?.map((req) => {
+                return (
+                  <TableRow key={req.id}>
+                    <TableCell className="font-medium">
+                      {req.requisitionNo}
+                    </TableCell>
+                    <TableCell>{formatDate(req.requestedAt)}</TableCell>
+                    <TableCell>{req.requestingSite?.name || "-"}</TableCell>
+                    <TableCell>
+                      {getPriorityBadge(req.requestPriority)}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(req.status)}</TableCell>
+                    <TableCell>{req.preparedBy?.name || "-"}</TableCell>
+                    <TableCell>{req.chargeType || "-"}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {getActionButtons(req)}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

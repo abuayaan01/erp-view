@@ -1,8 +1,7 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
-import { format } from "date-fns"
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { format } from "date-fns";
 
 // Create styles - Note: PDF generation requires StyleSheet from @react-pdf/renderer
-// We can't use Tailwind directly in PDFs, but we'll use Tailwind in the UI components
 const styles = StyleSheet.create({
   page: {
     padding: 30,
@@ -126,11 +125,34 @@ const styles = StyleSheet.create({
   pendingText: {
     fontWeight: "bold",
   },
-})
+  statusText: {
+    fontWeight: "bold",
+  }
+});
 
 const MaterialRequisitionPDF = ({ formData, items }) => {
   // Calculate total quantity
-  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
+  const totalQuantity = items.reduce((sum, item) => sum + Number(item.quantity), 0);
+  
+  // Format date safely
+  const formatDateSafe = (dateString) => {
+    try {
+      return format(new Date(dateString), "dd-MMM-yyyy");
+    } catch (error) {
+      return dateString || "-";
+    }
+  };
+
+  const getSanctionStatus = (status) => {
+    switch (status?.toLowerCase()) {
+      case "approved":
+        return "APPROVED";
+      case "rejected":
+        return "REJECTED";
+      default:
+        return "PENDING";
+    }
+  };
 
   return (
     <Document>
@@ -143,10 +165,10 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
             <Text style={styles.companyAddress}>Ranchi - 834005</Text>
           </View>
           <View style={styles.locationInfo}>
-            <Text style={{ fontWeight: "bold" }}>MARKONA 30547M TO 36247M</Text>
-            <Text>SUPERINTENDING ENGINEER MARKONA CANAL</Text>
-            <Text>DIVISION, MARKONA</Text>
-            <Text>MARKONA</Text>
+            <Text style={{ fontWeight: "bold" }}>{formData.requestingSite?.name || "N/A"}</Text>
+            <Text>SITE CODE: {formData.requestingSite?.code || "N/A"}</Text>
+            <Text>CONTACT: {formData.requestingSite?.mobileNumber || "N/A"}</Text>
+            <Text>{formData.requestingSite?.address || "N/A"}</Text>
           </View>
         </View>
 
@@ -157,32 +179,32 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
         <View style={styles.projectDetails}>
           <View style={styles.projectLeft}>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Project Name :</Text>
-              <Text style={styles.detailValue}>MARKONA 30547M TO 36247M</Text>
+              <Text style={styles.detailLabel}>Site Name:</Text>
+              <Text style={styles.detailValue}>{formData.requestingSite?.name || "N/A"}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Request No. :</Text>
-              <Text style={styles.detailValue}>O36-2</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Issue No./Indent No. Date :</Text>
+              <Text style={styles.detailLabel}>Requisition No.:</Text>
               <Text style={styles.detailValue}>{formData.requisitionNo}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Status:</Text>
+              <Text style={styles.detailValue}>{formData.status}</Text>
             </View>
           </View>
           <View style={styles.projectRight}>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Location For :</Text>
-              <Text style={styles.detailValue}>MARKONA-036</Text>
+              <Text style={styles.detailLabel}>Location:</Text>
+              <Text style={styles.detailValue}>{formData.requestingSite?.address || "N/A"}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Request Date :</Text>
+              <Text style={styles.detailLabel}>Request Date:</Text>
               <Text style={styles.detailValue}>
-                {format(new Date(formData.date), "dd-MMM-yyyy")} {formData.time}
+                {formatDateSafe(formData.requestedAt)} {formData.time || ""}
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Department Name :</Text>
-              <Text style={styles.detailValue}>MANAGEMENT</Text>
+              <Text style={styles.detailLabel}>Charge Type:</Text>
+              <Text style={styles.detailValue}>{formData.chargeType}</Text>
             </View>
           </View>
         </View>
@@ -195,19 +217,19 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
               <Text>S. No.</Text>
             </View>
             <View style={[styles.tableColHeader, { width: "8%" }]}>
-              <Text>Item code</Text>
+              <Text>Item ID</Text>
             </View>
             <View style={[styles.tableColHeader, { width: "10%" }]}>
               <Text>Part No.</Text>
             </View>
-            <View style={[styles.tableColHeader, { width: "27%" }]}>
+            <View style={[styles.tableColHeader, { width: "24%" }]}>
               <Text>Material Description</Text>
             </View>
             <View style={[styles.tableColHeader, { width: "8%" }]}>
-              <Text>Req. Qty</Text>
+              <Text>HSN Code</Text>
             </View>
             <View style={[styles.tableColHeader, { width: "8%" }]}>
-              <Text>Stock As MR Date</Text>
+              <Text>Req. Qty</Text>
             </View>
             <View style={[styles.tableColHeader, { width: "8%" }]}>
               <Text>Issue Qty</Text>
@@ -216,9 +238,9 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
               <Text>UOM</Text>
             </View>
             <View style={[styles.tableColHeader, { width: "8%" }]}>
-              <Text>Sanction Qty</Text>
+              <Text>Group</Text>
             </View>
-            <View style={[styles.tableColHeaderLast, { width: "10%" }]}>
+            <View style={[styles.tableColHeaderLast, { width: "13%" }]}>
               <Text>Remark</Text>
             </View>
           </View>
@@ -230,43 +252,41 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
                 <Text>{index + 1}</Text>
               </View>
               <View style={[styles.tableCol, { width: "8%" }]}>
-                <Text>{item.itemId}</Text>
+                <Text>{item.id || "-"}</Text>
               </View>
               <View style={[styles.tableCol, { width: "10%" }]}>
-                <Text>{item.partNo || "-"}</Text>
+                <Text>{item.Item?.partNumber || "-"}</Text>
               </View>
-              <View style={[styles.tableColLeft, { width: "27%" }]}>
-                <Text>{item.itemName}</Text>
-                <Text style={styles.pendingText}>[SANCTION : PENDING]</Text>
+              <View style={[styles.tableColLeft, { width: "24%" }]}>
+                <Text>{item.Item?.name || "-"}</Text>
+                <Text style={styles.statusText}>[SANCTION: {getSanctionStatus(formData.status)}]</Text>
+              </View>
+              <View style={[styles.tableCol, { width: "8%" }]}>
+                <Text>{item.Item?.hsnCode || "-"}</Text>
               </View>
               <View style={[styles.tableCol, { width: "8%" }]}>
                 <Text>{item.quantity}</Text>
               </View>
               <View style={[styles.tableCol, { width: "8%" }]}>
-                <Text>0.000</Text>
-              </View>
-              <View style={[styles.tableCol, { width: "8%" }]}>
                 <Text>-</Text>
               </View>
               <View style={[styles.tableCol, { width: "8%" }]}>
-                <Text>{item.unit}</Text>
+                <Text>{getUnitName(item.Item?.unitId)}</Text>
               </View>
               <View style={[styles.tableCol, { width: "8%" }]}>
-                <Text>0.00</Text>
+                <Text>{getGroupName(item.Item?.itemGroupId)}</Text>
               </View>
-              <View style={[styles.tableColLast, { width: "10%" }]}>
-                <Text>
-                  {item.issueTo === "vehicle" ? `Vehicle: ${item.vehicleNumber}` : `Site: ${item.siteName || "-"}`}
-                </Text>
-                <Text>Priority:MEDIUM</Text>
-                <Text>Due Date: {format(new Date(), "dd-MMM-yyyy")}</Text>
+              <View style={[styles.tableColLast, { width: "13%" }]}>
+                <Text>Site: {formData.requestingSite?.name || "-"}</Text>
+                <Text>Priority: {formData.requestPriority}</Text>
+                <Text>Due Date: {formatDateSafe(formData.dueDate)}</Text>
               </View>
             </View>
           ))}
 
           {/* Total Row */}
           <View style={styles.totalRow}>
-            <View style={[styles.tableCol, { width: "50%", textAlign: "right" }]}>
+            <View style={[styles.tableCol, { width: "47%", textAlign: "right" }]}>
               <Text>Total</Text>
             </View>
             <View style={[styles.tableCol, { width: "8%" }]}>
@@ -281,39 +301,81 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
             <View style={[styles.tableCol, { width: "8%" }]}>
               <Text>-</Text>
             </View>
-            <View style={[styles.tableCol, { width: "8%" }]}>
-              <Text>0</Text>
-            </View>
-            <View style={[styles.tableColLast, { width: "10%" }]}>
+            <View style={[styles.tableColLast, { width: "21%" }]}>
               <Text></Text>
             </View>
           </View>
         </View>
 
         {/* Team Text */}
-        <Text style={styles.teamText}>NWAY TEAM</Text>
+        <Text style={styles.teamText}>B.P.C INFRAPROJECTS TEAM</Text>
 
         {/* Footer with signatures */}
         <View style={styles.footer}>
           <View style={styles.signature}>
-            <Text>Requisitioner - Name & sign</Text>
+            <Text>Requisitioner</Text>
+            <Text>{formData.preparedBy?.name || "N/A"}</Text>
           </View>
           <View style={styles.signature}>
-            <Text>Approved By - Name & sign</Text>
+            <Text>Approved By</Text>
+            <Text>{formData.approvedBy?.name || "N/A"}</Text>
           </View>
           <View style={styles.signature}>
-            <Text>Issuer - Name & sign</Text>
+            <Text>Issuer</Text>
+            <Text></Text>
           </View>
           <View style={styles.signature}>
-            <Text>Store Manager - Name & sign</Text>
+            <Text>Store Manager</Text>
+            <Text></Text>
           </View>
           <View style={styles.signature}>
-            <Text>Receiver - Name & sign</Text>
+            <Text>Receiver</Text>
+            <Text>{formData.receivedBy?.name || "N/A"}</Text>
           </View>
         </View>
       </Page>
     </Document>
-  )
-}
+  );
+};
 
-export default MaterialRequisitionPDF
+// Helper functions to get unit and group information
+const getUnitName = (unitId) => {
+  if (!unitId) return "-";
+  
+  // In a real implementation, this would look up the unit in the Redux store
+  // Since we don't have access to the complete Redux store here, we'll just return a placeholder
+  // In the actual component, this should be replaced with proper unit lookup
+  const unitMap = {
+    1: "KG",
+    2: "PCS",
+    3: "BOX",
+    4: "BAG",
+    5: "MTR",
+    6: "SET",
+    7: "PKT"
+  };
+  
+  return unitMap[unitId] || "Unit";
+};
+
+const getGroupName = (groupId) => {
+  if (!groupId) return "-";
+  
+  // In a real implementation, this would look up the group in the Redux store
+  // Since we don't have access to the complete Redux store here, we'll just return a placeholder
+  // In the actual component, this should be replaced with proper group lookup
+  const groupMap = {
+    1: "Construction",
+    2: "Electrical",
+    3: "Safety",
+    4: "Tools",
+    5: "Measuring",
+    6: "Paint",
+    7: "Plumbing",
+    8: "Hardware"
+  };
+  
+  return groupMap[groupId] || "Group";
+};
+
+export default MaterialRequisitionPDF;

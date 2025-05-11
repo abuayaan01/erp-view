@@ -28,59 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const mockInventoryData = [
-  {
-    id: "1",
-    name: "Hydraulic Pump",
-    partNo: "HP-234",
-    category: "Hydraulics",
-    quantity: 10,
-    minLevel: 5,
-    site: "Kolkata Site A",
-    lastUpdated: "2025-04-10T10:30:00Z",
-  },
-  {
-    id: "2",
-    name: "Bearing Block",
-    partNo: "BB-112",
-    category: "Mechanical",
-    quantity: 3,
-    minLevel: 5,
-    site: "Delhi Site B",
-    lastUpdated: "2025-04-15T12:00:00Z",
-  },
-  {
-    id: "3",
-    name: "Control Valve",
-    partNo: "CV-556",
-    category: "Pneumatics",
-    quantity: 0,
-    minLevel: 2,
-    site: "Kolkata Site A",
-    lastUpdated: "2025-04-12T08:45:00Z",
-  },
-  {
-    id: "4",
-    name: "Pressure Gauge",
-    partNo: "PG-789",
-    category: "Instruments",
-    quantity: 15,
-    minLevel: 4,
-    site: "Mumbai Site C",
-    lastUpdated: "2025-04-18T14:10:00Z",
-  },
-  {
-    id: "5",
-    name: "Rubber Seal Kit",
-    partNo: "RSK-321",
-    category: "Seals",
-    quantity: 6,
-    minLevel: 6,
-    site: "Delhi Site B",
-    lastUpdated: "2025-04-17T16:00:00Z",
-  },
-];
+import api from "@/services/api/api-service";
+import { toast } from "@/hooks/use-toast";
 
 const InventoryList = () => {
   const [inventory, setInventory] = useState([]);
@@ -89,21 +38,41 @@ const InventoryList = () => {
   const [filterSite, setFilterSite] = useState("all");
   const [categories, setCategories] = useState([]);
   const [sites, setSites] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load inventory from localStorage
-    const storedInventory = mockInventoryData;
-    // const storedInventory = JSON.parse(localStorage.getItem("inventory")) || [];
-    setInventory(storedInventory);
+    const fetchInventory = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/inventory");
+        const data = response.data; // Extract real inventory array
+        setInventory(data);
 
-    // Extract unique categories and sites
-    const uniqueCategories = [
-      ...new Set(storedInventory.map((item) => item.category)),
-    ];
-    const uniqueSites = [...new Set(storedInventory.map((item) => item.site))];
+        // Extract categories and sites for filters
+        const uniqueCategories = [
+          ...new Set(
+            data?.map((item) => item.Item?.ItemGroup?.name || "Unknown")
+          ),
+        ];
+        const uniqueSites = [
+          ...new Set(data?.map((item) => item.Site?.name || "Unknown")),
+        ];
 
-    setCategories(uniqueCategories);
-    setSites(uniqueSites);
+        setCategories(uniqueCategories);
+        setSites(uniqueSites);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching inventory:", error);
+        toast({
+          title: "Error loading inventory",
+          description: error.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+      }
+    };
+
+    fetchInventory();
   }, []);
 
   const getStockStatus = (item) => {
@@ -124,19 +93,30 @@ const InventoryList = () => {
     }
   };
 
-  const filteredInventory = inventory.filter((item) => {
+  const filteredInventory = inventory?.filter((item) => {
+    const itemName = item.Item?.name?.toLowerCase() || "";
+    const partNumber = item.Item?.partNumber?.toLowerCase() || "";
+    const category = item.Item?.ItemGroup?.name?.toLowerCase() || "";
+    const siteName = item.Site?.name || "Unknown Site";
+
     const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.partNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase());
+      itemName.includes(searchTerm.toLowerCase()) ||
+      partNumber.includes(searchTerm.toLowerCase()) ||
+      category.includes(searchTerm.toLowerCase());
 
     const matchesCategory =
-      filterCategory === "all" || item.category === filterCategory;
-    const matchesSite = filterSite === "all" || item.site === filterSite;
+      filterCategory === "all" || category === filterCategory;
+    const matchesSite = filterSite === "all" || siteName === filterSite;
 
     return matchesSearch && matchesCategory && matchesSite;
   });
-
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        Loading inventories...
+      </div>
+    );
+  }
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -179,7 +159,7 @@ const InventoryList = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map((category, index) => (
+                    {categories?.map((category, index) => (
                       <SelectItem key={index} value={category}>
                         {category}
                       </SelectItem>
@@ -194,7 +174,7 @@ const InventoryList = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Sites</SelectItem>
-                    {sites.map((site, index) => (
+                    {sites?.map((site, index) => (
                       <SelectItem key={index} value={site}>
                         {site}
                       </SelectItem>
@@ -220,7 +200,7 @@ const InventoryList = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInventory.length === 0 ? (
+                {filteredInventory?.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={8}
@@ -234,22 +214,26 @@ const InventoryList = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredInventory.map((item) => (
+                  filteredInventory?.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell>{item.partNo}</TableCell>
-                      <TableCell>{item.category}</TableCell>
+                      <TableCell className="font-medium">
+                        {item.Item?.name}
+                      </TableCell>
+                      <TableCell>{item.Item?.partNumber}</TableCell>
+                      <TableCell>{item.Item?.ItemGroup?.name}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {item.quantity} {getStockStatus(item)}
                         </div>
                       </TableCell>
-                      <TableCell>{item.minLevel}</TableCell>
-                      <TableCell>{item.site}</TableCell>
-                      <TableCell>{formatDate(item.lastUpdated)}</TableCell>
+                      <TableCell>—</TableCell> {/* No minLevel in API yet */}
+                      <TableCell>{item.Site?.name || "Unknown Site"}</TableCell>
+                      <TableCell>{formatDate(item.updatedAt)}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm">
-                          <Link to={`/inventory/${item.id}`}>View</Link>
+                          <Link to={`/inventory/${item.id || item.itemId}`}>
+                            View
+                          </Link>
                         </Button>
                       </TableCell>
                     </TableRow>

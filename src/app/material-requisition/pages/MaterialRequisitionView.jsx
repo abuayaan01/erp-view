@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ArrowLeft, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,84 +18,59 @@ import { useToast } from "@/hooks/use-toast";
 import { PDFViewer } from "@react-pdf/renderer";
 import MaterialRequisitionPDF from "./MaterialRequisitionPDF";
 import { useSelector } from "react-redux";
+import axios from "axios"; // Assuming you're using axios
+import api from "@/services/api/api-service";
 
 const MaterialRequisitionView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const printRef = useRef();
 
   const [requisition, setRequisition] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [itemGroups, setItemGroups] = useState([]);
-  const [items, setItems] = useState([]);
   const [units, setUnits] = useState([]);
   const [showPdf, setShowPdf] = useState(false);
+
   const storedItemGroups = useSelector((state) => state.itemGroups) || [];
-  const storedItems = useSelector((state) => state.items) || [];
   const storedUnits = useSelector((state) => state.units) || [];
 
   const shouldPrint =
     new URLSearchParams(location.search).get("print") === "true";
 
   useEffect(() => {
-    // Load data from localStorage
-    const requisitions = [
-      {
-        id: "1",
-        requisitionNo: "REQ-1001",
-        date: "2025-04-20",
-        location: "Site A",
-        requestedFor: {
-          type: "machine",
-          value: "Excavator #3",
-        },
-        priority: "high",
-        preparedBy: "John Doe",
-        status: "approved",
-        items: [
-          {
-            itemId: "1",
-            name: "Hammer",
-            itemGroupId: "1",
-            unitId: "1",
-            quantity: 5,
-            partNumber: "PN-12345",
-            ItemGroup: { name: "Tools" },
-            Unit: { shortName: "pcs" },
-            weight: "1.5 kg",
-          },
-          {
-            itemId: "2",
-            name: "Wrench",
-            itemGroupId: "1",
-            unitId: "2",
-            quantity: 12,
-            partNumber: "PN-123456",
-            ItemGroup: { name: "Tools" },
-            Unit: { shortName: "pcs" },
-            weight: "0.5 kg",
-          },
-        ],
-      },
-    ];
+    const fetchRequisition = async () => {
+      try {
+        setLoading(true);
+        // Replace with your actual API endpoint
+        const response = await api.get(`/requisitions/${id}`);
+        if (response.status && response.data) {
+          setRequisition(response.data);
+          setItemGroups(storedItemGroups.data || []);
+          setUnits(storedUnits.data || []);
+        } else {
+          toast({
+            title: "Error",
+            description: response.data.message || "Failed to fetch requisition",
+            variant: "destructive",
+          });
+          navigate("/requisitions/list");
+        }
+      } catch (error) {
+        toast({
+          title: "Requisition Not Found",
+          description: "The requisition you're looking for doesn't exist.",
+          variant: "destructive",
+        });
+        navigate("/requisitions/list");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const foundRequisition = requisitions.find((req) => req.id === id);
-
-    if (foundRequisition) {
-      setRequisition(foundRequisition);
-      setItemGroups(storedItemGroups.data);
-      setItems(storedItems.data);
-      setUnits(storedUnits.data);
-    } else {
-      toast({
-        title: "Requisition Not Found",
-        description: "The requisition you're looking for doesn't exist.",
-        variant: "destructive",
-      });
-      navigate("/requisitions");
-    }
-  }, [id, navigate, toast]);
+    fetchRequisition();
+  }, [id, navigate, toast, storedItemGroups, storedUnits]);
 
   useEffect(() => {
     // Trigger print if print parameter is present
@@ -104,18 +79,13 @@ const MaterialRequisitionView = () => {
     }
   }, [shouldPrint, requisition]);
 
-  const getItemGroupName = (id) => {
-    const group = itemGroups.find((g) => g.id == id);
+  const getItemGroupName = (groupId) => {
+    const group = itemGroups.find((g) => g.id === groupId);
     return group ? group.name : "Unknown Group";
   };
 
-  const getItemName = (id) => {
-    const item = items.find((i) => i.id == id);
-    return item ? item.name : "Unknown Item";
-  };
-
-  const getUnitName = (id) => {
-    const unit = units.find((u) => u.id == id);
+  const getUnitName = (unitId) => {
+    const unit = units.find((u) => u.id === unitId);
     return unit ? unit.shortName || unit.name : "";
   };
 
@@ -123,6 +93,8 @@ const MaterialRequisitionView = () => {
     switch (priority.toLowerCase()) {
       case "urgent":
         return <Badge variant="destructive">Urgent</Badge>;
+      case "high":
+        return <Badge variant="destructive">High</Badge>;
       case "medium":
         return <Badge variant="default">Medium</Badge>;
       case "low":
@@ -144,9 +116,32 @@ const MaterialRequisitionView = () => {
     setShowPdf(true);
   };
 
-  if (!requisition) {
+  const getStatusBadge = (status) => {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return <Badge variant="outline">Pending</Badge>;
+      case "approved":
+        return <Badge variant="success">Approved</Badge>;
+      case "rejected":
+        return <Badge variant="destructive">Rejected</Badge>;
+      case "received":
+        return <Badge variant="default">Received</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">Loading...</div>
+    );
+  }
+
+  if (!requisition) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        Requisition not found
+      </div>
     );
   }
 
@@ -187,52 +182,40 @@ const MaterialRequisitionView = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Date and Time</p>
-                  <p className="font-medium">{formatDate(requisition.date)}</p>
-                </div>
-
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Store Section</p>
+                  <p className="text-sm text-muted-foreground">Requested At</p>
                   <p className="font-medium">
-                    {requisition.storeSection === "main"
-                      ? "Main Store"
-                      : requisition.storeSection === "secondary"
-                      ? "Secondary Store"
-                      : requisition.storeSection === "warehouse"
-                      ? "Warehouse"
-                      : requisition.storeSection}
+                    {formatDate(requisition.requestedAt)}
                   </p>
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Location</p>
-                  <p className="font-medium">{requisition.location}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Requested Site
+                  </p>
+                  <p className="font-medium">
+                    {requisition.requestingSite?.name || "N/A"}
+                  </p>
                 </div>
 
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Requested For</p>
                   <p className="font-medium">
-                    {requisition.requestedFor.type.charAt(0).toUpperCase() +
-                      requisition.requestedFor.type.slice(1)}
-                    : {requisition.requestedFor.value}
+                    {requisition.requestedFor || "N/A"}
                   </p>
                 </div>
 
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Charge Type</p>
-                  <p className="font-medium">
-                    {requisition.chargeType === "foc" ? "FOC" : "Chargeable"}
-                  </p>
+                  <p className="font-medium">{requisition.chargeType}</p>
                 </div>
 
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Priority</p>
                   <div className="font-medium print:hidden">
-                    {getPriorityBadge(requisition.priority)}
+                    {getPriorityBadge(requisition.requestPriority)}
                   </div>
                   <p className="font-medium hidden print:block">
-                    {requisition.priority.charAt(0).toUpperCase() +
-                      requisition.priority.slice(1)}
+                    {requisition.requestPriority}
                   </p>
                 </div>
 
@@ -247,8 +230,38 @@ const MaterialRequisitionView = () => {
 
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Prepared By</p>
-                  <p className="font-medium">{requisition.preparedBy}</p>
+                  <p className="font-medium">
+                    {requisition.preparedBy?.name || "N/A"}
+                  </p>
                 </div>
+
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <div className="font-medium print:hidden">
+                    {getStatusBadge(requisition.status)}
+                  </div>
+                  <p className="font-medium hidden print:block">
+                    {requisition.status}
+                  </p>
+                </div>
+
+                {requisition.approvedById && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Approved By</p>
+                    <p className="font-medium">
+                      {requisition.approvedBy?.name || "N/A"}
+                    </p>
+                  </div>
+                )}
+
+                {requisition.approvedAt && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Approved At</p>
+                    <p className="font-medium">
+                      {formatDate(requisition.approvedAt)}
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -263,24 +276,22 @@ const MaterialRequisitionView = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Sr. No</TableHead>
-                      <TableHead>Item Group</TableHead>
                       <TableHead>Item</TableHead>
                       <TableHead>Part No</TableHead>
-                      <TableHead>Qty/Unit</TableHead>
-                      <TableHead>Weight/Unit</TableHead>
+                      <TableHead>HSN Code</TableHead>
+                      <TableHead>Quantity</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {requisition.items.map((item, index) => (
                       <TableRow key={index}>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell>{item.ItemGroup.name}</TableCell>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>{item.partNumber || "-"}</TableCell>
+                        <TableCell>{item.Item?.name || "N/A"}</TableCell>
+                        <TableCell>{item.Item?.partNumber || "-"}</TableCell>
+                        <TableCell>{item.Item?.hsnCode || "-"}</TableCell>
                         <TableCell>
-                          {item.quantity} {item.Unit?.shortName}
+                          {item.quantity} {getUnitName(item.Item?.unitId)}
                         </TableCell>
-                        <TableCell>{item.weight || "-"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -302,22 +313,9 @@ const MaterialRequisitionView = () => {
               <MaterialRequisitionPDF
                 formData={{
                   ...requisition,
-                  time: new Date(requisition.date).toLocaleTimeString(),
+                  time: new Date(requisition.requestedAt).toLocaleTimeString(),
                 }}
-                items={requisition.items.map((item) => ({
-                  ...item,
-                  itemName: getItemName(item.itemId),
-                  unit: getUnitName(item.unitId),
-                  issueTo: requisition.requestedFor.type,
-                  vehicleNumber:
-                    requisition.requestedFor.type === "vehicle"
-                      ? requisition.requestedFor.value
-                      : "",
-                  siteName:
-                    requisition.requestedFor.type !== "vehicle"
-                      ? requisition.requestedFor.value
-                      : "",
-                }))}
+                items={requisition.items}
               />
             </PDFViewer>
           </div>
