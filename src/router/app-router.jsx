@@ -52,6 +52,7 @@ import { fetchMachineCategories } from "@/features/machine-category/machine-cate
 import { fetchMachines } from "@/features/machine/machine-slice";
 import { fetchPrimaryCategories } from "@/features/primary-category/primary-category-slice";
 import { fetchUnits } from "@/features/units/units-slice";
+import MachineEditPage from "@/app/machine/machine-edit/page";
 
 function AppRouter() {
   const dispatch = useDispatch();
@@ -158,6 +159,7 @@ function AppRouter() {
         />
         <Route path="/list-machine" element={<MachineTable />} />
         <Route path="/machines/:id" element={<MachineryDetailPage />} />
+        <Route path="/machines/edit/:id" element={<MachineEditPage />} />
         {/* Machines Management End*/}
 
 

@@ -266,6 +266,11 @@ export const columns = [
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem
+              onClick={() => navigate(`/machines/edit/${row.original.id}`)}
+            >
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={() => handleDelete(row.original.id)}
               className={"text-red-500"}
             >
