@@ -443,13 +443,13 @@ export default function MachineryDetailPage() {
                           <MapPin className="h-5 w-5 mt-1" />
                           <div>
                             <h3 className="font-medium">
-                              {data.site.name} ({data.site.code})
+                              {data?.site?.name} ({data?.site?.code})
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                              {data.site.address}
+                              {data?.site?.address}
                             </p>
                             <p className="text-sm text-muted-foreground mt-2">
-                              Site ID: #{data.site.id}
+                              Site ID: #{data?.site?.id}
                             </p>
                           </div>
                         </div>
