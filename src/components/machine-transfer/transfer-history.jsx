@@ -289,7 +289,7 @@ export function TransferHistory() {
         <table className="w-full">
           <TableHeader>
             <TableRow className="text-sm">
-              <TableHead className="text-center">Transfer ID</TableHead>
+              <TableHead className="text-center">Transfer No.</TableHead>
               <TableHead className="text-center">Machine Name</TableHead>
               <TableHead className="text-center">Type</TableHead>
               <TableHead className="w-[250px] text-center">From → To</TableHead>
@@ -303,7 +303,7 @@ export function TransferHistory() {
             {transfers.length > 0 ? (
               transfers.map((transfer) => (
                 <TableRow className="text-sm text-center" key={transfer.id}>
-                  <TableCell>{transfer.id}</TableCell>
+                  <TableCell>{transfer.name}</TableCell>
                   <TableCell>{transfer.machine?.machineName || "NA"}</TableCell>
                   <TableCell>
                     {transfer.requestType === "Site Transfer"
@@ -410,10 +410,10 @@ export function TransferHistory() {
                             </div>
                           </DialogContent>
                         </Dialog>
-                        <DropdownMenuItem className="text-red-600">
+                        {/* <DropdownMenuItem className="text-red-600">
                           <BookDown className="mr-2 h-4 w-4" />
                           Download Challan
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

@@ -35,41 +35,7 @@ import {
 import { PDFViewer } from "@react-pdf/renderer";
 import MaterialRequisitionPDF from "./MaterialRequisitionPDF";
 import { useDispatch, useSelector } from "react-redux";
-
-// const storedItemGroups = [
-//   { id: "grp1", name: "Electrical" },
-//   { id: "grp2", name: "Mechanical" },
-//   { id: "grp3", name: "Safety Equipment" },
-// ];
-
-// const storedItems = [
-//   {
-//     id: "item1",
-//     name: "Cable Roll",
-//     itemGroup: "grp1",
-//     unitId: "unit1",
-//   },
-//   { id: "item2", name: "Switch", itemGroup: "grp1", unitId: "unit2" },
-//   {
-//     id: "item3",
-//     name: "Gearbox",
-//     itemGroup: "grp2",
-//     unitId: "unit3",
-//   },
-//   {
-//     id: "item4",
-//     name: "Hard Hat",
-//     itemGroup: "grp3",
-//     unitId: "unit2",
-//   },
-//   { id: "item5", name: "Gloves", itemGroup: "grp3", unitId: "unit2" },
-// ];
-
-// const storedUnits = [
-//   { id: "unit1", name: "Meter" },
-//   { id: "unit2", name: "Piece" },
-//   { id: "unit3", name: "Set" },
-// ];
+import api from "@/services/api/api-service";
 
 const MaterialRequisitionForm = () => {
   const navigate = useNavigate();
@@ -77,12 +43,7 @@ const MaterialRequisitionForm = () => {
   const [showPdf, setShowPdf] = useState(false);
 
   const [formData, setFormData] = useState({
-    requisitionNo: `REQ-${Date.now().toString().slice(-6)}`,
-    date: new Date().toISOString(),
-    time: new Date().toLocaleTimeString(),
-    requestingSite: "Site A", // Default site
-    storeSection: "",
-    location: "",
+    requestingSite: {}, // Default site
     requestedFor: {
       type: "party",
       value: "",
@@ -92,28 +53,32 @@ const MaterialRequisitionForm = () => {
     dueDate: "",
     preparedBy: "",
     items: [],
-    status: "pending",
   });
 
   const [itemGroups, setItemGroups] = useState([]);
   const [items, setItems] = useState([]);
   const [units, setUnits] = useState([]);
+  const [sites, setSites] = useState([]); // Mock sites
   const [selectedItemGroup, setSelectedItemGroup] = useState("");
-  const [selectedItem, setSelectedItem] = useState("");
+  const [selectedItem, setSelectedItem] = useState({});
   const [itemQuantity, setItemQuantity] = useState("");
   const [itemSize, setItemSize] = useState("");
   const [itemWeight, setItemWeight] = useState("");
   const [filteredItems, setFilteredItems] = useState([]);
   const [errors, setErrors] = useState({});
+  const [preparedBy, setPreparedBy] = useState({});
   const [activeTab, setActiveTab] = useState("details");
-  const [sites, setSites] = useState(["Site A", "Site B", "Site C"]); // Mock sites
   const storedItemGroups = useSelector((state) => state.itemGroups) || [];
   const storedItems = useSelector((state) => state.items) || [];
   const storedUnits = useSelector((state) => state.units) || [];
+  const storedSites = useSelector((state) => state.sites) || [];
+  const currentUser = useSelector((state) => state.auth.user) || {};
   useEffect(() => {
     setItemGroups(storedItemGroups.data);
     setItems(storedItems.data);
     setUnits(storedUnits.data);
+    setSites(storedSites.data);
+    setPreparedBy(currentUser);
   }, []);
 
   useEffect(() => {
@@ -128,33 +93,8 @@ const MaterialRequisitionForm = () => {
     }
 
     // Reset selected item when item group changes
-    setSelectedItem("");
+    setSelectedItem({});
   }, [selectedItemGroup, items]);
-
-  const getItemGroupName = (id) => {
-    const group = itemGroups.find((g) => g.id === id);
-    return group ? group.name : "Unknown Group";
-  };
-
-  const getItemName = (id) => {
-    const item = items.find((i) => i.id === id);
-    return item ? item.name : "Unknown Item";
-  };
-
-  const getUnitName = (id) => {
-    const unit = units.find((u) => u.id === id);
-    return unit ? unit.shortName || unit.name : "";
-  };
-
-  const getItemUnit = (id) => {
-    const item = items.find((i) => i.id === id);
-    return item ? item.unit : "";
-  };
-
-  const getItemPartNo = (id) => {
-    const item = items.find((i) => i.id === id);
-    return item ? item.partNo || "-" : "-";
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -209,7 +149,7 @@ const MaterialRequisitionForm = () => {
 
   const addItem = () => {
     if (
-      !selectedItem ||
+      !selectedItem.id ||
       !itemQuantity ||
       Number.parseFloat(itemQuantity) <= 0
     ) {
@@ -223,7 +163,7 @@ const MaterialRequisitionForm = () => {
 
     // Check if item already exists in the list
     const existingItemIndex = formData.items.findIndex(
-      (item) => item.itemId === selectedItem
+      (item) => item.id === selectedItem.id
     );
 
     if (existingItemIndex !== -1) {
@@ -241,18 +181,11 @@ const MaterialRequisitionForm = () => {
         items: updatedItems,
       }));
     } else {
-      // Add new item
-      const selectedItemObj = items.find((item) => item.id === selectedItem);
-
       const newItem = {
-        itemId: selectedItem,
-        itemGroupId: selectedItemObj.itemGroup,
         quantity: Number.parseFloat(itemQuantity),
-        unitId: selectedItemObj.unit,
-        size: itemSize,
         weight: itemWeight,
-        partNo: getItemPartNo(selectedItem),
         status: "pending", // Initial status for each item
+        ...selectedItem,
       };
 
       setFormData((prev) => ({
@@ -262,7 +195,7 @@ const MaterialRequisitionForm = () => {
     }
 
     // Reset item selection fields
-    setSelectedItem("");
+    setSelectedItem({});
     setItemQuantity("");
     setItemSize("");
     setItemWeight("");
@@ -292,25 +225,11 @@ const MaterialRequisitionForm = () => {
     const newErrors = {};
 
     if (!formData.requestingSite) {
-      newErrors.requestingSite = "Requesting site is required";
+      newErrors.requestingSite.name = "Requesting site is required";
     }
-
-    if (!formData.storeSection) {
-      newErrors.storeSection = "Store section is required";
-    }
-
-    if (!formData.location) {
-      newErrors.location = "Location is required";
-    }
-
     if (!formData.requestedFor.value) {
       newErrors.requestedFor = `${formData.requestedFor.type} is required`;
     }
-
-    if (!formData.preparedBy) {
-      newErrors.preparedBy = "Prepared by is required";
-    }
-
     if (formData.items.length === 0) {
       newErrors.items = "At least one item is required";
     }
@@ -318,8 +237,27 @@ const MaterialRequisitionForm = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  const handleSubmit = (e) => {
+  const prepareRequestPayload = () => {
+    return {
+      requestedAt: new Date(),
+      requestingSiteId: formData.requestingSite.id,
+      requestedFor: formData.requestedFor.value,
+      chargeType: formData.chargeType === "foc" ? "Foc" : "Chargeable",
+      requestPriority:
+        formData.priority === "low"
+          ? "Low"
+          : formData.priority === "medium"
+          ? "Medium"
+          : "High",
+      dueDate: formData.dueDate || new Date().toISOString().split("T")[0],
+      preparedById: preparedBy.id || currentUser.id,
+      items: formData.items.map((item) => ({
+        itemId: item.id,
+        quantity: item.quantity,
+      })),
+    };
+  };
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -330,28 +268,28 @@ const MaterialRequisitionForm = () => {
       });
       return;
     }
-
-    // Get existing requisitions
-    const requisitions = JSON.parse(localStorage.getItem("requisitions")) || [];
-
-    // Create new requisition
-    const newRequisition = {
-      id: Date.now().toString(),
-      ...formData,
-    };
-
-    localStorage.setItem(
-      "requisitions",
-      JSON.stringify([...requisitions, newRequisition])
-    );
-
+    //Call Here API POST REQUEST
     toast({
       title: "Requisition Created",
       description: "The material requisition has been created successfully.",
     });
+    try {
+      const payload = prepareRequestPayload();
+      console.log("Submitting payload:", payload);
+      const res = await api.post("/requisitions", payload);
+      const newRequisition = res.data;
+      navigate(`/requisitions/view/${newRequisition.id}`);
+    } catch (error) {
+      console.error("Error submitting requisition:", error);
+      toast({
+        title: "Submission Error",
+        description: "Failed to create the requisition. Please try again.",
+        variant: "destructive",
+      });
+    }
 
+    // return;
     // Redirect to view page
-    navigate(`/requisitions/view/${newRequisition.id}`);
   };
 
   const handlePrint = () => {
@@ -376,20 +314,8 @@ const MaterialRequisitionForm = () => {
         detailErrors.requestingSite = "Requesting site is required";
       }
 
-      if (!formData.storeSection) {
-        detailErrors.storeSection = "Store section is required";
-      }
-
-      if (!formData.location) {
-        detailErrors.location = "Location is required";
-      }
-
       if (!formData.requestedFor.value) {
         detailErrors.requestedFor = `${formData.requestedFor.type} is required`;
-      }
-
-      if (!formData.preparedBy) {
-        detailErrors.preparedBy = "Prepared by is required";
       }
 
       setErrors(detailErrors);
@@ -456,29 +382,6 @@ const MaterialRequisitionForm = () => {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="requisitionNo">Requisition No</Label>
-                      <Input
-                        id="requisitionNo"
-                        value={formData.requisitionNo}
-                        readOnly
-                        disabled
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Date and Time</Label>
-                      <Input
-                        id="date"
-                        type="datetime-local"
-                        value={new Date(formData.date)
-                          .toISOString()
-                          .slice(0, 16)}
-                        readOnly
-                        disabled
-                      />
-                    </div>
-
-                    <div className="space-y-2">
                       <Label htmlFor="requestingSite">Requesting Site *</Label>
                       <Select
                         value={formData.requestingSite}
@@ -492,7 +395,7 @@ const MaterialRequisitionForm = () => {
                         <SelectContent>
                           {sites.map((site, index) => (
                             <SelectItem key={index} value={site}>
-                              {site}
+                              {site.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -505,55 +408,13 @@ const MaterialRequisitionForm = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="storeSection">Store Section *</Label>
-                      <Select
-                        value={formData.storeSection}
-                        onValueChange={(value) =>
-                          handleSelectChange("storeSection", value)
-                        }
-                      >
-                        <SelectTrigger id="storeSection">
-                          <SelectValue placeholder="Select store section" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="main">Main Store</SelectItem>
-                          <SelectItem value="secondary">
-                            Secondary Store
-                          </SelectItem>
-                          <SelectItem value="warehouse">Warehouse</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {errors.storeSection && (
-                        <p className="text-sm text-destructive">
-                          {errors.storeSection}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
                       <Label htmlFor="location">Location *</Label>
-                      <Select
-                        value={formData.location}
-                        onValueChange={(value) =>
-                          handleSelectChange("location", value)
-                        }
-                      >
-                        <SelectTrigger id="location">
-                          <SelectValue placeholder="Select location" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="MARKONA-036">
-                            MARKONA-036
-                          </SelectItem>
-                          <SelectItem value="site-b">Site B</SelectItem>
-                          <SelectItem value="headquarters">
-                            Headquarters
-                          </SelectItem>
-                          <SelectItem value="branch-office">
-                            Branch Office
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        placeholder={`Enter Location`}
+                        value={formData.requestingSite.address || ""}
+                        disabled
+                        readOnly
+                      />
                       {errors.location && (
                         <p className="text-sm text-destructive">
                           {errors.location}
@@ -673,8 +534,10 @@ const MaterialRequisitionForm = () => {
                     <Input
                       id="preparedBy"
                       name="preparedBy"
-                      value={formData.preparedBy}
-                      onChange={handleChange}
+                      value={preparedBy.name}
+                      // onChange={handleChange}
+                      disabled
+                      readOnly
                       placeholder="Enter name of person preparing this requisition"
                     />
                     {errors.preparedBy && (
@@ -688,7 +551,7 @@ const MaterialRequisitionForm = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => navigate("/requisitions")}
+                    onClick={() => navigate("/requisitions/list")}
                   >
                     Cancel
                   </Button>
@@ -759,7 +622,7 @@ const MaterialRequisitionForm = () => {
                             </SelectItem>
                           ) : (
                             filteredItems.map((item) => (
-                              <SelectItem key={item.id} value={item.id}>
+                              <SelectItem key={item.id} value={item}>
                                 {item.name}
                               </SelectItem>
                             ))
@@ -774,8 +637,10 @@ const MaterialRequisitionForm = () => {
                       <Label htmlFor="size">Size/Part No</Label>
                       <Input
                         id="size"
-                        value={itemSize}
-                        onChange={(e) => setItemSize(e.target.value)}
+                        value={selectedItem.partNumber || "NA"}
+                        // onChange={(e) => setItemSize(e.target.value)}
+                        disabled
+                        readOnly
                         placeholder="Enter size or part number"
                       />
                     </div>
@@ -795,7 +660,7 @@ const MaterialRequisitionForm = () => {
                         <div className="w-20">
                           {selectedItem && (
                             <span className="text-sm text-muted-foreground">
-                              {getUnitName(getItemUnit(selectedItem))}
+                              {selectedItem?.Unit?.name || ""}
                             </span>
                           )}
                         </div>
@@ -851,12 +716,13 @@ const MaterialRequisitionForm = () => {
                             <TableRow key={index}>
                               <TableCell>{index + 1}</TableCell>
                               <TableCell>
-                                {getItemGroupName(item.itemGroupId)}
+                                {item.ItemGroup.name}
+                                {/* {getItemGroupName(item.itemGroupId)} */}
                               </TableCell>
-                              <TableCell>{getItemName(item.itemId)}</TableCell>
-                              <TableCell>{item.partNo || "-"}</TableCell>
+                              <TableCell>{item.name}</TableCell>
+                              <TableCell>{item.partNumber || "-"}</TableCell>
                               <TableCell>
-                                {item.quantity} {getUnitName(item.unitId)}
+                                {item.quantity} {item.Unit.shortName}
                               </TableCell>
                               <TableCell>{item.weight || "-"}</TableCell>
                               <TableCell className="text-right">
@@ -907,45 +773,17 @@ const MaterialRequisitionForm = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <Label className="text-muted-foreground">
-                        Requisition No
-                      </Label>
-                      <p className="font-medium">{formData.requisitionNo}</p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label className="text-muted-foreground">
-                        Date and Time
-                      </Label>
-                      <p className="font-medium">
-                        {new Date(formData.date).toLocaleString()}
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label className="text-muted-foreground">
                         Requesting Site
                       </Label>
-                      <p className="font-medium">{formData.requestingSite}</p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label className="text-muted-foreground">
-                        Store Section
-                      </Label>
                       <p className="font-medium">
-                        {formData.storeSection === "main"
-                          ? "Main Store"
-                          : formData.storeSection === "secondary"
-                          ? "Secondary Store"
-                          : formData.storeSection === "warehouse"
-                          ? "Warehouse"
-                          : formData.storeSection}
+                        {formData.requestingSite.name}
                       </p>
                     </div>
-
                     <div className="space-y-1">
                       <Label className="text-muted-foreground">Location</Label>
-                      <p className="font-medium">{formData.location}</p>
+                      <p className="font-medium">
+                        {formData.requestingSite.address}
+                      </p>
                     </div>
 
                     <div className="space-y-1">
@@ -989,7 +827,7 @@ const MaterialRequisitionForm = () => {
                       <Label className="text-muted-foreground">
                         Prepared By
                       </Label>
-                      <p className="font-medium">{formData.preparedBy}</p>
+                      <p className="font-medium">{preparedBy.name}</p>
                     </div>
                   </div>
 
@@ -1011,13 +849,11 @@ const MaterialRequisitionForm = () => {
                           {formData.items.map((item, index) => (
                             <TableRow key={index}>
                               <TableCell>{index + 1}</TableCell>
+                              <TableCell>{item.ItemGroup.name}</TableCell>
+                              <TableCell>{item.name}</TableCell>
+                              <TableCell>{item.partNumber || "-"}</TableCell>
                               <TableCell>
-                                {getItemGroupName(item.itemGroupId)}
-                              </TableCell>
-                              <TableCell>{getItemName(item.itemId)}</TableCell>
-                              <TableCell>{item.partNo || "-"}</TableCell>
-                              <TableCell>
-                                {item.quantity} {getUnitName(item.unitId)}
+                                {item.quantity} {item.Unit.shortName}
                               </TableCell>
                               <TableCell>{item.weight || "-"}</TableCell>
                             </TableRow>
@@ -1043,9 +879,9 @@ const MaterialRequisitionForm = () => {
                     >
                       <Save className="mr-2 h-4 w-4" /> Save
                     </Button>
-                    <Button type="button" onClick={handlePrint}>
+                    {/* <Button type="button" onClick={handlePrint}>
                       <Printer className="mr-2 h-4 w-4" /> Print
-                    </Button>
+                    </Button> */}
                   </div>
                 </CardFooter>
               </Card>
@@ -1066,8 +902,8 @@ const MaterialRequisitionForm = () => {
                 formData={formData}
                 items={formData.items.map((item) => ({
                   ...item,
-                  itemName: getItemName(item.itemId),
-                  unit: getUnitName(item.unitId),
+                  itemName: item.name,
+                  unit: item.Unit.name,
                   issueTo: formData.requestedFor.type,
                   vehicleNumber:
                     formData.requestedFor.type === "vehicle"

@@ -149,7 +149,7 @@ const InventoryList = () => {
               />
             </div>
             <div className="flex flex-1 flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+              {/* <div className="flex-1">
                 <Select
                   value={filterCategory}
                   onValueChange={setFilterCategory}
@@ -159,15 +159,18 @@ const InventoryList = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {categories?.map((category, index) => (
-                      <SelectItem key={index} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
+                    {categories?.map((category, index) => {
+                      console.log(category)
+                      return (
+                        <SelectItem key={index} value={category}>
+                          {category}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="flex-1">
+              </div> */}
+              {/* <div className="flex-1">
                 <Select value={filterSite} onValueChange={setFilterSite}>
                   <SelectTrigger>
                     <SelectValue placeholder="Filter by site" />
@@ -181,7 +184,7 @@ const InventoryList = () => {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -193,9 +196,9 @@ const InventoryList = () => {
                   <TableHead>Part No.</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Current Stock</TableHead>
-                  <TableHead>Min. Level</TableHead>
+                  {/* <TableHead>Min. Level</TableHead>
                   <TableHead>Site</TableHead>
-                  <TableHead>Last Updated</TableHead>
+                  <TableHead>Last Updated</TableHead> */}
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -226,9 +229,9 @@ const InventoryList = () => {
                           {item.quantity} {getStockStatus(item)}
                         </div>
                       </TableCell>
-                      <TableCell>—</TableCell> {/* No minLevel in API yet */}
+                      {/* <TableCell>—</TableCell> 
                       <TableCell>{item.Site?.name || "Unknown Site"}</TableCell>
-                      <TableCell>{formatDate(item.updatedAt)}</TableCell>
+                      <TableCell>{formatDate(item.updatedAt)}</TableCell> */}
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm">
                           <Link to={`/inventory/${item.id || item.itemId}`}>

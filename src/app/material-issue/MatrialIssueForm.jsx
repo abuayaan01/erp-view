@@ -1,146 +1,305 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { format } from "date-fns"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Printer, Save, Plus, Trash2 } from "lucide-react"
-import MaterialIssuePDF from "./MaterialIssuePDF"
-import { PDFViewer } from "@react-pdf/renderer"
-
-// Mock data
-const mockItemGroups = [
-  { id: "1", name: "Lubricants" },
-  { id: "2", name: "Spare Parts" },
-  { id: "3", name: "Consumables" },
-  { id: "4", name: "Fuels" },
-]
-
-const mockItems = [
-  { id: "1", groupId: "1", name: "Engine Oil", unit: "LTR", balance: 500 },
-  { id: "2", groupId: "1", name: "Gear Oil", unit: "LTR", balance: 300 },
-  { id: "3", groupId: "2", name: "Air Filter", unit: "PCS", balance: 50 },
-  { id: "4", groupId: "2", name: "Oil Filter", unit: "PCS", balance: 75 },
-  { id: "5", groupId: "3", name: "Grease", unit: "KG", balance: 200 },
-  { id: "6", groupId: "4", name: "Diesel", unit: "LTR", balance: 1000 },
-  { id: "7", groupId: "4", name: "Petrol", unit: "LTR", balance: 800 },
-]
-
-const mockVehicles = [
-  { id: "1", number: "JH01AB1234", type: "Truck" },
-  { id: "2", number: "JH02CD5678", type: "Excavator" },
-  { id: "3", number: "JH03EF9012", type: "Loader" },
-]
-
-const mockSites = [
-  { id: "1", name: "MARKONA CANAL", code: "MARKONA-036" },
-  { id: "2", name: "TATA OFFICE", code: "TATA-JAM" },
-  { id: "3", name: "JAMSHEDPUR SITE", code: "JSR-SITE" },
-]
+import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Printer, Save, Plus, Trash2 } from "lucide-react";
+import MaterialIssuePDF from "./MaterialIssuePDF";
+import { PDFViewer } from "@react-pdf/renderer";
+import { useNavigate } from "react-router";
+import { useSelector } from "react-redux";
+import api from "@/services/api/api-service";
 
 const MaterialIssueForm = () => {
-  const [issueType, setIssueType] = useState("consumption")
-  const [selectedItemGroup, setSelectedItemGroup] = useState("")
-  const [selectedItem, setSelectedItem] = useState("")
-  const [quantity, setQuantity] = useState("")
-  const [issueTo, setIssueTo] = useState("vehicle")
-  const [selectedVehicle, setSelectedVehicle] = useState("")
-  const [selectedSite, setSelectedSite] = useState("")
-  const [vehicleKm, setVehicleKm] = useState("")
-  const [vehicleHours, setVehicleHours] = useState("")
-  const [issueItems, setIssueItems] = useState([])
-  const [showPdf, setShowPdf] = useState(false)
+  const [issueType, setIssueType] = useState("Consumption");
+  const [selectedItemGroup, setSelectedItemGroup] = useState("");
+  const [selectedItem, setSelectedItem] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [issueTo, setIssueTo] = useState("vehicle");
+  const [selectedVehicle, setSelectedVehicle] = useState("");
+  const [selectedSite, setSelectedSite] = useState("");
+  const [vehicleKm, setVehicleKm] = useState("");
+  const [vehicleHours, setVehicleHours] = useState("");
+  const [issueItems, setIssueItems] = useState([]);
+  const [showPdf, setShowPdf] = useState(false);
   const [formData, setFormData] = useState({
     issueNo: `ISS-${Math.floor(Math.random() * 10000)
       .toString()
       .padStart(4, "0")}`,
     issueDate: format(new Date(), "yyyy-MM-dd"),
     issueTime: format(new Date(), "HH:mm"),
-    issueLocation: "MARKONA CANAL SITE",
-    fromSite: "MARKONA CANAL",
+    issueLocation: "",
+    fromSite: "",
     toSite: "",
-  })
+  });
+
+  // States for API data
+  const [inventory, setInventory] = useState([]);
+  const [itemGroups, setItemGroups] = useState([]);
+  const [items, setItems] = useState([]);
+  const [units, setUnits] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Get sites and vehicles from Redux
+  const sites = useSelector((state) => state.sites.data) || [];
+  const vehicles = useSelector((state) => state.machines.data) || [];
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Reset issue to when issue type changes
+    if (issueType === "Consumption") {
+      setIssueTo("vehicle");
+    } else if (issueType === "transfer") {
+      setIssueTo("Other Site");
+      
+      // If toSite is already selected, set selectedSite to match
+      if (formData.toSite) {
+        const toSiteObj = sites.find(site => site.name === formData.toSite);
+        if (toSiteObj) {
+          setSelectedSite(toSiteObj.id);
+        }
+      }
+    }
+  }, [issueType, formData.toSite, sites]);
+
+  const fetchInventoryData = async (siteId) => {
+    if (!siteId) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await api.get(`inventory/sites/${siteId}`);
+
+      // Set inventory data
+      setInventory(response.data);
+
+      // Extract unique item groups
+      const uniqueItemGroups = [
+        ...new Map(
+          response.data.map((item) => [
+            item.Item.ItemGroup.id,
+            item.Item.ItemGroup,
+          ])
+        ).values(),
+      ];
+
+      setItemGroups(uniqueItemGroups);
+
+      // Extract unique items with balance
+      const uniqueItems = response.data.map((inventoryItem) => ({
+        ...inventoryItem.Item,
+        balance: inventoryItem.quantity,
+        unit: inventoryItem.Item.Unit.shortName,
+      }));
+
+      setItems(uniqueItems);
+
+      // Extract unique units
+      const uniqueUnits = [
+        ...new Map(
+          response.data.map((item) => [item.Item.Unit.id, item.Item.Unit])
+        ).values(),
+      ];
+
+      setUnits(uniqueUnits);
+    } catch (error) {
+      console.error("Failed to fetch inventory data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
-    })
-  }
+    });
+  };
+
+  const handleSelectChange = (name, value) => {
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+
+    // If selecting issue location, fetch inventory for that site
+    if (name === "issueLocation") {
+      const selectedSite = sites.find(site => site.name === value);
+      if (selectedSite) {
+        fetchInventoryData(selectedSite.id);
+        
+        // Update the fromSite in case of transfer
+        setFormData(prev => ({
+          ...prev,
+          [name]: value,
+          fromSite: value
+        }));
+      }
+    }
+  };
 
   const handleAddItem = () => {
-    if (!selectedItem || !quantity || Number.parseFloat(quantity) <= 0) {
-      alert("Please select an item and enter a valid quantity")
-      return
+    if (!selectedItem || !quantity || Number(quantity) <= 0) {
+      alert("Please select an item and enter a valid quantity");
+      return;
     }
 
-    const item = mockItems.find((i) => i.id === selectedItem)
-    const itemGroup = mockItemGroups.find((g) => g.id === selectedItemGroup)
+    const item = items.find((i) => i.id === Number(selectedItem));
+    const itemGroup = itemGroups.find(
+      (g) => g.id === Number(selectedItemGroup)
+    );
 
-    if (!item) return
+    if (!item) return;
 
     // Check if quantity exceeds balance
-    if (Number.parseFloat(quantity) > item.balance) {
-      alert(`Quantity exceeds available balance of ${item.balance} ${item.unit}`)
-      return
+    if (Number(quantity) > item.balance) {
+      alert(
+        `Quantity exceeds available balance of ${item.balance} ${item.unit}`
+      );
+      return;
     }
 
+    // Validate required fields based on issueTo
+    if (issueTo === "vehicle" && !selectedVehicle) {
+      alert("Please select a vehicle");
+      return;
+    }
+
+    // For transfer, use the global destination site
+    const selectedToSite = issueType === "transfer" 
+      ? sites.find(site => site.name === formData.toSite) 
+      : null;
+    
     const newItem = {
       id: Date.now().toString(),
-      itemId: selectedItem,
+      itemId: Number(selectedItem),
       itemName: item.name,
       itemGroup: itemGroup?.name || "",
-      quantity: Number.parseFloat(quantity),
+      quantity: Number(quantity),
       unit: item.unit,
       balance: item.balance,
       issueTo: issueTo,
-      vehicleId: selectedVehicle,
-      vehicleNumber: mockVehicles.find((v) => v.id === selectedVehicle)?.number || "",
-      vehicleKm: vehicleKm,
-      vehicleHours: vehicleHours,
-      siteId: selectedSite,
-      siteName: mockSites.find((s) => s.id === selectedSite)?.name || "",
-    }
+      vehicleId: issueTo === "vehicle" ? selectedVehicle : null,
+      vehicleNumber:
+        issueTo === "vehicle" ? vehicles.find((v) => v.id === selectedVehicle)?.machineName || "" : "",
+      vehicleKm: issueTo === "vehicle" ? vehicleKm : "",
+      vehicleHours: issueTo === "vehicle" ? vehicleHours : "",
+      siteId: issueType === "transfer" ? selectedToSite?.id : null,
+      siteName: issueType === "transfer" ? formData.toSite : "",
+    };
 
-    setIssueItems([...issueItems, newItem])
+    setIssueItems([...issueItems, newItem]);
 
     // Reset form fields
-    setSelectedItem("")
-    setQuantity("")
-    setVehicleKm("")
-    setVehicleHours("")
-  }
+    setSelectedItem("");
+    setQuantity("");
+    setVehicleKm("");
+    setVehicleHours("");
+  };
 
   const handleRemoveItem = (id) => {
-    setIssueItems(issueItems.filter((item) => item.id !== id))
-  }
+    setIssueItems(issueItems.filter((item) => item.id !== id));
+  };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (issueItems.length === 0) {
-      alert("Please add at least one item")
-      return
+      alert("Please add at least one item");
+      return;
     }
 
-    // In a real application, you would save to a database here
-    alert("Material issue saved successfully!")
-  }
+    if (!formData.issueLocation) {
+      alert("Please select an issue site");
+      return;
+    }
+
+    if (issueType === "transfer" && !formData.toSite) {
+      alert("Please select a destination site for transfer");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // Prepare the request body
+      const selectedIssueSite = sites.find(site => site.name === formData.issueLocation);
+      const selectedToSite = issueType === "transfer" ? sites.find(site => site.name === formData.toSite) : null;
+      
+      const requestBody = {
+        issueDate: `${formData.issueDate} ${formData.issueTime}:00.000000`,
+        issueType: issueType === "Consumption" ? "Consumption" : "Site Transfer",
+        siteId: selectedIssueSite?.id,
+        otherSiteId: selectedToSite?.id || null,
+        items: issueItems.map(item => ({
+          itemId: item.itemId,
+          quantity: item.quantity,
+          issueTo: item.issueTo,
+          siteId: selectedIssueSite?.id,
+          machineId: item.issueTo === "vehicle" ? item.vehicleId : null,
+          otherSiteId: issueType === "transfer" ? selectedToSite?.id : null
+        }))
+      };
+
+      // Make the API call
+      await api.post('/material-issues', requestBody);
+      
+      alert("Material issue saved successfully!");
+      navigate("/issues");
+    } catch (error) {
+      console.error("Failed to save material issue:", error);
+      alert("Failed to save material issue. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handlePrint = () => {
     if (issueItems.length === 0) {
-      alert("Please add at least one item")
-      return
+      alert("Please add at least one item");
+      return;
     }
 
-    setShowPdf(true)
-  }
+    setShowPdf(true);
+  };
 
-  const filteredItems = selectedItemGroup ? mockItems.filter((item) => item.groupId === selectedItemGroup) : []
+  const filteredItems = selectedItemGroup
+    ? items.filter((item) => item.itemGroupId === Number(selectedItemGroup))
+    : [];
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-6 text-center">
+        Loading inventory data...
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-6 max-w-6xl">
@@ -149,114 +308,84 @@ const MaterialIssueForm = () => {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Material Issue</h1>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={handleSave}>
+              <Button variant="outline" onClick={handleSave} disabled={isSaving}>
                 <Save className="mr-2 h-4 w-4" /> Save
               </Button>
-              <Button onClick={handlePrint}>
+              {/* <Button onClick={handlePrint}>
                 <Printer className="mr-2 h-4 w-4" /> Print
-              </Button>
+              </Button> */}
             </div>
           </div>
 
           <Card>
             <CardHeader>
               <CardTitle>Material Issue Details</CardTitle>
-              <CardDescription>Enter the details for material issue</CardDescription>
+              <CardDescription>
+                Enter the details for material issue
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="issueNo">Material Issue No</Label>
-                  <Input id="issueNo" name="issueNo" value={formData.issueNo} onChange={handleInputChange} readOnly />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="issueDate">Issue Date</Label>
-                  <Input
-                    id="issueDate"
-                    name="issueDate"
-                    type="date"
-                    value={formData.issueDate}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="issueTime">Time</Label>
-                  <Input
-                    id="issueTime"
-                    name="issueTime"
-                    type="time"
-                    value={formData.issueTime}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
               <div className="space-y-2">
                 <Label>Issue Type</Label>
-                <RadioGroup value={issueType} onValueChange={setIssueType} className="flex flex-wrap gap-4">
+                <RadioGroup
+                  value={issueType}
+                  onValueChange={setIssueType}
+                  className="flex flex-wrap gap-4"
+                >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="consumption" id="consumption" />
-                    <Label htmlFor="consumption">Consumption/Site</Label>
+                    <RadioGroupItem value="Consumption" id="Consumption" />
+                    <Label htmlFor="Consumption">Consumption</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="transfer" id="transfer" />
-                    <Label htmlFor="transfer">Transfer</Label>
+                    <Label htmlFor="transfer">Site Transfer</Label>
                   </div>
                 </RadioGroup>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="issueLocation">Issue Location</Label>
-                <Input
-                  id="issueLocation"
-                  name="issueLocation"
+                <Label htmlFor="issueLocation">Issue Site *</Label>
+                <Select
                   value={formData.issueLocation}
-                  onChange={handleInputChange}
-                  placeholder="Enter issue location"
-                />
+                  onValueChange={(value) =>
+                    handleSelectChange("issueLocation", value)
+                  }
+                >
+                  <SelectTrigger id="issueLocation">
+                    <SelectValue placeholder="Select issue site" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sites.map((site) => (
+                      <SelectItem key={site.id} value={site.name}>
+                        {site.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {issueType === "transfer" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fromSite">From Site</Label>
-                    <Select
-                      value={formData.fromSite}
-                      onValueChange={(value) => setFormData({ ...formData, fromSite: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select from site" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockSites.map((site) => (
+                <div className="space-y-2">
+                  <Label htmlFor="toSite">To Site *</Label>
+                  <Select
+                    value={formData.toSite}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, toSite: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select destination site" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sites
+                        .filter(site => site.name !== formData.issueLocation)
+                        .map((site) => (
                           <SelectItem key={site.id} value={site.name}>
                             {site.name}
                           </SelectItem>
                         ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="toSite">To Site</Label>
-                    <Select
-                      value={formData.toSite}
-                      onValueChange={(value) => setFormData({ ...formData, toSite: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select to site" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockSites.map((site) => (
-                          <SelectItem key={site.id} value={site.name}>
-                            {site.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
 
@@ -265,13 +394,19 @@ const MaterialIssueForm = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="itemGroup">Item Group *</Label>
-                    <Select value={selectedItemGroup} onValueChange={setSelectedItemGroup}>
+                    <Select
+                      value={selectedItemGroup}
+                      onValueChange={setSelectedItemGroup}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select item group" />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockItemGroups.map((group) => (
-                          <SelectItem key={group.id} value={group.id}>
+                        {itemGroups.map((group) => (
+                          <SelectItem
+                            key={group.id}
+                            value={group.id.toString()}
+                          >
                             {group.name}
                           </SelectItem>
                         ))}
@@ -281,13 +416,23 @@ const MaterialIssueForm = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="item">Item *</Label>
-                    <Select value={selectedItem} onValueChange={setSelectedItem} disabled={!selectedItemGroup}>
+                    <Select
+                      value={selectedItem}
+                      onValueChange={setSelectedItem}
+                      disabled={!selectedItemGroup}
+                    >
                       <SelectTrigger>
-                        <SelectValue placeholder={selectedItemGroup ? "Select item" : "Select item group first"} />
+                        <SelectValue
+                          placeholder={
+                            selectedItemGroup
+                              ? "Select item"
+                              : "Select item group first"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {filteredItems.map((item) => (
-                          <SelectItem key={item.id} value={item.id}>
+                          <SelectItem key={item.id} value={item.id.toString()}>
                             {item.name}
                           </SelectItem>
                         ))}
@@ -308,7 +453,9 @@ const MaterialIssueForm = () => {
                         placeholder="Enter quantity"
                       />
                       <div className="w-16 text-sm">
-                        {selectedItem && mockItems.find((i) => i.id === selectedItem)?.unit}
+                        {selectedItem &&
+                          items.find((i) => i.id === Number(selectedItem))
+                            ?.unit}
                       </div>
                     </div>
                   </div>
@@ -318,25 +465,43 @@ const MaterialIssueForm = () => {
                   <Label>Balance Quantity</Label>
                   <div className="flex items-center space-x-2">
                     <Input
-                      value={selectedItem ? mockItems.find((i) => i.id === selectedItem)?.balance || "" : ""}
+                      value={
+                        selectedItem
+                          ? items.find((i) => i.id === Number(selectedItem))
+                              ?.balance || ""
+                          : ""
+                      }
                       readOnly
                       disabled
                     />
                     <div className="w-16 text-sm">
-                      {selectedItem && mockItems.find((i) => i.id === selectedItem)?.unit}
+                      {selectedItem &&
+                        items.find((i) => i.id === Number(selectedItem))?.unit}
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label>Issue To</Label>
-                  <RadioGroup value={issueTo} onValueChange={setIssueTo} className="flex flex-wrap gap-4">
+                  <RadioGroup
+                    value={issueTo}
+                    onValueChange={setIssueTo}
+                    className="flex flex-wrap gap-4"
+                  >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="vehicle" id="vehicle" />
+                      <RadioGroupItem 
+                        value="vehicle" 
+                        id="vehicle" 
+                        disabled={issueType === "transfer"}
+                      />
                       <Label htmlFor="vehicle">Vehicle</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="site" id="site" />
+                      <RadioGroupItem 
+                        value="Other Site" 
+                        id="site" 
+                        disabled={issueType === "Consumption"}
+                      />
                       <Label htmlFor="site">Other Site</Label>
                     </div>
                   </RadioGroup>
@@ -346,14 +511,17 @@ const MaterialIssueForm = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="vehicle">Vehicle No *</Label>
-                      <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
+                      <Select
+                        value={selectedVehicle}
+                        onValueChange={setSelectedVehicle}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select vehicle" />
                         </SelectTrigger>
                         <SelectContent>
-                          {mockVehicles.map((vehicle) => (
+                          {vehicles.map((vehicle) => (
                             <SelectItem key={vehicle.id} value={vehicle.id}>
-                              {vehicle.number}
+                              {vehicle.machineName}/{vehicle.erpCode}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -385,23 +553,37 @@ const MaterialIssueForm = () => {
                 ) : (
                   <div className="space-y-2">
                     <Label htmlFor="site">Site Name *</Label>
-                    <Select value={selectedSite} onValueChange={setSelectedSite}>
+                    <Select
+                      value={selectedSite}
+                      onValueChange={setSelectedSite}
+                      disabled={issueType === "transfer"}
+                    >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select site" />
+                        <SelectValue placeholder={issueType === "transfer" ? formData.toSite || "Select destination site first" : "Select site"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockSites.map((site) => (
-                          <SelectItem key={site.id} value={site.id}>
-                            {site.name}
-                          </SelectItem>
-                        ))}
+                        {sites
+                          .filter(site => site.name !== formData.issueLocation)
+                          .map((site) => (
+                            <SelectItem key={site.id} value={site.id}>
+                              {site.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
                 )}
 
                 <div className="flex justify-end">
-                  <Button onClick={handleAddItem} disabled={!selectedItem || !quantity}>
+                  <Button
+                    onClick={handleAddItem}
+                    disabled={
+                      !selectedItem || 
+                      !quantity || 
+                      (issueTo === "vehicle" && !selectedVehicle) || 
+                      (issueTo === "Other Site" && issueType !== "transfer")
+                    }
+                  >
                     <Plus className="mr-2 h-4 w-4" /> Add Item
                   </Button>
                 </div>
@@ -423,7 +605,10 @@ const MaterialIssueForm = () => {
                   <TableBody>
                     {issueItems.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                        <TableCell
+                          colSpan={7}
+                          className="text-center py-6 text-muted-foreground"
+                        >
                           No items added yet.
                         </TableCell>
                       </TableRow>
@@ -434,16 +619,22 @@ const MaterialIssueForm = () => {
                           <TableCell>{item.itemName}</TableCell>
                           <TableCell>{item.quantity}</TableCell>
                           <TableCell>{item.unit}</TableCell>
-                          <TableCell>{item.issueTo === "vehicle" ? "Vehicle" : "Site"}</TableCell>
+                          <TableCell>
+                            {item.issueTo === "vehicle" ? "Vehicle" : "Site Transfer"}
+                          </TableCell>
                           <TableCell>
                             {item.issueTo === "vehicle"
-                              ? `${item.vehicleNumber} (KM: ${item.vehicleKm || "N/A"}, Hours: ${
-                                  item.vehicleHours || "N/A"
-                                })`
+                              ? `${item.vehicleNumber} (KM: ${
+                                  item.vehicleKm || "N/A"
+                                }, Hours: ${item.vehicleHours || "N/A"})`
                               : item.siteName}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleRemoveItem(item.id)}
+                            >
                               <Trash2 className="h-4 w-4" />
                               <span className="sr-only">Remove</span>
                             </Button>
@@ -456,16 +647,20 @@ const MaterialIssueForm = () => {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => window.location.reload()}>
-                Reset
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/issues")}
+              >
+                Cancel
               </Button>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={handleSave}>
+                <Button variant="outline" onClick={handleSave} disabled={isSaving}>
                   <Save className="mr-2 h-4 w-4" /> Save
                 </Button>
-                <Button onClick={handlePrint}>
+                {/* <Button onClick={handlePrint}>
                   <Printer className="mr-2 h-4 w-4" /> Print
-                </Button>
+                </Button> */}
               </div>
             </CardFooter>
           </Card>
@@ -486,7 +681,7 @@ const MaterialIssueForm = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default MaterialIssueForm
+export default MaterialIssueForm;
