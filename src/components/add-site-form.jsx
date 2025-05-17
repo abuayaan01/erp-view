@@ -31,7 +31,7 @@ import { fetchSites } from "@/features/sites/sites-slice";
 // ⬇️ UPDATED: Added mobileNumber and pincode
 const formSchema = z.object({
   name: z.string().trim().min(1, "Site Name is required"),
-  code: z.string().trim().min(1, "Site Code is required"),
+  code: z.string().optional(),
   address: z.string().trim().min(1, "Site Address is required"),
   mobileNumber: z.string().trim().min(10, "Mobile Number is required"),
   pincode: z.string().trim().min(6, "Pincode is required"),
@@ -101,7 +101,7 @@ export default function AddSiteForm({ close }) {
             />
           </div>
 
-          <div className="col-span-6">
+          {/* <div className="col-span-6">
             <FormField
               control={form.control}
               name="code"
@@ -115,7 +115,7 @@ export default function AddSiteForm({ close }) {
                 </FormItem>
               )}
             />
-          </div>
+          </div> */}
 
           <div className="col-span-6">
             <FormField
@@ -264,7 +264,7 @@ export function UpdateSite({ data }) {
                     <FormItem>
                       <FormLabel>Site Code</FormLabel>
                       <FormControl>
-                        <Input {...field} onKeyDown={(e) => e.stopPropagation()} />
+                        <Input disabled {...field} onKeyDown={(e) => e.stopPropagation()} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

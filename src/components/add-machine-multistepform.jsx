@@ -102,7 +102,7 @@ const Step1 = ({ onNext, primaryCategories, machineCategories, siteList, watch }
       </div>
 
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-6">
+        {/* <div className="col-span-6">
           <Label htmlFor="erpCode">ERP Code</Label>
           <Input
             id="erpCode"
@@ -111,10 +111,10 @@ const Step1 = ({ onNext, primaryCategories, machineCategories, siteList, watch }
           {onNext.formState.errors.erpCode && (
             <FormMessage>{onNext.formState.errors.erpCode.message}</FormMessage>
           )}
-        </div>
+        </div> */}
         <div className="col-span-6">
           <SelectDropdown
-            label={"Allocate Site"}
+            label={"Allocate Site *"}
             name={"siteId"}
             data={siteList}
             control={onNext.control}
@@ -574,11 +574,11 @@ const step1Schema = z.object({
   primaryCategoryId: z.number("Required"),
   machineCategoryId: z.number("Required"),
   machineName: z.string().min(3, "Machine Name is required"),
-  registrationNumber: z.string().optional(),
   machineNumber: z.string().min(3, "Machine Number is required"),
+  registrationNumber: z.string().optional(),
   machineCode: z.string().optional(),
   erpCode: z.string().optional(),
-  siteId: z.number("Required").optional(),
+  siteId: z.number("Required"),
 });
 
 // Step 2 Validation Schema
@@ -599,20 +599,20 @@ const step3Schema = z.object({
   primaryCategoryId: z.number("Required"),
   machineCategoryId: z.number("Required"),
   machineName: z.string().min(3, "Machine Name is required"),
-  registrationNumber: z.string().min(3, "Registration Number is required"),
   machineNumber: z.string().min(3, "Machine Number is required"),
-  machineCode: z.string().min(3, "Machine Code is required"),
-  erpCode: z.string().min(3, "ERP Code is required"),
+  registrationNumber: z.string().optional(),
+  machineCode: z.string().optional(),
+  // erpCode: z.string().min(3, "ERP Code is required"),
   siteId: z.number("Required"),
 
   chassisNumber: z.string().min(3, "Chassis Number is required"),
-  engineNumber: z.string().min(3, "Engine Number is required"),
-  serialNumber: z.string().min(3, "Serial Number is required"),
-  model: z.string().min(3, "Model is required"),
-  make: z.string().min(3, "Make is required"),
-  purchaseDate: z.string().nonempty("Purchase date is required"),
-  yom: z.string().min(4, "Year of Manufacture must be a valid year").max(4, "Year of Manufacture must be a valid year"),
-  capacity: z.string().min(1, "Capacity is required"),
+  engineNumber: z.string().optional(),
+  serialNumber: z.string().optional(),
+  model: z.string().optional(),
+  make: z.string().optional(),
+  purchaseDate: z.string().optional(),
+  yom: z.string().min(4, "Year of Manufacture must be a valid year").max(4, "Year of Manufacture must be a valid year").or(z.literal("")),
+  capacity: z.string().optional(),
 
   ownerName: z.string().min(3, "Owner Name is required"),
   ownerType: z.string().min(3, "Owner Type is required"),

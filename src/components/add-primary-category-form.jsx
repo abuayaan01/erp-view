@@ -40,29 +40,86 @@ import { Plus } from "lucide-react";
 import { fetchPrimaryCategories } from "@/features/primary-category/primary-category-slice";
 
 // Validation schema using zod
-const formSchema = z.object({
-  primaryCategoryId: z.string().nonempty("Primary Category is required"),
-  name: z.string().nonempty("Machine Category is required"),
-  machineType: z.enum(["Vehicle", "Machine", "Drilling"], {
-    errorMap: () => ({ message: "Please select a Machine Type" }),
-  }),
-  averageBase: z.enum(["Distance", "Time", "Both", "None"], {
-    errorMap: () => ({ message: "Please select the Average Base" }),
-  }),
-  standardKmRun: z.string().nonempty("Required field").regex(/^\d*$/, "Must be a valid number"),
-  standardHrsRun: z.string().nonempty("Required field").regex(/^\d*$/, "Must be a valid number"),
-  standardMileage: z.string().nonempty("Required field").regex(/^\d*$/, "Must be a valid number"),
-  ltrPerHour: z.string().nonempty("Required field").regex(/^\d*$/, "Must be a valid number"),
-  // applicableFor: z
-  //   .array(z.string())
-  //   .min(1, "You must select at least one applicable item."),
-});
+const formSchema = z
+  .object({
+    primaryCategoryId: z.string().nonempty("Primary Category is required"),
+    name: z.string().nonempty("Machine Category is required"),
+    machineType: z.enum(["Vehicle", "Machine", "Drilling"], {
+      errorMap: () => ({ message: "Please select a Machine Type" }),
+    }),
+    averageBase: z.enum(["Distance", "Time", "Both", "None"], {
+      errorMap: () => ({ message: "Please select the Average Base" }),
+    }),
+    standardKmRun: z
+      .string()
+      .regex(/^\d*$/, "Must be a valid number")
+      .optional(),
+    standardHrsRun: z
+      .string()
+      .regex(/^\d*$/, "Must be a valid number")
+      .optional(),
+    standardMileage: z
+      .string()
+      .regex(/^\d*$/, "Must be a valid number")
+      .optional(),
+    ltrPerHour: z.string().regex(/^\d*$/, "Must be a valid number").optional(),
+    // applicableFor: z
+    //   .array(z.string())
+    //   .min(1, "You must select at least one applicable item."),
+  })
+  .superRefine((data, ctx) => {
+    const {
+      averageBase,
+      standardKmRun,
+      standardHrsRun,
+      standardMileage,
+      ltrPerHour,
+    } = data;
+
+    const isEmpty = (val) => !val || val.trim() === "";
+
+    if (averageBase === "Distance" || averageBase === "Both") {
+      if (isEmpty(standardKmRun)) {
+        ctx.addIssue({
+          path: ["standardKmRun"],
+          message: "Required field for Distance or Both",
+          code: z.ZodIssueCode.custom,
+        });
+      }
+
+      if (isEmpty(standardMileage)) {
+        ctx.addIssue({
+          path: ["standardMileage"],
+          message: "Required field for Distance or Both",
+          code: z.ZodIssueCode.custom,
+        });
+      }
+    }
+
+    if (averageBase === "Time" || averageBase === "Both") {
+      if (isEmpty(standardHrsRun)) {
+        ctx.addIssue({
+          path: ["standardHrsRun"],
+          message: "Required field for Time or Both",
+          code: z.ZodIssueCode.custom,
+        });
+      }
+
+      if (isEmpty(ltrPerHour)) {
+        ctx.addIssue({
+          path: ["ltrPerHour"],
+          message: "Required field for Time or Both",
+          code: z.ZodIssueCode.custom,
+        });
+      }
+    }
+  });
 
 // Primary category form schema
 const primaryCategorySchema = z.object({
   name: z.string().nonempty("Primary Category name is required"),
   // description: z.string().optional(),
-})
+});
 
 const items = [
   { id: "insurance", label: "Insurance" },
@@ -78,7 +135,8 @@ const items = [
 export default function AddPrimaryCategoryForm() {
   const [loading, setLoading] = useState(false);
   const [addCategoryloader, setAddCategoryloader] = useState(false);
-  const [isPrimaryCategoryDialogOpen, setIsPrimaryCategoryDialogOpen] = useState(false)
+  const [isPrimaryCategoryDialogOpen, setIsPrimaryCategoryDialogOpen] =
+    useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -94,10 +152,12 @@ export default function AddPrimaryCategoryForm() {
       name: data?.name || "",
       machineType: data?.machineType || "",
       averageBase: data?.averageBase || "",
-      standardKmRun: data?.standardKmRun && String(data?.standardKmRun) || "",
-      standardHrsRun: data?.standardHrsRun && String(data?.standardHrsRun) || "",
-      standardMileage: data?.standardMileage && String(data?.standardMileage) || "",
-      ltrPerHour: data?.ltrPerHour && String(data?.ltrPerHour) || "",
+      standardKmRun: (data?.standardKmRun && String(data?.standardKmRun)) || "",
+      standardHrsRun:
+        (data?.standardHrsRun && String(data?.standardHrsRun)) || "",
+      standardMileage:
+        (data?.standardMileage && String(data?.standardMileage)) || "",
+      ltrPerHour: (data?.ltrPerHour && String(data?.ltrPerHour)) || "",
     },
   });
 
@@ -106,7 +166,7 @@ export default function AddPrimaryCategoryForm() {
     defaultValues: {
       name: "",
     },
-  })
+  });
 
   async function onSubmit(values) {
     setLoading(true);
@@ -117,8 +177,7 @@ export default function AddPrimaryCategoryForm() {
           title: "Success! ",
           description: "Machine category updated successfully",
         });
-      }
-      else {
+      } else {
         const res = await api.post("/category/machine", values);
         toast({
           title: "Success! ",
@@ -127,7 +186,7 @@ export default function AddPrimaryCategoryForm() {
       }
       // dispatch(fetchMachineCategories());
       dispatch(fetchPrimaryCategories());
-      navigate('/list-machine-category');
+      navigate("/list-machine-category");
     } catch (error) {
       console.error("Form submission error", error);
       toast({
@@ -144,27 +203,28 @@ export default function AddPrimaryCategoryForm() {
   async function onSubmitPrimaryCategory(values) {
     setAddCategoryloader(true);
     try {
-      const response = await api.post("/category/primary", values)
+      const response = await api.post("/category/primary", values);
       toast({
         title: "Success!",
         description: "Primary category created successfully",
-      })
+      });
 
       // Refresh primary categories
       dispatch(fetchPrimaryCategories());
 
       // Close the dialog
-      setIsPrimaryCategoryDialogOpen(false)
+      setIsPrimaryCategoryDialogOpen(false);
 
       // Reset the primary category form
-      primaryCategoryForm.reset()
+      primaryCategoryForm.reset();
     } catch (error) {
-      console.error("Primary category creation error", error)
+      console.error("Primary category creation error", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.response?.data?.message || "Failed to create primary category",
-      })
+        description:
+          error.response?.data?.message || "Failed to create primary category",
+      });
     } finally {
       setAddCategoryloader(false);
     }
@@ -172,7 +232,7 @@ export default function AddPrimaryCategoryForm() {
 
   useEffect(() => {
     if (data) {
-      form.setValue('primaryCategoryId', data.primaryCategory?.id || '');
+      form.setValue("primaryCategoryId", data.primaryCategory?.id || "");
     }
   }, [data, form, primaryCategories]);
 
@@ -197,7 +257,9 @@ export default function AddPrimaryCategoryForm() {
                         onValueChange={field.onChange}
                         value={field.value}
                         defaultValue={field.value}
-                        disabled={!primaryCategories || primaryCategories.length === 0}
+                        disabled={
+                          !primaryCategories || primaryCategories.length === 0
+                        }
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select an option" />
@@ -219,7 +281,9 @@ export default function AddPrimaryCategoryForm() {
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
-                    <FormMessage>{form.formState.errors.primaryCategoryId?.message}</FormMessage>
+                    <FormMessage>
+                      {form.formState.errors.primaryCategoryId?.message}
+                    </FormMessage>
                   </FormItem>
                 )}
               />
@@ -431,19 +495,31 @@ export default function AddPrimaryCategoryForm() {
           </div>
 
           {/* Submit Button */}
-          <Button loading={loading} type="submit">{data ? "Update Category" : "Add Category"}</Button>
+          <Button loading={loading} type="submit">
+            {data ? "Update Category" : "Add Category"}
+          </Button>
         </form>
       </Form>
 
-      <Dialog open={isPrimaryCategoryDialogOpen} onOpenChange={setIsPrimaryCategoryDialogOpen}>
+      <Dialog
+        open={isPrimaryCategoryDialogOpen}
+        onOpenChange={setIsPrimaryCategoryDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create New Primary Category</DialogTitle>
-            <DialogDescription>Add a new primary category that will be available for selection.</DialogDescription>
+            <DialogDescription>
+              Add a new primary category that will be available for selection.
+            </DialogDescription>
           </DialogHeader>
 
           <Form {...primaryCategoryForm}>
-            <form onSubmit={primaryCategoryForm.handleSubmit(onSubmitPrimaryCategory)} className="space-y-4">
+            <form
+              onSubmit={primaryCategoryForm.handleSubmit(
+                onSubmitPrimaryCategory
+              )}
+              className="space-y-4"
+            >
               <FormField
                 control={primaryCategoryForm.control}
                 name="name"
@@ -451,7 +527,10 @@ export default function AddPrimaryCategoryForm() {
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter primary category name" {...field} />
+                      <Input
+                        placeholder="Enter primary category name"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -478,7 +557,9 @@ export default function AddPrimaryCategoryForm() {
                     Cancel
                   </Button>
                 </DialogClose>
-                <Button loading={addCategoryloader} type="submit">Create Primary Category</Button>
+                <Button loading={addCategoryloader} type="submit">
+                  Create Primary Category
+                </Button>
               </DialogFooter>
             </form>
           </Form>
@@ -521,9 +602,7 @@ export function UpdateMachineCategory({ data }) {
 
   return (
     <Dialog open={openForm} onOpenChange={setOpenForm}>
-      <DialogTrigger>
-        Edit
-      </DialogTrigger>
+      <DialogTrigger>Edit</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Update Machine Category</DialogTitle>

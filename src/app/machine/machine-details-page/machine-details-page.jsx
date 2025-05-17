@@ -518,12 +518,15 @@ export default function MachineryDetailPage() {
           </div>
         </div>
       )}
-      <MaintenanceLogModal
-        isOpen={showMaintenanceLog}
-        onClose={() => setShowMaintenanceLog(false)}
-        machineId={data?.id}
-        machineName={data?.machineName}
-      />
+
+      {!loading && (
+        <MaintenanceLogModal
+          isOpen={showMaintenanceLog}
+          onClose={() => setShowMaintenanceLog(false)}
+          machineId={data?.id}
+          machineName={data?.machineName}
+        />
+      )}
     </div>
   );
 }
