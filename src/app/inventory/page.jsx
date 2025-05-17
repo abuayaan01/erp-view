@@ -1,10 +1,6 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -28,6 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import api from "@/services/api/api-service";
 import { toast } from "@/hooks/use-toast";
 
@@ -39,6 +37,11 @@ const InventoryList = () => {
   const [categories, setCategories] = useState([]);
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetchInventory = async () => {
@@ -93,6 +96,7 @@ const InventoryList = () => {
     }
   };
 
+  // Filter inventory based on search and filters
   const filteredInventory = inventory?.filter((item) => {
     const itemName = item.Item?.name?.toLowerCase() || "";
     const partNumber = item.Item?.partNumber?.toLowerCase() || "";
@@ -110,6 +114,35 @@ const InventoryList = () => {
 
     return matchesSearch && matchesCategory && matchesSite;
   });
+  
+  // Update total pages whenever filtered inventory changes
+  useEffect(() => {
+    if (filteredInventory) {
+      setTotalPages(Math.ceil(filteredInventory.length / itemsPerPage));
+      // Reset to first page when filters change
+      if (currentPage > Math.ceil(filteredInventory.length / itemsPerPage)) {
+        setCurrentPage(1);
+      }
+    }
+  }, [filteredInventory, itemsPerPage]);
+
+  // Get current page items
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredInventory?.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Page navigation
+  const goToPage = (pageNumber) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
+  const handleItemsPerPageChange = (value) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -117,6 +150,7 @@ const InventoryList = () => {
       </div>
     );
   }
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -160,7 +194,6 @@ const InventoryList = () => {
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
                     {categories?.map((category, index) => {
-                      console.log(category)
                       return (
                         <SelectItem key={index} value={category}>
                           {category}
@@ -203,7 +236,7 @@ const InventoryList = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInventory?.length === 0 ? (
+                {currentItems?.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={8}
@@ -217,7 +250,7 @@ const InventoryList = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredInventory?.map((item) => (
+                  currentItems?.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">
                         {item.Item?.name}
@@ -245,6 +278,79 @@ const InventoryList = () => {
               </TableBody>
             </Table>
           </div>
+          
+          {/* Pagination Controls */}
+          {filteredInventory?.length > 0 && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredInventory.length)} of {filteredInventory.length} entries
+              </div>
+              <div className="flex items-center space-x-2">
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={handleItemsPerPageChange}
+                >
+                  <SelectTrigger className="h-8 w-24">
+                    <SelectValue placeholder="10" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <div className="flex items-center space-x-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="h-8 w-8"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    
+                    // Logic to show pages around current page
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="icon"
+                        onClick={() => goToPage(pageNum)}
+                        className="h-8 w-8"
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="h-8 w-8"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

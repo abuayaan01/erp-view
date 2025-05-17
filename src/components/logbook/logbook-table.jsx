@@ -67,6 +67,7 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Name</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Machine No</TableHead>
               <TableHead>Site</TableHead>
@@ -83,6 +84,9 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
             {paginatedEntries.length > 0 ? (
               paginatedEntries.map((entry) => (
                 <TableRow key={entry.id}>
+                  <TableCell>
+                    {entry.name}
+                  </TableCell>
                   <TableCell>
                     {format(new Date(entry.date), "dd/MM/yyyy")}
                   </TableCell>

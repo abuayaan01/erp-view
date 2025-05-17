@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Eye, FileText, Search } from "lucide-react";
+import {
+  Plus,
+  Eye,
+  FileText,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +25,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -40,6 +48,10 @@ const MaterialIssueList = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterSite, setFilterSite] = useState("all");
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
@@ -52,7 +64,7 @@ const MaterialIssueList = () => {
         setError(err.message);
         // For development - using mock data when API fails
         // In production, you might want to show an error message instead
-        setIssues([mockIssue]); // Using the sample API data for development
+        // setIssues([mockIssue]); // Using the sample API data for development
       } finally {
         setLoading(false);
       }
@@ -60,110 +72,6 @@ const MaterialIssueList = () => {
 
     fetchData();
   }, []);
-
-  // Sample API data for development/testing
-  const mockIssue = {
-    id: 29,
-    issueNumber: "ISS-029",
-    issueDate: "2025-05-10T07:22:40.968Z",
-    issueType: "Site Transfer",
-    status: "Returned",
-    createdAt: "2025-05-10T07:22:40.969Z",
-    updatedAt: "2025-05-10T07:22:41.203Z",
-    items: [
-      {
-        id: 60,
-        materialIssueId: 29,
-        itemId: 1,
-        quantity: 1,
-        issueTo: "Vehicle A",
-        siteId: 35,
-        otherSiteId: 33,
-        Item: {
-          id: 1,
-          name: "Cable Roll",
-          shortName: "Cable",
-          partNumber: "CR-001",
-          hsnCode: "8544",
-          itemGroupId: 1,
-          unitId: 1,
-          itemGroup: null,
-        },
-        fromSite: {
-          id: 35,
-          name: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
-          code: "SITE-035",
-          address: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
-          pincode: "835201",
-          mobileNumber: "9471185488",
-          departmentId: 1,
-          status: "active",
-          createdAt: "2025-05-09T06:15:54.139Z",
-          updatedAt: "2025-05-09T06:15:54.185Z",
-          deletedAt: null,
-        },
-        toSite: {
-          id: 33,
-          name: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
-          code: "SITE-033",
-          address: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
-          pincode: "828205",
-          mobileNumber: "7739039393",
-          departmentId: 1,
-          status: "active",
-          createdAt: "2025-05-09T06:09:25.974Z",
-          updatedAt: "2025-05-09T06:09:26.032Z",
-          deletedAt: null,
-        },
-      },
-      {
-        id: 59,
-        materialIssueId: 29,
-        itemId: 2,
-        quantity: 5,
-        issueTo: "Vehicle A",
-        siteId: 35,
-        otherSiteId: 33,
-        Item: {
-          id: 2,
-          name: "Switch",
-          shortName: "Switch",
-          partNumber: "SW-001",
-          hsnCode: "8536",
-          itemGroupId: 1,
-          unitId: 2,
-          itemGroup: null,
-        },
-        fromSite: {
-          id: 35,
-          name: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
-          code: "SITE-035",
-          address: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
-          pincode: "835201",
-          mobileNumber: "9471185488",
-          departmentId: 1,
-          status: "active",
-          createdAt: "2025-05-09T06:15:54.139Z",
-          updatedAt: "2025-05-09T06:15:54.185Z",
-          deletedAt: null,
-        },
-        toSite: {
-          id: 33,
-          name: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
-          code: "SITE-033",
-          address: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
-          pincode: "828205",
-          mobileNumber: "7739039393",
-          departmentId: 1,
-          status: "active",
-          createdAt: "2025-05-09T06:09:25.974Z",
-          updatedAt: "2025-05-09T06:09:26.032Z",
-          deletedAt: null,
-        },
-      },
-    ],
-  };
-
   // Filter issues based on search term and filters
   const filteredIssues = (issues || []).filter((issue) => {
     // Get from and to site names (if they exist)
@@ -203,6 +111,20 @@ const MaterialIssueList = () => {
 
     return matchesSearch && matchesType && matchesStatus && matchesSite;
   });
+
+  // Pagination logic
+  const indexOfLastIssue = currentPage * itemsPerPage;
+  const indexOfFirstIssue = indexOfLastIssue - itemsPerPage;
+  const currentIssues = filteredIssues.slice(
+    indexOfFirstIssue,
+    indexOfLastIssue
+  );
+  const totalPages = Math.ceil(filteredIssues.length / itemsPerPage);
+
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const formatDate = (dateString) => {
     try {
@@ -251,6 +173,11 @@ const MaterialIssueList = () => {
     ...new Set((issues || []).map((issue) => issue.status).filter(Boolean)),
   ];
 
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType, filterStatus, filterSite]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -282,8 +209,9 @@ const MaterialIssueList = () => {
           <CardDescription>View and manage all material issues</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-4 md:flex-row">
-            <div className="flex-1 relative">
+          {/* Search and Filters */}
+          <div className="flex flex-col gap-4">
+            <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search issues..."
@@ -292,8 +220,10 @@ const MaterialIssueList = () => {
                 className="pl-8"
               />
             </div>
-            <div className="flex flex-1 flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+
+            {/* Filter options in responsive grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
                 <Select value={filterType} onValueChange={setFilterType}>
                   <SelectTrigger>
                     <SelectValue placeholder="Filter by type" />
@@ -308,7 +238,7 @@ const MaterialIssueList = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex-1">
+              <div>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
                   <SelectTrigger>
                     <SelectValue placeholder="Filter by status" />
@@ -323,7 +253,7 @@ const MaterialIssueList = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex-1">
+              <div>
                 <Select value={filterSite} onValueChange={setFilterSite}>
                   <SelectTrigger>
                     <SelectValue placeholder="Filter by site" />
@@ -341,79 +271,193 @@ const MaterialIssueList = () => {
             </div>
           </div>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Issue No</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>From</TableHead>
-                  <TableHead>To</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredIssues.length === 0 ? (
+          {/* Responsive table with data */}
+          <div className="overflow-auto">
+            <div className="rounded-md border min-w-full">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="text-center py-6 text-muted-foreground"
-                    >
-                      {searchTerm ||
-                      filterType !== "all" ||
-                      filterStatus !== "all" ||
-                      filterSite !== "all"
-                        ? "No material issues found matching your search criteria."
-                        : "No material issues found."}
-                    </TableCell>
+                    <TableHead className="w-[100px]">Issue No</TableHead>
+                    <TableHead className="w-[100px]">Date</TableHead>
+                    <TableHead className="hidden md:table-cell">Type</TableHead>
+                    <TableHead className="hidden sm:table-cell">From</TableHead>
+                    <TableHead className="hidden sm:table-cell">To</TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      Items
+                    </TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ) : (
-                  filteredIssues.map((issue) => {
-                    const fromSite =
-                      issue.items?.[0]?.fromSite?.name?.split(",")[0] || "N/A";
-                    const toSite =
-                      issue.items?.[0]?.toSite?.name?.split(",")[0] || "N/A";
+                </TableHeader>
+                <TableBody>
+                  {currentIssues.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={8}
+                        className="text-center py-6 text-muted-foreground"
+                      >
+                        {searchTerm ||
+                        filterType !== "all" ||
+                        filterStatus !== "all" ||
+                        filterSite !== "all"
+                          ? "No material issues found matching your search criteria."
+                          : "No material issues found."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    currentIssues.map((issue) => {
+                      const fromSite =
+                        issue.items?.[0]?.fromSite?.name?.split(",")[0] ||
+                        "N/A";
+                      const toSite =
+                        issue.items?.[0]?.toSite?.name?.split(",")[0] || "N/A";
 
-                    return (
-                      <TableRow key={issue.id}>
-                        <TableCell className="font-medium">
-                          {issue.issueNumber}
-                        </TableCell>
-                        <TableCell>{formatDate(issue.issueDate)}</TableCell>
-                        <TableCell className="capitalize">
-                          {issue.issueType}
-                        </TableCell>
-                        <TableCell>{fromSite}</TableCell>
-                        <TableCell>{toSite}</TableCell>
-                        <TableCell>{issue.items?.length || 0}</TableCell>
-                        <TableCell>{getStatusBadge(issue.status)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="icon">
-                              <Link to={`/issues/${issue.id}`}>
-                                <Eye className="h-4 w-4" />
-                                <span className="sr-only">View</span>
-                              </Link>
-                            </Button>
-                            <Button variant="ghost" size="icon">
-                              <Link to={`/issues/${issue.id}?print=true`}>
-                                <FileText className="h-4 w-4" />
-                                <span className="sr-only">Print</span>
-                              </Link>
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
+                      return (
+                        <TableRow key={issue.id}>
+                          <TableCell className="font-medium">
+                            {issue.issueNumber}
+                          </TableCell>
+                          <TableCell>{formatDate(issue.issueDate)}</TableCell>
+                          <TableCell className="capitalize hidden md:table-cell">
+                            {issue.issueType}
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            {fromSite}
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            {toSite}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            {issue.items?.length || 0}
+                          </TableCell>
+                          <TableCell>{getStatusBadge(issue.status)}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button variant="ghost" size="icon">
+                                <Link to={`/issues/${issue.id}`}>
+                                  <Eye className="h-4 w-4" />
+                                  <span className="sr-only">View</span>
+                                </Link>
+                              </Button>
+                              <Button variant="ghost" size="icon">
+                                <Link to={`/issues/${issue.id}?print=true`}>
+                                  <FileText className="h-4 w-4" />
+                                  <span className="sr-only">Print</span>
+                                </Link>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </CardContent>
+
+        {/* Pagination */}
+        {filteredIssues.length > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row items-center justify-between border-t px-6 py-4">
+            <div className="text-sm text-muted-foreground mb-4 sm:mb-0">
+              Showing {indexOfFirstIssue + 1} to{" "}
+              {Math.min(indexOfLastIssue, filteredIssues.length)} of{" "}
+              {filteredIssues.length} issues
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="hidden sm:flex items-center space-x-2 mt-4 sm:mt-0">
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={(value) => {
+                    setItemsPerPage(Number(value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-24">
+                    <SelectValue placeholder={itemsPerPage} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5 </SelectItem>
+                    <SelectItem value="10">10 </SelectItem>
+                    <SelectItem value="20">20 </SelectItem>
+                    <SelectItem value="50">50 </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="sr-only">Previous page</span>
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {/* Simplified responsive pagination - show limited page numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((pageNum) => {
+                      // Show first page, last page, current page, and pages around current
+                      return (
+                        pageNum === 1 ||
+                        pageNum === totalPages ||
+                        (pageNum >= currentPage - 1 &&
+                          pageNum <= currentPage + 1)
+                      );
+                    })
+                    .map((pageNum, index, array) => {
+                      // Add ellipsis when pages are skipped
+                      const showEllipsisBefore =
+                        index > 0 && pageNum > array[index - 1] + 1;
+                      const showEllipsisAfter =
+                        index < array.length - 1 &&
+                        pageNum < array[index + 1] - 1;
+
+                      return (
+                        <div key={pageNum} className="flex items-center">
+                          {showEllipsisBefore && (
+                            <span className="px-2 text-muted-foreground">
+                              ...
+                            </span>
+                          )}
+
+                          <Button
+                            variant={
+                              currentPage === pageNum ? "default" : "outline"
+                            }
+                            size="sm"
+                            className="w-8 h-8"
+                            onClick={() => handlePageChange(pageNum)}
+                          >
+                            {pageNum}
+                          </Button>
+
+                          {showEllipsisAfter && (
+                            <span className="px-2 text-muted-foreground">
+                              ...
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                  <span className="sr-only">Next page</span>
+                </Button>
+              </div>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

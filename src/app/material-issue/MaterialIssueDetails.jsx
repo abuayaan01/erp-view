@@ -8,6 +8,10 @@ import {
   CheckCircle,
   Clock,
   RotateCcw,
+  CheckSquare,
+  Send,
+  Truck,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +28,7 @@ import { format, parseISO } from "date-fns";
 import { PDFViewer } from "@react-pdf/renderer";
 import MaterialIssuePDF from "./MaterialIssuePDF";
 import api from "@/services/api/api-service";
+import { toast } from "@/hooks/use-toast";
 
 const MaterialIssueDetails = () => {
   const { id } = useParams();
@@ -33,6 +38,7 @@ const MaterialIssueDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showPdf, setShowPdf] = useState(false);
+  const [processingAction, setProcessingAction] = useState(false);
 
   const shouldPrint =
     new URLSearchParams(location.search).get("print") === "true";
@@ -64,7 +70,7 @@ const MaterialIssueDetails = () => {
           }
         } else {
           // If issue not found, navigate back to list
-          navigate("/");
+          navigate("/issues");
         }
       } finally {
         setLoading(false);
@@ -79,8 +85,8 @@ const MaterialIssueDetails = () => {
     id: 29,
     issueNumber: "ISS-029",
     issueDate: "2025-05-10T07:22:40.968Z",
-    issueType: "Site Transfer",
-    status: "Returned",
+    issueType: "Site Transfer", // This is a site transfer
+    status: "Pending", // Changed to Pending for testing
     createdAt: "2025-05-10T07:22:40.969Z",
     updatedAt: "2025-05-10T07:22:41.203Z",
     items: [
@@ -213,6 +219,24 @@ const MaterialIssueDetails = () => {
             <Clock className="h-3 w-3" /> Pending
           </Badge>
         );
+      case "approved":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1"
+          >
+            <CheckSquare className="h-3 w-3" /> Approved
+          </Badge>
+        );
+      case "in transit":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-purple-50 text-purple-700 border-purple-200 flex items-center gap-1"
+          >
+            <Send className="h-3 w-3" /> In Transit
+          </Badge>
+        );
       case "returned":
         return (
           <Badge
@@ -229,6 +253,111 @@ const MaterialIssueDetails = () => {
 
   const handlePrint = () => {
     setShowPdf(true);
+  };
+
+  const handleApprove = async () => {
+    try {
+      setProcessingAction(true);
+      // Call the API to approve the issue
+      await api.patch(`/material-issues/${id}/approve`);
+      
+      // Update local state
+      setIssue({ ...issue, status: "Approved" });
+      
+      // Show success message
+      toast({
+        title: "Issue Approved",
+        description: `Issue ${issue.issueNumber} has been approved successfully.`,
+        variant: "success",
+      });
+    } catch (err) {
+      console.error("Error approving issue:", err);
+      
+      // Show error message
+      toast({
+        title: "Approval Failed",
+        description: "There was an error approving this issue. Please try again.",
+        variant: "destructive",
+      });
+      
+      // For development - update mock state
+      if (mockIssue.id === parseInt(id)) {
+        setIssue({ ...issue, status: "Approved" });
+      }
+    } finally {
+      setProcessingAction(false);
+    }
+  };
+
+  const handleIssue = async () => {
+    try {
+      setProcessingAction(true);
+      // Call the API to issue the materials
+      await api.patch(`/material-issues/${id}/issue`);
+      
+      // Update local state with appropriate status
+      // For site transfers, set to "In Transit" rather than "Completed"
+      const newStatus = issue.issueType?.toLowerCase() === "site transfer" ? "In Transit" : "Completed";
+      setIssue({ ...issue, status: newStatus });
+      
+      // Show success message
+      toast({
+        title: "Materials Issued",
+        description: `Issue ${issue.issueNumber} has been processed successfully.`,
+        variant: "success",
+      });
+    } catch (err) {
+      console.error("Error issuing materials:", err);
+      
+      // Show error message
+      toast({
+        title: "Issue Failed",
+        description: "There was an error processing this issue. Please try again.",
+        variant: "destructive",
+      });
+      
+      // For development - update mock state
+      if (mockIssue.id === parseInt(id)) {
+        const newStatus = issue.issueType?.toLowerCase() === "site transfer" ? "In Transit" : "Completed";
+        setIssue({ ...issue, status: newStatus });
+      }
+    } finally {
+      setProcessingAction(false);
+    }
+  };
+
+  const handleReceive = async () => {
+    try {
+      setProcessingAction(true);
+      // Call the API to mark materials as received
+      await api.patch(`/material-issues/${id}/receive`);
+      
+      // Update local state
+      setIssue({ ...issue, status: "Completed" });
+      
+      // Show success message
+      toast({
+        title: "Materials Received",
+        description: `Materials for ${issue.issueNumber} have been received successfully.`,
+        variant: "success",
+      });
+    } catch (err) {
+      console.error("Error marking materials as received:", err);
+      
+      // Show error message
+      toast({
+        title: "Receive Failed",
+        description: "There was an error marking materials as received. Please try again.",
+        variant: "destructive",
+      });
+      
+      // For development - update mock state
+      if (mockIssue.id === parseInt(id)) {
+        setIssue({ ...issue, status: "Completed" });
+      }
+    } finally {
+      setProcessingAction(false);
+    }
   };
 
   if (loading) {
@@ -266,13 +395,19 @@ const MaterialIssueDetails = () => {
     status: issue.status,
   };
 
+  // Check if status is pending or approved to show appropriate action buttons
+  const isPending = issue.status?.toLowerCase() === "pending";
+  const isApproved = issue.status?.toLowerCase() === "approved";
+  const isInTransit = issue.status?.toLowerCase() === "in transit";
+  const isSiteTransfer = issue.issueType?.toLowerCase() === "site transfer";
+
   return (
     <div className="space-y-6">
       {!showPdf ? (
         <>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+              <Button variant="ghost" size="icon" onClick={() => navigate("/issues")}>
                 <ArrowLeft className="h-4 w-4" />
                 <span className="sr-only">Back</span>
               </Button>
@@ -282,6 +417,48 @@ const MaterialIssueDetails = () => {
             </div>
             <div className="flex items-center gap-2">
               {getStatusBadge(issue.status)}
+              
+              {/* Action Buttons based on status */}
+              {isPending && (
+                <Button 
+                  onClick={handleApprove} 
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={processingAction}
+                >
+                  <CheckSquare className="mr-2 h-4 w-4" /> Approve
+                </Button>
+              )}
+              
+              {isApproved && (
+                <Button 
+                  onClick={handleIssue} 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={processingAction}
+                >
+                  <Send className="mr-2 h-4 w-4" /> Issue Materials
+                </Button>
+              )}
+              
+              {isInTransit && isSiteTransfer && (
+                <Button 
+                  onClick={handleReceive} 
+                  className="bg-purple-600 hover:bg-purple-700"
+                  disabled={processingAction}
+                >
+                  <Download className="mr-2 h-4 w-4" /> Receive Materials
+                </Button>
+              )}
+              
+              {isInTransit && isSiteTransfer && (
+                <Button 
+                  onClick={handleReceive} 
+                  className="bg-purple-600 hover:bg-purple-700"
+                  disabled={processingAction}
+                >
+                  <Download className="mr-2 h-4 w-4" /> Receive Materials
+                </Button>
+              )}
+              
               <Button onClick={handlePrint}>
                 <Printer className="mr-2 h-4 w-4" /> Print
               </Button>
@@ -408,11 +585,35 @@ const MaterialIssueDetails = () => {
 
           <div className="flex justify-between">
             <Button variant="outline">
-              <Link to="/">Back to List</Link>
+              <Link to="/issues">Back to List</Link>
             </Button>
-            <Button onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" /> Print
-            </Button>
+            
+            <div className="flex gap-2">
+              {/* Status-based action buttons in the bottom section */}
+              {isPending && (
+                <Button 
+                  onClick={handleApprove} 
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={processingAction}
+                >
+                  <CheckSquare className="mr-2 h-4 w-4" /> Approve
+                </Button>
+              )}
+              
+              {isApproved && (
+                <Button 
+                  onClick={handleIssue} 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={processingAction}
+                >
+                  <Send className="mr-2 h-4 w-4" /> Issue Materials
+                </Button>
+              )}
+              
+              <Button onClick={handlePrint}>
+                <Printer className="mr-2 h-4 w-4" /> Print
+              </Button>
+            </div>
           </div>
         </>
       ) : (

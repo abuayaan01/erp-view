@@ -64,7 +64,7 @@ const MaterialIssueForm = () => {
   const [itemGroups, setItemGroups] = useState([]);
   const [items, setItems] = useState([]);
   const [units, setUnits] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   // Get sites and vehicles from Redux
@@ -79,10 +79,10 @@ const MaterialIssueForm = () => {
       setIssueTo("vehicle");
     } else if (issueType === "transfer") {
       setIssueTo("Other Site");
-      
+
       // If toSite is already selected, set selectedSite to match
       if (formData.toSite) {
-        const toSiteObj = sites.find(site => site.name === formData.toSite);
+        const toSiteObj = sites.find((site) => site.name === formData.toSite);
         if (toSiteObj) {
           setSelectedSite(toSiteObj.id);
         }
@@ -92,7 +92,7 @@ const MaterialIssueForm = () => {
 
   const fetchInventoryData = async (siteId) => {
     if (!siteId) return;
-    
+
     setIsLoading(true);
     try {
       const response = await api.get(`inventory/sites/${siteId}`);
@@ -152,15 +152,15 @@ const MaterialIssueForm = () => {
 
     // If selecting issue location, fetch inventory for that site
     if (name === "issueLocation") {
-      const selectedSite = sites.find(site => site.name === value);
+      const selectedSite = sites.find((site) => site.name === value);
       if (selectedSite) {
         fetchInventoryData(selectedSite.id);
-        
+
         // Update the fromSite in case of transfer
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           [name]: value,
-          fromSite: value
+          fromSite: value,
         }));
       }
     }
@@ -194,10 +194,11 @@ const MaterialIssueForm = () => {
     }
 
     // For transfer, use the global destination site
-    const selectedToSite = issueType === "transfer" 
-      ? sites.find(site => site.name === formData.toSite) 
-      : null;
-    
+    const selectedToSite =
+      issueType === "transfer"
+        ? sites.find((site) => site.name === formData.toSite)
+        : null;
+
     const newItem = {
       id: Date.now().toString(),
       itemId: Number(selectedItem),
@@ -209,7 +210,9 @@ const MaterialIssueForm = () => {
       issueTo: issueTo,
       vehicleId: issueTo === "vehicle" ? selectedVehicle : null,
       vehicleNumber:
-        issueTo === "vehicle" ? vehicles.find((v) => v.id === selectedVehicle)?.machineName || "" : "",
+        issueTo === "vehicle"
+          ? vehicles.find((v) => v.id === selectedVehicle)?.machineName || ""
+          : "",
       vehicleKm: issueTo === "vehicle" ? vehicleKm : "",
       vehicleHours: issueTo === "vehicle" ? vehicleHours : "",
       siteId: issueType === "transfer" ? selectedToSite?.id : null,
@@ -249,27 +252,33 @@ const MaterialIssueForm = () => {
 
     try {
       // Prepare the request body
-      const selectedIssueSite = sites.find(site => site.name === formData.issueLocation);
-      const selectedToSite = issueType === "transfer" ? sites.find(site => site.name === formData.toSite) : null;
-      
+      const selectedIssueSite = sites.find(
+        (site) => site.name === formData.issueLocation
+      );
+      const selectedToSite =
+        issueType === "transfer"
+          ? sites.find((site) => site.name === formData.toSite)
+          : null;
+
       const requestBody = {
         issueDate: `${formData.issueDate} ${formData.issueTime}:00.000000`,
-        issueType: issueType === "Consumption" ? "Consumption" : "Site Transfer",
+        issueType:
+          issueType === "Consumption" ? "Consumption" : "Site Transfer",
         siteId: selectedIssueSite?.id,
         otherSiteId: selectedToSite?.id || null,
-        items: issueItems.map(item => ({
+        items: issueItems.map((item) => ({
           itemId: item.itemId,
           quantity: item.quantity,
           issueTo: item.issueTo,
           siteId: selectedIssueSite?.id,
           machineId: item.issueTo === "vehicle" ? item.vehicleId : null,
-          otherSiteId: issueType === "transfer" ? selectedToSite?.id : null
-        }))
+          otherSiteId: issueType === "transfer" ? selectedToSite?.id : null,
+        })),
       };
 
       // Make the API call
-      await api.post('/material-issues', requestBody);
-      
+      await api.post("/material-issues", requestBody);
+
       alert("Material issue saved successfully!");
       navigate("/issues");
     } catch (error) {
@@ -293,13 +302,13 @@ const MaterialIssueForm = () => {
     ? items.filter((item) => item.itemGroupId === Number(selectedItemGroup))
     : [];
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-6 text-center">
-        Loading inventory data...
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="container mx-auto py-6 text-center">
+  //       Loading inventory data...
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="container mx-auto py-6 max-w-6xl">
@@ -308,7 +317,11 @@ const MaterialIssueForm = () => {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Material Issue</h1>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={handleSave} disabled={isSaving}>
+              <Button
+                variant="outline"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
                 <Save className="mr-2 h-4 w-4" /> Save
               </Button>
               {/* <Button onClick={handlePrint}>
@@ -378,7 +391,7 @@ const MaterialIssueForm = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {sites
-                        .filter(site => site.name !== formData.issueLocation)
+                        .filter((site) => site.name !== formData.issueLocation)
                         .map((site) => (
                           <SelectItem key={site.id} value={site.name}>
                             {site.name}
@@ -395,6 +408,7 @@ const MaterialIssueForm = () => {
                   <div className="space-y-2">
                     <Label htmlFor="itemGroup">Item Group *</Label>
                     <Select
+                      disabled={isLoading ? true : false}
                       value={selectedItemGroup}
                       onValueChange={setSelectedItemGroup}
                     >
@@ -489,17 +503,17 @@ const MaterialIssueForm = () => {
                     className="flex flex-wrap gap-4"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="vehicle" 
-                        id="vehicle" 
+                      <RadioGroupItem
+                        value="vehicle"
+                        id="vehicle"
                         disabled={issueType === "transfer"}
                       />
                       <Label htmlFor="vehicle">Vehicle</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="Other Site" 
-                        id="site" 
+                      <RadioGroupItem
+                        value="Other Site"
+                        id="site"
                         disabled={issueType === "Consumption"}
                       />
                       <Label htmlFor="site">Other Site</Label>
@@ -559,11 +573,20 @@ const MaterialIssueForm = () => {
                       disabled={issueType === "transfer"}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={issueType === "transfer" ? formData.toSite || "Select destination site first" : "Select site"} />
+                        <SelectValue
+                          placeholder={
+                            issueType === "transfer"
+                              ? formData.toSite ||
+                                "Select destination site first"
+                              : "Select site"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {sites
-                          .filter(site => site.name !== formData.issueLocation)
+                          .filter(
+                            (site) => site.name !== formData.issueLocation
+                          )
                           .map((site) => (
                             <SelectItem key={site.id} value={site.id}>
                               {site.name}
@@ -578,9 +601,9 @@ const MaterialIssueForm = () => {
                   <Button
                     onClick={handleAddItem}
                     disabled={
-                      !selectedItem || 
-                      !quantity || 
-                      (issueTo === "vehicle" && !selectedVehicle) || 
+                      !selectedItem ||
+                      !quantity ||
+                      (issueTo === "vehicle" && !selectedVehicle) ||
                       (issueTo === "Other Site" && issueType !== "transfer")
                     }
                   >
@@ -620,7 +643,9 @@ const MaterialIssueForm = () => {
                           <TableCell>{item.quantity}</TableCell>
                           <TableCell>{item.unit}</TableCell>
                           <TableCell>
-                            {item.issueTo === "vehicle" ? "Vehicle" : "Site Transfer"}
+                            {item.issueTo === "vehicle"
+                              ? "Vehicle"
+                              : "Site Transfer"}
                           </TableCell>
                           <TableCell>
                             {item.issueTo === "vehicle"
@@ -655,7 +680,11 @@ const MaterialIssueForm = () => {
                 Cancel
               </Button>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={handleSave} disabled={isSaving}>
+                <Button
+                  variant="outline"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                >
                   <Save className="mr-2 h-4 w-4" /> Save
                 </Button>
                 {/* <Button onClick={handlePrint}>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Printer, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -29,6 +29,7 @@ const MaterialRequisitionView = () => {
 
   const [requisition, setRequisition] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [approving, setApproving] = useState(false);
   const [itemGroups, setItemGroups] = useState([]);
   const [units, setUnits] = useState([]);
   const [showPdf, setShowPdf] = useState(false);
@@ -116,6 +117,44 @@ const MaterialRequisitionView = () => {
     setShowPdf(true);
   };
 
+  const handleApprove = async () => {
+    try {
+      setApproving(true);
+      // Call the approve API endpoint
+      const response = await api.post(`/requisitions/${id}/approve`);
+      
+      if (response.status) {
+        toast({
+          title: "Success",
+          description: "Requisition has been approved successfully.",
+        });
+        
+        // Update the local state with the new data
+        setRequisition({
+          ...requisition,
+          status: "Approved",
+          approvedAt: new Date().toISOString(),
+          // The API might return the approvedBy information
+          // which we could use to update the state more accurately
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.data?.message || "Failed to approve requisition",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to approve requisition",
+        variant: "destructive",
+      });
+    } finally {
+      setApproving(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status.toLowerCase()) {
       case "pending":
@@ -163,9 +202,22 @@ const MaterialRequisitionView = () => {
                 Material Requisition: {requisition.requisitionNo}
               </h1>
             </div>
-            <Button onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" /> Print
-            </Button>
+            <div className="flex gap-2">
+              {requisition.status.toLowerCase() === "pending" && (
+                <Button 
+                  variant="default" 
+                  onClick={handleApprove} 
+                  disabled={approving}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" /> 
+                  {approving ? "Approving..." : "Approve"}
+                </Button>
+              )}
+              <Button onClick={handlePrint}>
+                <Printer className="mr-2 h-4 w-4" /> Print
+              </Button>
+            </div>
           </div>
 
           <Card>

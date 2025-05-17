@@ -10,6 +10,9 @@ import {
   AlertTriangle,
   Truck,
   XCircle,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +33,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import api from "@/services/api/api-service";
 
 const MaterialRequisitionList = () => {
@@ -42,6 +53,10 @@ const MaterialRequisitionList = () => {
   const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState("admin"); // In a real app, this would come from auth
   const [userSite, setUserSite] = useState(null); // In a real app, this would come from auth
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     // Fetch requisitions from API
@@ -72,6 +87,11 @@ const MaterialRequisitionList = () => {
 
     fetchRequisitions();
   }, []);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, filterSite]);
 
   const getPriorityBadge = (priority) => {
     if (!priority) return <Badge variant="secondary">Not Set</Badge>;
@@ -203,6 +223,20 @@ const MaterialRequisitionList = () => {
       );
     }
   });
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredRequisitions?.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(filteredRequisitions?.length / itemsPerPage);
+
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const getActionButtons = (req) => {
     if (userRole === "admin") {
@@ -363,112 +397,244 @@ const MaterialRequisitionList = () => {
           Material Requisitions
         </h1>
         <Button>
-          <Link to="/requisitions/new" className="flex">
+          <Link to="/requisitions/new" className="flex items-center">
             <Plus className="mr-2 h-4 w-4" /> Create Requisition
           </Link>
         </Button>
       </div>
 
-      <div className="flex flex-col gap-4 md:flex-row">
-        <div className="flex-1 relative">
-          <Input
-            placeholder="Search requisitions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-          />
-        </div>
-        <div className="flex flex-1 flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="forwarded">Forwarded</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="partially_approved">
-                  Partially Approved
-                </SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="issued">Issued</SelectItem>
-                <SelectItem value="received">Received</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex-1">
-            <Select value={filterSite} onValueChange={setFilterSite}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by site" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sites</SelectItem>
-                {sites?.map((site, index) => (
-                  <SelectItem key={index} value={site}>
-                    {site}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Material Requisitions</CardTitle>
+          <CardDescription>
+            View and manage material requisitions
+          </CardDescription>
+        </CardHeader>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Requisition No</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Requesting Site</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Prepared By</TableHead>
-              <TableHead>Charge Type</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredRequisitions?.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="text-center py-6 text-muted-foreground"
-                >
-                  {searchTerm || filterStatus !== "all" || filterSite !== "all"
-                    ? "No requisitions found matching your search."
-                    : "No requisitions created yet."}
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredRequisitions?.map((req) => {
-                return (
-                  <TableRow key={req.id}>
-                    <TableCell className="font-medium">
-                      {req.requisitionNo}
-                    </TableCell>
-                    <TableCell>{formatDate(req.requestedAt)}</TableCell>
-                    <TableCell>{req.requestingSite?.name || "-"}</TableCell>
-                    <TableCell>
-                      {getPriorityBadge(req.requestPriority)}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(req.status)}</TableCell>
-                    <TableCell>{req.preparedBy?.name || "-"}</TableCell>
-                    <TableCell>{req.chargeType || "-"}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {getActionButtons(req)}
-                      </div>
-                    </TableCell>
+        <CardContent className="space-y-4">
+          {/* Search and Filters */}
+          <div className="flex flex-col gap-4">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search requisitions..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+
+            {/* Filter options in responsive grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="forwarded">Forwarded</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="partially_approved">
+                      Partially Approved
+                    </SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="issued">Issued</SelectItem>
+                    <SelectItem value="received">Received</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Select value={filterSite} onValueChange={setFilterSite}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by site" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sites</SelectItem>
+                    {sites?.map((site, index) => (
+                      <SelectItem key={index} value={site}>
+                        {site}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Responsive table with data */}
+          <div className="overflow-auto">
+            <div className="rounded-md border min-w-full">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">Req No</TableHead>
+                    <TableHead className="w-[90px]">Date</TableHead>
+                    <TableHead className="hidden sm:table-cell">Site</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Prepared By
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      Charge Type
+                    </TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                </TableHeader>
+                <TableBody>
+                  {currentItems?.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={8}
+                        className="text-center py-6 text-muted-foreground"
+                      >
+                        {searchTerm ||
+                        filterStatus !== "all" ||
+                        filterSite !== "all"
+                          ? "No requisitions found matching your search."
+                          : "No requisitions created yet."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    currentItems?.map((req) => {
+                      return (
+                        <TableRow key={req.id}>
+                          <TableCell className="font-medium">
+                            {req.requisitionNo}
+                          </TableCell>
+                          <TableCell>{formatDate(req.requestedAt)}</TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            {req.requestingSite?.name || "-"}
+                          </TableCell>
+                          <TableCell>
+                            {getPriorityBadge(req.requestPriority)}
+                          </TableCell>
+                          <TableCell>{getStatusBadge(req.status)}</TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {req.preparedBy?.name || "-"}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            {req.chargeType || "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              {getActionButtons(req)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </CardContent>
+
+        {/* Pagination */}
+        {filteredRequisitions?.length > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row items-center justify-between border-t px-6 py-4">
+            <div className="text-sm text-muted-foreground mb-4 sm:mb-0">
+              Showing {indexOfFirstItem + 1} to{" "}
+              {Math.min(indexOfLastItem, filteredRequisitions.length)} of{" "}
+              {filteredRequisitions.length} requisitions
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="hidden sm:flex items-center space-x-2 mt-4 sm:mt-0">
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={(value) => {
+                    setItemsPerPage(Number(value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-24">
+                    <SelectValue placeholder={itemsPerPage} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="sr-only">Previous page</span>
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {/* Simplified responsive pagination - show limited page numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((pageNum) => {
+                      // Show first page, last page, current page, and pages around current
+                      return (
+                        pageNum === 1 ||
+                        pageNum === totalPages ||
+                        (pageNum >= currentPage - 1 &&
+                          pageNum <= currentPage + 1)
+                      );
+                    })
+                    .map((pageNum, index, array) => {
+                      // Add ellipsis when pages are skipped
+                      const showEllipsisBefore =
+                        index > 0 && pageNum > array[index - 1] + 1;
+                      const showEllipsisAfter =
+                        index < array.length - 1 &&
+                        pageNum < array[index + 1] - 1;
+
+                      return (
+                        <div key={pageNum} className="flex items-center">
+                          {showEllipsisBefore && (
+                            <span className="px-2 text-muted-foreground">
+                              ...
+                            </span>
+                          )}
+
+                          <Button
+                            variant={
+                              currentPage === pageNum ? "default" : "outline"
+                            }
+                            size="sm"
+                            className="w-8 h-8"
+                            onClick={() => handlePageChange(pageNum)}
+                          >
+                            {pageNum}
+                          </Button>
+
+                          {showEllipsisAfter && (
+                            <span className="px-2 text-muted-foreground">
+                              ...
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                  <span className="sr-only">Next page</span>
+                </Button>
+              </div>
+            </div>
+          </CardFooter>
+        )}
+      </Card>
     </div>
   );
 };

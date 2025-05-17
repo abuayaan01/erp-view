@@ -100,7 +100,7 @@ const MaterialDetails = () => {
         setInventory(inventoryList);
         setSites(uniqueSites);
       } catch (error) {
-        console.log(error)
+        console.log(error);
         toast({
           title: "Error fetching data",
           description: "Something went wrong while fetching inventory.",
@@ -110,132 +110,28 @@ const MaterialDetails = () => {
         setLoading(false);
       }
     };
+    const fetchStockLogs = async (itemId) => {
+      try {
+        const result = await api.get(`/inventory/stock-log/${itemId}`);
+        const transformedLogs = result.data.map((log, index) => ({
+          id: index, // Generate id if not provided by API
+          date: new Date(log.dateTime),
+          type: log.type,
+          quantity: log.quantity,
+          site: log.site,
+          reference: log.reference,
+          user: log.user,
+        }));
+        setStockLogs(transformedLogs);
+      } catch (error) {
+        console.log(error);
+      }
+
+    };
+    fetchStockLogs(id);
 
     fetchInventoryByItemId();
   }, [id, navigate, toast]);
-
-  // Mock stock logs if none exist
-  useEffect(() => {
-    if (stockLogs.length === 0 && item) {
-      // Create mock stock logs
-      const mockLogs = [
-        {
-          id: "log1",
-          itemId: id,
-          date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
-          type: "receipt",
-          quantity: 100,
-          site: "Site A",
-          reference: "Initial Stock",
-          user: "System Admin",
-        },
-        {
-          id: "log2",
-          itemId: id,
-          date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(), // 20 days ago
-          type: "issue",
-          quantity: -15,
-          site: "Site A",
-          reference: "REQ-123456",
-          user: "John Doe",
-        },
-        {
-          id: "log3",
-          itemId: id,
-          date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
-          type: "receipt",
-          quantity: 50,
-          site: "Site B",
-          reference: "Purchase Order #789",
-          user: "Jane Smith",
-        },
-        {
-          id: "log4",
-          itemId: id,
-          date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
-          type: "issue",
-          quantity: -25,
-          site: "Site B",
-          reference: "REQ-234567",
-          user: "Mike Johnson",
-        },
-        {
-          id: "log5",
-          itemId: id,
-          date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-          type: "adjustment",
-          quantity: -5,
-          site: "Site A",
-          reference: "Inventory Audit",
-          user: "Sarah Williams",
-        },
-        {
-          id: "log6",
-          itemId: id,
-          date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-          type: "transfer",
-          quantity: -10,
-          site: "Site A",
-          reference: "Transfer to Site C",
-          user: "Robert Brown",
-        },
-        {
-          id: "log7",
-          itemId: id,
-          date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-          type: "transfer",
-          quantity: 10,
-          site: "Site C",
-          reference: "Transfer from Site A",
-          user: "Robert Brown",
-        },
-      ];
-
-      setStockLogs(mockLogs);
-
-      // Also create mock inventory if none exists
-      if (inventory.length === 0) {
-        const mockInventory = [
-          {
-            id: "inv1",
-            itemId: id,
-            name: item.name,
-            partNo: item.partNo || "-",
-            category: itemGroup?.name || "Unknown",
-            quantity: 80,
-            minLevel: 20,
-            site: "Site A",
-            lastUpdated: new Date().toISOString(),
-          },
-          {
-            id: "inv2",
-            itemId: id,
-            name: item.name,
-            partNo: item.partNo || "-",
-            category: itemGroup?.name || "Unknown",
-            quantity: 25,
-            minLevel: 10,
-            site: "Site B",
-            lastUpdated: new Date().toISOString(),
-          },
-          {
-            id: "inv3",
-            itemId: id,
-            name: item.name,
-            partNo: item.partNo || "-",
-            category: itemGroup?.name || "Unknown",
-            quantity: 10,
-            minLevel: 5,
-            site: "Site C",
-            lastUpdated: new Date().toISOString(),
-          },
-        ];
-
-        setInventory(mockInventory);
-        setSites(["Site A", "Site B", "Site C"]);
-      }
-    }
-  }, [id, item, itemGroup, inventory, stockLogs]);
 
   const getStockStatus = (quantity, minLevel) => {
     if (quantity <= 0) {
@@ -330,7 +226,7 @@ const MaterialDetails = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/items")}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/inventory")}>
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
@@ -467,7 +363,7 @@ const MaterialDetails = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col gap-4 md:flex-row">
-                <div className="flex-1">
+                {/* <div className="flex-1">
                   <Select value={filterSite} onValueChange={setFilterSite}>
                     <SelectTrigger>
                       <SelectValue placeholder="Filter by site" />
@@ -481,8 +377,8 @@ const MaterialDetails = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="flex-1">
+                </div> */}
+                {/* <div className="flex-1">
                   <Select value={filterType} onValueChange={setFilterType}>
                     <SelectTrigger>
                       <SelectValue placeholder="Filter by transaction type" />
@@ -493,9 +389,10 @@ const MaterialDetails = () => {
                       <SelectItem value="issue">Issue</SelectItem>
                       <SelectItem value="adjustment">Adjustment</SelectItem>
                       <SelectItem value="transfer">Transfer</SelectItem>
+                      <SelectItem value="Requisition">Requisition</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
               </div>
 
               <div className="rounded-md border">
@@ -507,7 +404,7 @@ const MaterialDetails = () => {
                       <TableHead>Quantity</TableHead>
                       <TableHead>Site</TableHead>
                       <TableHead>Reference</TableHead>
-                      <TableHead>User</TableHead>
+                      {/* <TableHead>User</TableHead> */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -539,7 +436,7 @@ const MaterialDetails = () => {
                           </TableCell>
                           <TableCell>{log.site}</TableCell>
                           <TableCell>{log.reference}</TableCell>
-                          <TableCell>{log.user}</TableCell>
+                          {/* <TableCell>{log.user}</TableCell> */}
                         </TableRow>
                       ))
                     )}
