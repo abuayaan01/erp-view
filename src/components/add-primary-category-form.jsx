@@ -167,18 +167,25 @@ export default function AddPrimaryCategoryForm() {
       name: "",
     },
   });
-
+  const cleanEmptyStrings = (values) => {
+    return Object.fromEntries(
+      Object.entries(values).map(([key, value]) => [
+        key,
+        value === "" ? null : value,
+      ])
+    );
+  };
   async function onSubmit(values) {
     setLoading(true);
     try {
       if (data) {
-        const res = await api.put(`/category/machine/${data.id}`, values);
+        const res = await api.put(`/category/machine/${data.id}`, cleanEmptyStrings(values));
         toast({
           title: "Success! ",
           description: "Machine category updated successfully",
         });
       } else {
-        const res = await api.post("/category/machine", values);
+        const res = await api.post("/category/machine", cleanEmptyStrings(values));
         toast({
           title: "Success! ",
           description: "Machine category created successfully",
