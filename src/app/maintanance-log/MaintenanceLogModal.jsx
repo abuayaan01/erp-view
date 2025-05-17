@@ -198,11 +198,11 @@ const MaintenanceLogModal = ({ isOpen, onClose, machineId, machineName }) => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="repair">Repair</SelectItem>
-                          <SelectItem value="preventive">
-                            Preventive Maintenance
-                          </SelectItem>
-                          <SelectItem value="inspection">Inspection</SelectItem>
-                          <SelectItem value="oil_change">Oil Change</SelectItem>
+                          <SelectItem value="service_inspection">Service Inspection</SelectItem>
+                          <SelectItem value="servicing_500kms">Servicing - 500kms</SelectItem>
+                          <SelectItem value="servicing_1000kms">Servicing - 1000kms</SelectItem>
+                          <SelectItem value="servicing_2000kms">Servicing - 2000kms</SelectItem>
+                          <SelectItem value="servicing_4000kms">Servicing - 4000kms</SelectItem>
                           <SelectItem value="parts_replacement">
                             Parts Replacement
                           </SelectItem>
@@ -278,6 +278,18 @@ const MaintenanceLogModal = ({ isOpen, onClose, machineId, machineName }) => {
                         value={formData.cost}
                         onChange={handleInputChange}
                         placeholder="Cost of maintenance"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="vendorDetails">Vendor Details</Label>
+                      <Input
+                        id="vendorDetails"
+                        name="vendorDetails"
+                        type="text"
+                        value={formData.vendorDetails}
+                        onChange={handleInputChange}
+                        placeholder="Vendor Name"
                       />
                     </div>
 

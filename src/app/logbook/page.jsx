@@ -192,7 +192,9 @@ export function LogbookPage() {
       <Tabs
         defaultValue="view"
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={(value) => {
+          if (value !== activeTab) setActiveTab(value);
+        }}
         className="w-full"
       >
         {Allowed && (
