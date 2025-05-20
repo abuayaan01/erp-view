@@ -53,6 +53,11 @@ import { fetchMachines } from "@/features/machine/machine-slice";
 import { fetchPrimaryCategories } from "@/features/primary-category/primary-category-slice";
 import { fetchUnits } from "@/features/units/units-slice";
 import MachineEditPage from "@/app/machine/machine-edit/page";
+import ProcurementList from "@/app/procurement/ProcurmentList";
+import ProcurementForm from "@/app/procurement/ProcurementForm";
+import InvoiceForm from "@/app/procurement/InvoiceForm";
+import PaymentList from "@/app/procurement/PaymentList";
+import PaymentSlipForm from "@/app/procurement/PaymentSlipForm";
 
 function AppRouter() {
   const dispatch = useDispatch();
@@ -300,6 +305,18 @@ function AppRouter() {
         <Route path="/issues/:id" element={<MaterialIssueDetails />} />
         <Route path="/issues/new" element={<MaterialIssueForm />} />
         {/* Material Issue End*/}
+
+        {/* Procurements */}
+        <Route path="/procurements" element={<ProcurementList />} />
+        <Route path="/procure/:requisitionId" element={<ProcurementForm />} />
+        
+        {/* Invoices */}
+        <Route path="/invoice/:procurementId" element={<InvoiceForm />} />
+        
+        {/* Payments */}
+        <Route path="/payments" element={<PaymentList />} />
+        <Route path="/payment/create" element={<PaymentSlipForm />} />
+        <Route path="/payment/invoice/:id" element={<PaymentSlipForm />} />
 
 
 
