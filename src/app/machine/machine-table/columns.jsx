@@ -67,7 +67,7 @@ export const columns = [
             <DropdownMenuSeparator /> */}
 
             {/* Fitness Certificate File */}
-            {row.original.fitnessCertificateFile && (
+            {row.original.fitnessCertificateFile ? (
               <DropdownMenuItem>
                 <a
                   href={row.original.fitnessCertificateFile}
@@ -77,7 +77,7 @@ export const columns = [
                   Fitness Certificate
                 </a>
               </DropdownMenuItem>
-            )}
+            ) : <DropdownMenuLabel className="text-xs text-center">Not Available</DropdownMenuLabel>}
 
             {/* Motor Vehicle Tax File */}
             {row.original.motorVehicleTaxFile && (
@@ -165,37 +165,37 @@ export const columns = [
     accessorKey: "fitnessCertificateExpiry",
     header: "Fitness Expiry",
     cell: ({ row }) =>
-      new Date(row.original.fitnessCertificateExpiry).toLocaleDateString(),
+      row.original.fitnessCertificateExpiry != null ? new Date(row.original.fitnessCertificateExpiry).toLocaleDateString() : "NA",
   },
   {
     accessorKey: "motorVehicleTaxDue",
     header: "MV Tax Due",
     cell: ({ row }) =>
-      new Date(row.original.motorVehicleTaxDue).toLocaleDateString(),
+     row.original.motorVehicleTaxDue != null ? new Date(row.original.motorVehicleTaxDue).toLocaleDateString() : "NA",
   },
   {
     accessorKey: "permitExpiryDate",
     header: "Permit Expiry",
     cell: ({ row }) =>
-      new Date(row.original.permitExpiryDate).toLocaleDateString(),
+     row.original.permitExpiryDate != null ? new Date(row.original.permitExpiryDate).toLocaleDateString() : "NA",
   },
   {
     accessorKey: "nationalPermitExpiry",
     header: "National Permit Expiry",
     cell: ({ row }) =>
-      new Date(row.original.nationalPermitExpiry).toLocaleDateString(),
+      row.original.nationalPermitExpiry != null ? new Date(row.original.nationalPermitExpiry).toLocaleDateString() : "NA",
   },
   {
     accessorKey: "insuranceExpiry",
     header: "Insurance Expiry",
     cell: ({ row }) =>
-      new Date(row.original.insuranceExpiry).toLocaleDateString(),
+      row.original.insuranceExpiry != null ? new Date(row.original.insuranceExpiry).toLocaleDateString() : "NA",
   },
   {
     accessorKey: "pollutionCertificateExpiry",
     header: "Pollution Expiry",
     cell: ({ row }) =>
-      new Date(row.original.pollutionCertificateExpiry).toLocaleDateString(),
+      row.original.pollutionCertificateExpiry != null ? new Date(row.original.pollutionCertificateExpiry).toLocaleDateString() : "NA",
   },
   {
     accessorKey: "createdAt",

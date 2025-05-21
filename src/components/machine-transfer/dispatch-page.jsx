@@ -19,9 +19,18 @@ import Loader from "../ui/loader";
 import TransferChallanPDF from "./transfer-challan-pdf";
 import { PDFViewer } from "@react-pdf/renderer";
 import { pdf } from "@react-pdf/renderer";
+import { Checkbox } from "../ui/checkbox";
+import { FormLabel } from "../ui/form";
 
 // Update the mock data to include the new transfer types
 // Replace the approvedTransfers array with this updated one
+
+const items = [
+  { id: "toolBox", label: "Tool Box" },
+  { id: "tyre", label: "Tyre" },
+  { id: "fuel", label: "Fuel" },
+  { id: "spanner", label: "Spanner" },
+];
 
 export function DispatchPage() {
   const { toast } = useToast();
@@ -34,22 +43,12 @@ export function DispatchPage() {
   const [pdfloading, setPdfLoading] = useState(false);
   const [files, setFiles] = useState([]);
 
-  const handleFileChange = () => {
-    const selectedFiles = e.target.files
+  const handleFileChange = (e) => {
+    const selectedFiles = e.target.files;
     if (selectedFiles) {
-      setFiles(Array.from(selectedFiles))
+      setFiles(Array.from(selectedFiles));
     }
-  }
-
-  const handleUpload = () => {
-    if (files.length === 0) {
-      alert("Please select files to upload.")
-      return
-    }
-    // Upload logic goes here
-    console.log("Uploading files:", files)
-  }
-
+  };
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -89,7 +88,8 @@ export function DispatchPage() {
   const handleDispatch = (transfer) => {
     setDispatchLoader(true);
 
-    const details = transfer.transportDetails || {};
+    const details = transportDetails[transfer.id] || {};
+    const tickMarks = details.tickMarks || [];
 
     // Validate form
     if (
@@ -105,6 +105,34 @@ export function DispatchPage() {
       setDispatchLoader(false);
       return;
     }
+
+    // ✅ Build FormData
+    const formData = new FormData();
+    formData.append("vehicleNumber", details.vehicleNumber);
+    formData.append("driverName", details.driverName);
+    formData.append("mobileNumber", details.mobileNumber);
+
+    if (details.fuelBalance) {
+      formData.append("fuelBalance", details.fuelBalance);
+    }
+
+    if (details.kmsTravelled) {
+      formData.append("kmsTravelled", details.kmsTravelled);
+    }
+
+    tickMarks.forEach((itemId) => {
+      formData.append(itemId, true);
+    });
+
+    files.forEach((file, index) => {
+      formData.append("files", file); // backend should handle this as an array if needed
+    });
+
+    console.log("Dispatching Transfer with FormData:");
+    for (let pair of formData.entries()) {
+      console.log(`${pair[0]}:`, pair[1]);
+    }
+    return;
 
     api
       .put(`/transfer/${transfer.id}/dispatch`, {
@@ -143,6 +171,23 @@ export function DispatchPage() {
     });
   };
 
+  const handleCheckboxChange = (transferId, itemId, checked) => {
+    setTransportDetails((prev) => {
+      const prevItems = prev[transferId]?.tickMarks || [];
+      const updatedItems = checked
+        ? [...new Set([...prevItems, itemId])]
+        : prevItems.filter((id) => id !== itemId);
+
+      return {
+        ...prev,
+        [transferId]: {
+          ...prev[transferId],
+          tickMarks: updatedItems,
+        },
+      };
+    });
+  };
+
   const handleViewChallan = (transfer) => {
     // Update the transfer with the current transport details
     const details = transportDetails[transfer.id] || {};
@@ -160,17 +205,19 @@ export function DispatchPage() {
   };
 
   const handleGeneratePdf = async () => {
-    setPdfLoading(true)
+    setPdfLoading(true);
     try {
-      const blob = await pdf(<TransferChallanPDF transfer={selectedTransfer} />).toBlob()
-      const blobUrl = URL.createObjectURL(blob)
-      window.open(blobUrl, "_blank")
+      const blob = await pdf(
+        <TransferChallanPDF transfer={selectedTransfer} />
+      ).toBlob();
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, "_blank");
     } catch (error) {
-      console.error("Failed to generate PDF", error)
+      console.error("Failed to generate PDF", error);
     } finally {
-      setPdfLoading(false)
+      setPdfLoading(false);
     }
-  }
+  };
 
   return loading ? (
     <div className="mx-auto min-h-[70vh] flex flex-col">
@@ -292,7 +339,7 @@ export function DispatchPage() {
                     <Input
                       id={`vehicleNumber-${transfer.id}`}
                       placeholder="Enter vehicle number"
-                      value={transfer.transportDetails?.vehicleNumber || ""}
+                      value={transportDetails[transfer.id]?.vehicleNumber || ""}
                       onChange={(e) =>
                         handleInputChange(
                           transfer.id,
@@ -310,7 +357,7 @@ export function DispatchPage() {
                     <Input
                       id={`driverName-${transfer.id}`}
                       placeholder="Enter driver name"
-                      value={transfer.transportDetails?.driverName || ""}
+                      value={transportDetails[transfer.id]?.driverName || ""}
                       onChange={(e) =>
                         handleInputChange(
                           transfer.id,
@@ -328,7 +375,7 @@ export function DispatchPage() {
                     <Input
                       id={`mobileNumber-${transfer.id}`}
                       placeholder="Enter driver contact"
-                      value={transfer.transportDetails?.mobileNumber || ""}
+                      value={transportDetails[transfer.id]?.mobileNumber || ""}
                       onChange={(e) =>
                         handleInputChange(
                           transfer.id,
@@ -337,6 +384,62 @@ export function DispatchPage() {
                         )
                       }
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`mobileNumber-${transfer.id}`}>
+                      Fuel Gauge Reading (Ltrs)
+                    </Label>
+                    <Input
+                      id={`fuelBalance-${transfer.id}`}
+                      placeholder="5L"
+                      onChange={(e) =>
+                        handleInputChange(
+                          transfer.id,
+                          "fuelBalance",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`mobileNumber-${transfer.id}`}>
+                      Odometer Reading (Km)
+                    </Label>
+                    <Input
+                      id={`kmsTravelled-${transfer.id}`}
+                      placeholder="2000kms"
+                      onChange={(e) =>
+                        handleInputChange(
+                          transfer.id,
+                          "kmsTravelled",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="w-full">
+                  <Label>Tick Mark Available</Label>
+                  <div className="flex flex-row gap-6 mt-2">
+                    {items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={item.id}
+                          checked={
+                            transportDetails[transfer.id]?.tickMarks?.includes(
+                              item.id
+                            ) || false
+                          }
+                          onCheckedChange={(checked) =>
+                            handleCheckboxChange(transfer.id, item.id, checked)
+                          }
+                        />
+                        <Label htmlFor={item.id}>{item.label}</Label>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -353,14 +456,13 @@ export function DispatchPage() {
 
               <div className="flex flex-col items-start gap-4">
                 <Input
-                  disabled={true}
+                  disabled={false}
                   type="file"
                   multiple
                   onChange={handleFileChange}
                   className="w-full"
                 />
               </div>
-
 
               {/* Update the Button text based on transfer type
               Replace the Button in the CardFooter with this updated one */}
