@@ -58,6 +58,7 @@ import ProcurementForm from "@/app/procurement/ProcurementForm";
 import InvoiceForm from "@/app/procurement/InvoiceForm";
 import PaymentList from "@/app/procurement/PaymentList";
 import PaymentSlipForm from "@/app/procurement/PaymentSlipForm";
+import TransferDetailPage from "@/components/machine-transfer/page";
 
 function AppRouter() {
   const dispatch = useDispatch();
@@ -80,7 +81,6 @@ function AppRouter() {
         element={<AppLayout />} // Wrap these routes in layout
       >
         <Route path="/" element={<MainDashboard />} />
-
 
         {/* Site Management */}
         <Route
@@ -110,8 +110,6 @@ function AppRouter() {
           }
         />
         {/* Site Management End*/}
-
-
 
         {/* Category Management*/}
         <Route
@@ -146,8 +144,6 @@ function AppRouter() {
         />
         {/* Category Management End*/}
 
-
-
         {/* Machines Management */}
         <Route
           path="/add-machine"
@@ -167,8 +163,6 @@ function AppRouter() {
         <Route path="/machines/edit/:id" element={<MachineEditPage />} />
         {/* Machines Management End*/}
 
-
-        
         {/* Logbook */}
         <Route path="/logbook" element={<LogbookPage />} />
         <Route path="/logbook/:id" element={<LogbookDetails />} />
@@ -187,8 +181,6 @@ function AppRouter() {
         />
         {/* Logbook End*/}
 
-
-
         {/* Machine Transfer */}
         <Route
           path="/machine-transfer/home"
@@ -206,6 +198,10 @@ function AppRouter() {
               ]}
             />
           }
+        />
+        <Route
+          path="/machine-transfer/list/:id"
+          element={<TransferDetailPage />}
         />
         <Route
           path="/machine-transfer/approve"
@@ -262,10 +258,11 @@ function AppRouter() {
         <Route path="/units/edit/:id" element={<UnitForm />} />
         {/* Spare Parts ans Items End*/}
 
-
-
         {/* Material Requisition */}
-        <Route path="/requisitions/list" element={<MaterialRequisitionList />} />
+        <Route
+          path="/requisitions/list"
+          element={<MaterialRequisitionList />}
+        />
         <Route path="/requisitions/new" element={<MaterialRequisitionForm />} />
         <Route
           path="/requisitions/view/:id"
@@ -291,14 +288,10 @@ function AppRouter() {
         />
         {/* Material Requisition End*/}
 
-
-
         {/* Inventory */}
         <Route path="/inventory" element={<InventoryList />} />
         <Route path="/inventory/:id" element={<MaterialDetails />} />
         {/* Inventory End*/}
-
-
 
         {/* Material Issue */}
         <Route path="/issues" element={<MaterialIssueList />} />
@@ -309,16 +302,14 @@ function AppRouter() {
         {/* Procurements */}
         <Route path="/procurements" element={<ProcurementList />} />
         <Route path="/procure/:requisitionId" element={<ProcurementForm />} />
-        
+
         {/* Invoices */}
         <Route path="/invoice/:procurementId" element={<InvoiceForm />} />
-        
+
         {/* Payments */}
         <Route path="/payments" element={<PaymentList />} />
         <Route path="/payment/create" element={<PaymentSlipForm />} />
         <Route path="/payment/invoice/:id" element={<PaymentSlipForm />} />
-
-
 
         {/* Users Management */}
         <Route
