@@ -69,7 +69,8 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Machine No</TableHead>
+              <TableHead>ERP Code</TableHead>
+              <TableHead>Machine Name</TableHead>
               <TableHead>Site</TableHead>
               <TableHead className="hidden md:table-cell">KM Run</TableHead>
               <TableHead className="hidden md:table-cell">Hours Run</TableHead>
@@ -90,7 +91,8 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
                   <TableCell>
                     {format(new Date(entry.date), "dd/MM/yyyy")}
                   </TableCell>
-                  <TableCell>{entry.machine?.registrationNumber}</TableCell>
+                  <TableCell>{entry.machine?.erpCode}</TableCell>
+                  <TableCell>{entry.machine?.machineName}</TableCell>
                   <TableCell>{entry.site?.name}</TableCell>
                   <TableCell className="hidden md:table-cell">
                     {entry.totalRunKM}

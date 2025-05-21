@@ -31,23 +31,23 @@ export function LogbookPage() {
     assetCode: "",
   });
 
+  const fetchLogEntries = async () => {
+    try {
+      setTableLoader(true);
+      const response = await api.get("/logbook");
+      setLogEntries(response.data);
+    } catch (error) {
+      console.error("Error fetching logbook entries:", error);
+      toast({
+        title: "Something went wrong !",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setTableLoader(false);
+    }
+  };
   useEffect(() => {
-    const fetchLogEntries = async () => {
-      try {
-        setTableLoader(true);
-        const response = await api.get("/logbook");
-        setLogEntries(response.data);
-      } catch (error) {
-        console.error("Error fetching logbook entries:", error);
-        toast({
-          title: "Something went wrong !",
-          description: error.message,
-          variant: "destructive",
-        });
-      } finally {
-        setTableLoader(false);
-      }
-    };
     fetchLogEntries();
   }, []);
 

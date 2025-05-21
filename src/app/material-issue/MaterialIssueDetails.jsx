@@ -11,7 +11,7 @@ import {
   CheckSquare,
   Send,
   Truck,
-  Download
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +29,8 @@ import { PDFViewer } from "@react-pdf/renderer";
 import MaterialIssuePDF from "./MaterialIssuePDF";
 import api from "@/services/api/api-service";
 import { toast } from "@/hooks/use-toast";
+import { useSelector } from "react-redux";
+import { ROLES } from "@/utils/roles";
 
 const MaterialIssueDetails = () => {
   const { id } = useParams();
@@ -39,7 +41,9 @@ const MaterialIssueDetails = () => {
   const [error, setError] = useState(null);
   const [showPdf, setShowPdf] = useState(false);
   const [processingAction, setProcessingAction] = useState(false);
-
+  const user = useSelector((state) => state.auth.user);
+  const adminRoles = [1, 2, 3];
+  const siteRoles = [4, 5, 6];
   const shouldPrint =
     new URLSearchParams(location.search).get("print") === "true";
 
@@ -52,26 +56,14 @@ const MaterialIssueDetails = () => {
 
         const data = response.data;
         setIssue(data);
-
         // If print parameter is present, show PDF
         if (shouldPrint) {
           setShowPdf(true);
         }
       } catch (err) {
         setError(err.message);
-
-        // For development - using mock data when API fails
-        // In production, you might want to show an error message instead
-        if (mockIssue.id === parseInt(id)) {
-          setIssue(mockIssue);
-
-          if (shouldPrint) {
-            setShowPdf(true);
-          }
-        } else {
-          // If issue not found, navigate back to list
-          navigate("/issues");
-        }
+        // If issue not found, navigate back to list
+        navigate("/issues");
       } finally {
         setLoading(false);
       }
@@ -79,109 +71,6 @@ const MaterialIssueDetails = () => {
 
     fetchIssueDetails();
   }, [id, navigate, shouldPrint]);
-
-  // Sample API data for development/testing
-  const mockIssue = {
-    id: 29,
-    issueNumber: "ISS-029",
-    issueDate: "2025-05-10T07:22:40.968Z",
-    issueType: "Site Transfer", // This is a site transfer
-    status: "Pending", // Changed to Pending for testing
-    createdAt: "2025-05-10T07:22:40.969Z",
-    updatedAt: "2025-05-10T07:22:41.203Z",
-    items: [
-      {
-        id: 60,
-        materialIssueId: 29,
-        itemId: 1,
-        quantity: 1,
-        issueTo: "Vehicle A",
-        siteId: 35,
-        otherSiteId: 33,
-        Item: {
-          id: 1,
-          name: "Cable Roll",
-          shortName: "Cable",
-          partNumber: "CR-001",
-          hsnCode: "8544",
-          itemGroupId: 1,
-          unitId: 1,
-          itemGroup: null,
-        },
-        fromSite: {
-          id: 35,
-          name: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
-          code: "SITE-035",
-          address: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
-          pincode: "835201",
-          mobileNumber: "9471185488",
-          departmentId: 1,
-          status: "active",
-          createdAt: "2025-05-09T06:15:54.139Z",
-          updatedAt: "2025-05-09T06:15:54.185Z",
-          deletedAt: null,
-        },
-        toSite: {
-          id: 33,
-          name: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
-          code: "SITE-033",
-          address: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
-          pincode: "828205",
-          mobileNumber: "7739039393",
-          departmentId: 1,
-          status: "active",
-          createdAt: "2025-05-09T06:09:25.974Z",
-          updatedAt: "2025-05-09T06:09:26.032Z",
-          deletedAt: null,
-        },
-      },
-      {
-        id: 59,
-        materialIssueId: 29,
-        itemId: 2,
-        quantity: 5,
-        issueTo: "Vehicle A",
-        siteId: 35,
-        otherSiteId: 33,
-        Item: {
-          id: 2,
-          name: "Switch",
-          shortName: "Switch",
-          partNumber: "SW-001",
-          hsnCode: "8536",
-          itemGroupId: 1,
-          unitId: 2,
-          itemGroup: null,
-        },
-        fromSite: {
-          id: 35,
-          name: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
-          code: "SITE-035",
-          address: "EMRS Phase 2, Bansjor, Simdega, Jharkhand Project Site",
-          pincode: "835201",
-          mobileNumber: "9471185488",
-          departmentId: 1,
-          status: "active",
-          createdAt: "2025-05-09T06:15:54.139Z",
-          updatedAt: "2025-05-09T06:15:54.185Z",
-          deletedAt: null,
-        },
-        toSite: {
-          id: 33,
-          name: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
-          code: "SITE-033",
-          address: "Logistic Park, Nirsha, Dhanbad, Jharkhand Project Site",
-          pincode: "828205",
-          mobileNumber: "7739039393",
-          departmentId: 1,
-          status: "active",
-          createdAt: "2025-05-09T06:09:25.974Z",
-          updatedAt: "2025-05-09T06:09:26.032Z",
-          deletedAt: null,
-        },
-      },
-    ],
-  };
 
   const formatDate = (dateString) => {
     try {
@@ -259,11 +148,11 @@ const MaterialIssueDetails = () => {
     try {
       setProcessingAction(true);
       // Call the API to approve the issue
-      await api.patch(`/material-issues/${id}/approve`);
-      
+      await api.post(`/material-issues/${id}/approve`);
+
       // Update local state
       setIssue({ ...issue, status: "Approved" });
-      
+
       // Show success message
       toast({
         title: "Issue Approved",
@@ -272,14 +161,15 @@ const MaterialIssueDetails = () => {
       });
     } catch (err) {
       console.error("Error approving issue:", err);
-      
+
       // Show error message
       toast({
         title: "Approval Failed",
-        description: "There was an error approving this issue. Please try again.",
+        description:
+          "There was an error approving this issue. Please try again.",
         variant: "destructive",
       });
-      
+
       // For development - update mock state
       if (mockIssue.id === parseInt(id)) {
         setIssue({ ...issue, status: "Approved" });
@@ -294,12 +184,15 @@ const MaterialIssueDetails = () => {
       setProcessingAction(true);
       // Call the API to issue the materials
       await api.patch(`/material-issues/${id}/issue`);
-      
+
       // Update local state with appropriate status
       // For site transfers, set to "In Transit" rather than "Completed"
-      const newStatus = issue.issueType?.toLowerCase() === "site transfer" ? "In Transit" : "Completed";
+      const newStatus =
+        issue.issueType?.toLowerCase() === "site transfer"
+          ? "In Transit"
+          : "Completed";
       setIssue({ ...issue, status: newStatus });
-      
+
       // Show success message
       toast({
         title: "Materials Issued",
@@ -308,17 +201,21 @@ const MaterialIssueDetails = () => {
       });
     } catch (err) {
       console.error("Error issuing materials:", err);
-      
+
       // Show error message
       toast({
         title: "Issue Failed",
-        description: "There was an error processing this issue. Please try again.",
+        description:
+          "There was an error processing this issue. Please try again.",
         variant: "destructive",
       });
-      
+
       // For development - update mock state
       if (mockIssue.id === parseInt(id)) {
-        const newStatus = issue.issueType?.toLowerCase() === "site transfer" ? "In Transit" : "Completed";
+        const newStatus =
+          issue.issueType?.toLowerCase() === "site transfer"
+            ? "In Transit"
+            : "Completed";
         setIssue({ ...issue, status: newStatus });
       }
     } finally {
@@ -331,10 +228,10 @@ const MaterialIssueDetails = () => {
       setProcessingAction(true);
       // Call the API to mark materials as received
       await api.patch(`/material-issues/${id}/receive`);
-      
+
       // Update local state
       setIssue({ ...issue, status: "Completed" });
-      
+
       // Show success message
       toast({
         title: "Materials Received",
@@ -343,14 +240,15 @@ const MaterialIssueDetails = () => {
       });
     } catch (err) {
       console.error("Error marking materials as received:", err);
-      
+
       // Show error message
       toast({
         title: "Receive Failed",
-        description: "There was an error marking materials as received. Please try again.",
+        description:
+          "There was an error marking materials as received. Please try again.",
         variant: "destructive",
       });
-      
+
       // For development - update mock state
       if (mockIssue.id === parseInt(id)) {
         setIssue({ ...issue, status: "Completed" });
@@ -407,7 +305,11 @@ const MaterialIssueDetails = () => {
         <>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/issues")}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/issues")}
+              >
                 <ArrowLeft className="h-4 w-4" />
                 <span className="sr-only">Back</span>
               </Button>
@@ -417,48 +319,43 @@ const MaterialIssueDetails = () => {
             </div>
             <div className="flex items-center gap-2">
               {getStatusBadge(issue.status)}
-              
+
               {/* Action Buttons based on status */}
-              {isPending && (
-                <Button 
-                  onClick={handleApprove} 
+              {isPending && adminRoles.includes(user.role?.id) && (
+                <Button
+                  onClick={handleApprove}
                   className="bg-green-600 hover:bg-green-700"
                   disabled={processingAction}
                 >
                   <CheckSquare className="mr-2 h-4 w-4" /> Approve
                 </Button>
               )}
-              
-              {isApproved && (
-                <Button 
-                  onClick={handleIssue} 
-                  className="bg-blue-600 hover:bg-blue-700"
-                  disabled={processingAction}
-                >
-                  <Send className="mr-2 h-4 w-4" /> Issue Materials
-                </Button>
-              )}
-              
-              {isInTransit && isSiteTransfer && (
-                <Button 
-                  onClick={handleReceive} 
-                  className="bg-purple-600 hover:bg-purple-700"
-                  disabled={processingAction}
-                >
-                  <Download className="mr-2 h-4 w-4" /> Receive Materials
-                </Button>
-              )}
-              
-              {isInTransit && isSiteTransfer && (
-                <Button 
-                  onClick={handleReceive} 
-                  className="bg-purple-600 hover:bg-purple-700"
-                  disabled={processingAction}
-                >
-                  <Download className="mr-2 h-4 w-4" /> Receive Materials
-                </Button>
-              )}
-              
+
+              {isApproved &&
+                siteRoles.includes(user.role?.id) &&
+                issue.siteId === user?.site?.id && (
+                  <Button
+                    onClick={handleIssue}
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={processingAction}
+                  >
+                    <Send className="mr-2 h-4 w-4" /> Issue Materials
+                  </Button>
+                )}
+
+              {isInTransit &&
+                isSiteTransfer &&
+                siteRoles.includes(user.role?.id) &&
+                issue.otherSiteId === user?.site?.id && (
+                  <Button
+                    onClick={handleReceive}
+                    className="bg-purple-600 hover:bg-purple-700"
+                    disabled={processingAction}
+                  >
+                    <Download className="mr-2 h-4 w-4" /> Receive Materials
+                  </Button>
+                )}
+
               <Button onClick={handlePrint}>
                 <Printer className="mr-2 h-4 w-4" /> Print
               </Button>
@@ -571,9 +468,14 @@ const MaterialIssueDetails = () => {
                         </TableCell>
                         <TableCell>{item.Item?.partNumber || "N/A"}</TableCell>
                         <TableCell>{item.Item?.hsnCode || "N/A"}</TableCell>
-                        <TableCell>{item.quantity}</TableCell>
+                        <TableCell>
+                          {item.quantity} {" "}
+                          {item.Item?.Unit?.shortName}
+                        </TableCell>
                         <TableCell className="capitalize">
-                          {item.issueTo || "N/A"}
+                          {item.machine.machineName +
+                            "/" +
+                            item.machine.erpCode || "N/A"}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -582,39 +484,6 @@ const MaterialIssueDetails = () => {
               </div>
             </CardContent>
           </Card>
-
-          <div className="flex justify-between">
-            <Button variant="outline">
-              <Link to="/issues">Back to List</Link>
-            </Button>
-            
-            <div className="flex gap-2">
-              {/* Status-based action buttons in the bottom section */}
-              {isPending && (
-                <Button 
-                  onClick={handleApprove} 
-                  className="bg-green-600 hover:bg-green-700"
-                  disabled={processingAction}
-                >
-                  <CheckSquare className="mr-2 h-4 w-4" /> Approve
-                </Button>
-              )}
-              
-              {isApproved && (
-                <Button 
-                  onClick={handleIssue} 
-                  className="bg-blue-600 hover:bg-blue-700"
-                  disabled={processingAction}
-                >
-                  <Send className="mr-2 h-4 w-4" /> Issue Materials
-                </Button>
-              )}
-              
-              <Button onClick={handlePrint}>
-                <Printer className="mr-2 h-4 w-4" /> Print
-              </Button>
-            </div>
-          </div>
         </>
       ) : (
         <div className="flex flex-col h-screen">

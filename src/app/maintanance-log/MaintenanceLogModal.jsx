@@ -420,7 +420,7 @@ const MaintenanceLogModal = ({ isOpen, onClose, machineId, machineName }) => {
                         Total Cost (YTD):
                       </span>
                       <span className="font-medium">
-                        ${stats.totalCostYTD.toFixed(2)}
+                        ₹{stats.totalCostYTD.toFixed(2)}
                       </span>
                     </div>
                   </div>

@@ -168,7 +168,7 @@ const ScheduledMaintenanceList = ({ machineId }) => {
                 <TableCell className="font-medium">{item.title}</TableCell>
                 <TableCell>{getPriorityBadge(item.priority)}</TableCell>
                 <TableCell>{item.estimatedHours}</TableCell>
-                <TableCell>${item.estimatedCost}</TableCell>
+                <TableCell>₹{item.estimatedCost}</TableCell>
                 <TableCell>{item.assignedTo}</TableCell>
                 <TableCell>{getStatusBadge(item.status, item.dueDate)}</TableCell>
                 <TableCell className="text-right">

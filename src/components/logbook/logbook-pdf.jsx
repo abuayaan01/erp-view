@@ -175,12 +175,16 @@ const LogbookPDF = ({ entry }) => {
           <View style={styles.entryDetails}>
             <View style={styles.entryLeft}>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Registration No:</Text>
-                <Text style={styles.detailValue}>{entry.registrationNo}</Text>
-              </View>
-              <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Asset/ERP Code:</Text>
                 <Text style={styles.detailValue}>{entry.assetCode}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Machine Name:</Text>
+                <Text style={styles.detailValue}>{entry.machineName}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Registration No:</Text>
+                <Text style={styles.detailValue}>{entry.registrationNo}</Text>
               </View>
             </View>
             <View style={styles.entryRight}>

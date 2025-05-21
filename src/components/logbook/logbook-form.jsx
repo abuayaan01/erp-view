@@ -293,10 +293,10 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
                   : formData.machineId
                   ? `${
                       machines.find((m) => m.id === formData.machineId)
-                        ?.registrationNumber || ""
+                        ?.machineName || ""
                     } / ${
                       machines.find((m) => m.id === formData.machineId)
-                        ?.machineNumber || ""
+                        ?.registrationNumber || ""
                     }`
                   : "Select machine..."}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -322,7 +322,7 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
                               : "opacity-0"
                           )}
                         />
-                        {machine.registrationNumber} / {machine.machineNumber} -{" "}
+                        {machine.erpCode} / {machine.machineNumber} -{" "}
                         {machine.machineName}
                       </CommandItem>
                     ))}

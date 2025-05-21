@@ -37,6 +37,7 @@ export function LogbookDetails() {
           date: data.date,
           registrationNo: data.machine?.registrationNumber || "-",
           assetCode: data.machine?.erpCode || "-",
+          machineName: data.machine?.machineName || "-",
           siteName: data.site?.name || "-",
           location: data.location,
           dieselOpeningBalance: data.dieselOpeningBalance,
@@ -136,15 +137,17 @@ export function LogbookDetails() {
                 <h3 className="font-semibold text-lg">Machine Information</h3>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="text-sm text-muted-foreground">
-                    Registration No:
-                  </div>
-                  <div>{entry.registrationNo}</div>
-
-                  <div className="text-sm text-muted-foreground">
                     Asset Code:
                   </div>
                   <div>{entry.assetCode}</div>
-
+                  <div className="text-sm text-muted-foreground">
+                    Machine Name:
+                  </div>
+                  <div>{entry.machineName}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Registration No:
+                  </div>
+                  <div>{entry.registrationNo}</div>
                   <div className="text-sm text-muted-foreground">
                     Site Name:
                   </div>

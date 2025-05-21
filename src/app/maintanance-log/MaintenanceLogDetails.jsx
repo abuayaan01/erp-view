@@ -74,7 +74,7 @@ const MaintenanceLogDetails = ({ log, onBack }) => {
           </div>
         </div>
         <div className="text-right">
-          <div className="text-lg font-semibold">${log.cost}</div>
+          <div className="text-lg font-semibold">₹{log.cost}</div>
           <div className="text-sm text-muted-foreground">Cost</div>
         </div>
       </div>
@@ -109,7 +109,7 @@ const MaintenanceLogDetails = ({ log, onBack }) => {
             <DollarSign className="h-4 w-4" />
             <span>Cost</span>
           </div>
-          <p>${log.cost}</p>
+          <p>₹{log.cost}</p>
         </div>
       </div>
 
