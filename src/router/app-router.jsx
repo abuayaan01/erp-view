@@ -183,10 +183,6 @@ function AppRouter() {
 
         {/* Machine Transfer */}
         <Route
-          path="/machine-transfer/home"
-          element={<MachineTransferPage />}
-        />
-        <Route
           path="/machine-transfer/new"
           element={
             <ProtectedRoute
@@ -200,50 +196,12 @@ function AppRouter() {
           }
         />
         <Route
-          path="/machine-transfer/list/:id"
+          path="/machine-transfer/:id"
           element={<TransferDetailPage />}
         />
+        
         <Route
-          path="/machine-transfer/approve"
-          element={
-            <ProtectedRoute
-              element={<ApprovePage />}
-              allowedRoleIds={[
-                ROLES.ADMIN.id,
-                ROLES.MECHANICAL_HEAD.id,
-                ROLES.MECHANICAL_MANAGER.id,
-              ]}
-            />
-          }
-        />
-        <Route
-          path="/machine-transfer/dispatch"
-          element={
-            <ProtectedRoute
-              element={<DispatchTransferPage />}
-              allowedRoleIds={[
-                ROLES.MECHANICAL_STORE_MANAGER.id,
-                ROLES.MECHANICAL_INCHARGE.id,
-                ROLES.PROJECT_MANAGER.id,
-              ]}
-            />
-          }
-        />
-        <Route
-          path="/machine-transfer/receive"
-          element={
-            <ProtectedRoute
-              element={<ReceiveTransferPage />}
-              allowedRoleIds={[
-                ROLES.MECHANICAL_STORE_MANAGER.id,
-                ROLES.MECHANICAL_INCHARGE.id,
-                ROLES.PROJECT_MANAGER.id,
-              ]}
-            />
-          }
-        />
-        <Route
-          path="/machine-transfer/history"
+          path="/machine-transfer"
           element={<TransferHistoryPage />}
         />
         {/* Machine Transfer End */}

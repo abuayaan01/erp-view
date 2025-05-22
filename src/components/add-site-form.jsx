@@ -85,7 +85,7 @@ export default function AddSiteForm({ close }) {
         className="space-y-6 max-w-3xl py-4"
       >
         <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-6">
+          <div className="col-span-12">
             <FormField
               control={form.control}
               name="name"
@@ -194,6 +194,7 @@ export function UpdateSite({ data }) {
   });
 
   async function onSubmit(values) {
+    delete values.code;
     setLoading(true);
     try {
       const res = await api.put(`/sites/${data.id}`, values);

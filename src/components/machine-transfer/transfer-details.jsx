@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -27,29 +27,49 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
   AlertCircle,
+  ArrowLeft,
   CheckCircle,
+  FileDown,
   FileText,
   MapPin,
+  MoreHorizontal,
   Truck,
   X,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { useSelector } from "react-redux";
+import { useUserRoleLevel } from "@/utils/roles";
+import TransferChallanPDF from "./transfer-challan-pdf";
+import { pdf } from "@react-pdf/renderer";
+import { Checkbox } from "../ui/checkbox";
+import api from "@/services/api/api-service";
 
 export default function MachineTransferDetail({
   transferData,
-  onRefresh,
-  userRole = "admin",
-  userId = 1,
+  fetchTransferData,
 }) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [remarks, setRemarks] = useState("");
+  const [dispatchLoader, setDispatchLoader] = useState(false);
   const [transportDetails, setTransportDetails] = useState({
     vehicleNumber: "",
     driverName: "",
     mobileNumber: "",
+    fuelGaugeReading: "",
+    odometerReading: "",
+    itemsIncluded: [],
   });
+
+  const [dispatchfiles, setDispatchfiles] = useState();
+
+  const roleLevel = useUserRoleLevel();
 
   const [openApproveDialog, setOpenApproveDialog] = useState(false);
   const [openRejectDialog, setOpenRejectDialog] = useState(false);
@@ -57,6 +77,13 @@ export default function MachineTransferDetail({
   const [openReceiveDialog, setOpenReceiveDialog] = useState(false);
 
   const transfer = transferData.data;
+
+  useEffect(() => {
+    setTransportDetails({
+      ...transportDetails,
+      ...transfer.transportDetails,
+    });
+  }, [transfer]);
 
   // Format date function
   const formatDate = (dateString) => {
@@ -137,21 +164,15 @@ export default function MachineTransferDetail({
     setLoading(true);
     try {
       // In a real app, you would make an API call here
-      // await fetch(`/api/transfers/${transfer.id}/approve`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ remarks })
-      // })
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await api.put(`/transfer/${transfer.id}/approve`, {
+        remarks: remarks || "No remarks",
+      });
 
       toast({
         title: "Transfer Approved",
         description: "The machine transfer has been approved successfully.",
       });
-
-      if (onRefresh) onRefresh();
+      fetchTransferData();
       setOpenApproveDialog(false);
     } catch (error) {
       toast({
@@ -169,21 +190,15 @@ export default function MachineTransferDetail({
     setLoading(true);
     try {
       // In a real app, you would make an API call here
-      // await fetch(`/api/transfers/${transfer.id}/reject`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ remarks })
-      // })
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await api.put(`/transfer/${transfer.id}/reject`, {
+        remarks: remarks || "No remarks",
+      });
 
       toast({
         title: "Transfer Rejected",
         description: "The machine transfer has been rejected.",
       });
-
-      if (onRefresh) onRefresh();
+      fetchTransferData();
       setOpenRejectDialog(false);
     } catch (error) {
       toast({
@@ -198,26 +213,43 @@ export default function MachineTransferDetail({
 
   // Handle dispatch action
   const handleDispatch = async () => {
-    setLoading(true);
+    setDispatchLoader(true);
     try {
-      // In a real app, you would make an API call here
-      // await fetch(`/api/transfers/${transfer.id}/dispatch`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ transportDetails, remarks })
-      // })
+      const formData = new FormData();
+      // Append simple text fields
+      formData.append("remarks", remarks);
+      formData.append("vehicleNumber", transportDetails.vehicleNumber);
+      formData.append("driverName", transportDetails.driverName);
+      formData.append("mobileNumber", transportDetails.mobileNumber);
+      formData.append("fuelGaugeReading", transportDetails.fuelGaugeReading);
+      formData.append("odometerReading", transportDetails.odometerReading);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Append itemsIncluded as JSON string (or comma-separated if backend prefers)
+      formData.append(
+        "itemsIncluded",
+        JSON.stringify(transportDetails.itemsIncluded)
+      );
+
+      // Append files
+      dispatchfiles &&
+        dispatchfiles.forEach((file, index) => {
+          formData.append("files", file); // Use "files[]" if backend expects array format
+        });
+
+      await api.put(`/transfer/${transfer.id}/dispatch`, formData);
+
+      fetchTransferData();
+
+      setDispatchLoader(false);
 
       toast({
         title: "Machine Dispatched",
         description: "The machine has been dispatched successfully.",
       });
 
-      if (onRefresh) onRefresh();
       setOpenDispatchDialog(false);
     } catch (error) {
+      console.log(error);
       toast({
         title: "Error",
         description: "Failed to dispatch the machine. Please try again.",
@@ -232,22 +264,15 @@ export default function MachineTransferDetail({
   const handleReceive = async () => {
     setLoading(true);
     try {
-      // In a real app, you would make an API call here
-      // await fetch(`/api/transfers/${transfer.id}/receive`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ remarks })
-      // })
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await api.put(`/transfer/${transfer.id}/receive`, {
+        remarks: remarks || "No remarks",
+      });
 
       toast({
         title: "Machine Received",
         description: "The machine has been received successfully.",
       });
-
-      if (onRefresh) onRefresh();
+      fetchTransferData();
       setOpenReceiveDialog(false);
     } catch (error) {
       toast({
@@ -263,40 +288,365 @@ export default function MachineTransferDetail({
 
   // Determine which action buttons to show based on status and user role
   const showApproveButton =
-    transfer.status === "Pending" &&
-    (userRole === "admin" ||
-      userRole === "project-manager" ||
-      userRole === "mechanical-head" ||
-      userRole === "source-pm");
+    transfer.status === "Pending" && roleLevel.role === "admin";
 
   const showRejectButton =
-    transfer.status === "Pending" &&
-    (userRole === "admin" ||
-      userRole === "project-manager" ||
-      userRole === "mechanical-head" ||
-      userRole === "source-pm");
+    transfer.status === "Pending" && roleLevel.role === "admin";
 
   const showDispatchButton =
     transfer.status === "Approved" &&
     !transfer.dispatchedAt &&
-    (userRole === "admin" || userRole === "site-manager");
+    roleLevel.role === "site" &&
+    roleLevel.siteId == transfer.currentSite?.id;
 
   const showReceiveButton =
     transfer.status === "Dispatched" &&
     !transfer.receivedAt &&
-    (userRole === "admin" || userRole === "site-manager");
+    roleLevel.role === "site" &&
+    roleLevel.siteId == transfer.destinationSite?.id;
+
+  const handleGeneratePdf = async (transfer) => {
+    try {
+      const blob = await pdf(
+        <TransferChallanPDF transfer={transfer} />
+      ).toBlob();
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, "_blank");
+    } catch (error) {
+      console.error("Failed to generate PDF", error);
+    } finally {
+      console.log("sa");
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/machine-transfer")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Back</span>
+          </Button>
           <h1 className="text-2xl font-bold">{transfer.name}</h1>
-          <p className="text-muted-foreground">Machine Transfer Request</p>
+          <p className="text-muted-foreground">
+            {getStatusBadge(transfer.status)}
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          {getStatusBadge(transfer.status)}
-          <Button variant="outline" onClick={() => navigate("/machine-transfer/list")}>
-            Back
+          {showDispatchButton && (
+            <Dialog
+              open={openDispatchDialog}
+              onOpenChange={setOpenDispatchDialog}
+            >
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Truck className="h-4 w-4 mr-2" />
+                  Dispatch Machine
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="w-[800px] max-w-full">
+                <DialogHeader>
+                  <DialogTitle>Dispatch Machine</DialogTitle>
+                  <DialogDescription>
+                    Enter transport details to dispatch this machine.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4 max-h-[50vh] overflow-y-auto">
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicle-number">Vehicle Number</Label>
+                    <Input
+                      id="vehicle-number"
+                      placeholder="Enter vehicle number"
+                      value={transportDetails.vehicleNumber}
+                      onChange={(e) =>
+                        setTransportDetails({
+                          ...transportDetails,
+                          vehicleNumber: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="driver-name">Driver Name</Label>
+                    <Input
+                      id="driver-name"
+                      placeholder="Enter driver name"
+                      value={transportDetails.driverName}
+                      onChange={(e) =>
+                        setTransportDetails({
+                          ...transportDetails,
+                          driverName: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="mobile-number">Mobile Number</Label>
+                    <Input
+                      id="mobile-number"
+                      placeholder="Enter mobile number"
+                      value={transportDetails.mobileNumber}
+                      onChange={(e) =>
+                        setTransportDetails({
+                          ...transportDetails,
+                          mobileNumber: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`fuelGaugeReading`}>
+                      Fuel Gauge Reading (Ltrs)
+                    </Label>
+                    <Input
+                      id={`fuelGaugeReading`}
+                      placeholder="5L"
+                      onChange={(e) =>
+                        setTransportDetails({
+                          ...transportDetails,
+                          fuelGaugeReading: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`Odometer Reading`}>
+                      Odometer Reading (kms)
+                    </Label>
+                    <Input
+                      id={`odometerReading`}
+                      placeholder="1000kms"
+                      onChange={(e) =>
+                        setTransportDetails({
+                          ...transportDetails,
+                          odometerReading: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <Label htmlFor="dispatch-files">Upload Files</Label>
+                    <Input
+                      id="dispatch-files"
+                      type="file"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files);
+                        setDispatchfiles(files);
+                      }}
+                      className="mt-2"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <Label>Items Included</Label>
+                    <div className="flex flex-row gap-6 mt-2">
+                      {[
+                        { id: "toolBox", label: "Tool Box" },
+                        { id: "tyre", label: "Tyre" },
+                        { id: "fuel", label: "Fuel" },
+                        { id: "spanner", label: "Spanner" },
+                      ].map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={item.id}
+                            checked={transportDetails.itemsIncluded.includes(
+                              item.id
+                            )}
+                            onCheckedChange={(checked) => {
+                              setTransportDetails((prev) => {
+                                const items = prev.itemsIncluded;
+                                return {
+                                  ...prev,
+                                  itemsIncluded: checked
+                                    ? [...items, item.id]
+                                    : items.filter((i) => i !== item.id),
+                                };
+                              });
+                            }}
+                          />
+                          <Label htmlFor={item.id}>{item.label}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 mt-2">
+                    <Label htmlFor="dispatch-remarks">Remarks (Optional)</Label>
+                    <Textarea
+                      id="dispatch-remarks"
+                      placeholder="Add any remarks or notes"
+                      value={remarks}
+                      onChange={(e) => setRemarks(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setOpenDispatchDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button loading={dispatchLoader} onClick={handleDispatch}>
+                    {loading ? "Processing..." : "Dispatch"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+          {showApproveButton && (
+            <Dialog
+              open={openApproveDialog}
+              onOpenChange={setOpenApproveDialog}
+            >
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Approve Transfer
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Approve Machine Transfer</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to approve this machine transfer
+                    request?
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="approve-remarks">Remarks (Optional)</Label>
+                    <Textarea
+                      id="approve-remarks"
+                      placeholder="Add any remarks or notes"
+                      value={remarks}
+                      onChange={(e) => setRemarks(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setOpenApproveDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleApprove} disabled={loading}>
+                    {loading ? "Processing..." : "Approve"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+          {showRejectButton && (
+            <Dialog open={openRejectDialog} onOpenChange={setOpenRejectDialog}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" className="gap-2">
+                  <X className="h-4 w-4" />
+                  Reject Transfer
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Reject Machine Transfer</DialogTitle>
+                  <DialogDescription>
+                    Please provide a reason for rejecting this transfer request.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reject-remarks">Rejection Reason</Label>
+                    <Textarea
+                      id="reject-remarks"
+                      placeholder="Enter reason for rejection"
+                      value={remarks}
+                      onChange={(e) => setRemarks(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setOpenRejectDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleReject}
+                    disabled={loading || !remarks}
+                  >
+                    {loading ? "Processing..." : "Reject"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+          {showReceiveButton && (
+            <Dialog
+              open={openReceiveDialog}
+              onOpenChange={setOpenReceiveDialog}
+            >
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Receive Machine
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Receive Machine</DialogTitle>
+                  <DialogDescription>
+                    Confirm that you have received the machine at your site.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="receive-remarks">
+                      Final Remarks (Optional)
+                    </Label>
+                    <Textarea
+                      id="receive-remarks"
+                      placeholder="Add any final remarks or notes about the condition of the machine"
+                      value={remarks}
+                      onChange={(e) => setRemarks(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setOpenReceiveDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleReceive} disabled={loading}>
+                    {loading ? "Processing..." : "Confirm Receipt"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+          <Button
+            variant="outline"
+            // loading={pdfloading}
+            onClick={() => handleGeneratePdf(transfer)}
+          >
+            <FileDown className="mr-2 h-4 w-4" />
+            View Challan
           </Button>
         </div>
       </div>
@@ -607,266 +957,6 @@ export default function MachineTransferDetail({
           </Card>
         )}
       </div>
-
-      {/* Action Buttons */}
-      {(showApproveButton ||
-        showRejectButton ||
-        showDispatchButton ||
-        showReceiveButton) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Actions</CardTitle>
-            <CardDescription>
-              Available actions for this transfer
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-4">
-              {showApproveButton && (
-                <Dialog
-                  open={openApproveDialog}
-                  onOpenChange={setOpenApproveDialog}
-                >
-                  <DialogTrigger asChild>
-                    <Button className="gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      Approve Transfer
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Approve Machine Transfer</DialogTitle>
-                      <DialogDescription>
-                        Are you sure you want to approve this machine transfer
-                        request?
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="approve-remarks">
-                          Remarks (Optional)
-                        </Label>
-                        <Textarea
-                          id="approve-remarks"
-                          placeholder="Add any remarks or notes"
-                          value={remarks}
-                          onChange={(e) => setRemarks(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setOpenApproveDialog(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button onClick={handleApprove} disabled={loading}>
-                        {loading ? "Processing..." : "Approve"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              )}
-
-              {showRejectButton && (
-                <Dialog
-                  open={openRejectDialog}
-                  onOpenChange={setOpenRejectDialog}
-                >
-                  <DialogTrigger asChild>
-                    <Button variant="destructive" className="gap-2">
-                      <X className="h-4 w-4" />
-                      Reject Transfer
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Reject Machine Transfer</DialogTitle>
-                      <DialogDescription>
-                        Please provide a reason for rejecting this transfer
-                        request.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="reject-remarks">Rejection Reason</Label>
-                        <Textarea
-                          id="reject-remarks"
-                          placeholder="Enter reason for rejection"
-                          value={remarks}
-                          onChange={(e) => setRemarks(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setOpenRejectDialog(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleReject}
-                        disabled={loading || !remarks}
-                      >
-                        {loading ? "Processing..." : "Reject"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              )}
-
-              {showDispatchButton && (
-                <Dialog
-                  open={openDispatchDialog}
-                  onOpenChange={setOpenDispatchDialog}
-                >
-                  <DialogTrigger asChild>
-                    <Button className="gap-2">
-                      <Truck className="h-4 w-4" />
-                      Dispatch Machine
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Dispatch Machine</DialogTitle>
-                      <DialogDescription>
-                        Enter transport details to dispatch this machine.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="vehicle-number">Vehicle Number</Label>
-                        <Input
-                          id="vehicle-number"
-                          placeholder="Enter vehicle number"
-                          value={transportDetails.vehicleNumber}
-                          onChange={(e) =>
-                            setTransportDetails({
-                              ...transportDetails,
-                              vehicleNumber: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="driver-name">Driver Name</Label>
-                        <Input
-                          id="driver-name"
-                          placeholder="Enter driver name"
-                          value={transportDetails.driverName}
-                          onChange={(e) =>
-                            setTransportDetails({
-                              ...transportDetails,
-                              driverName: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="mobile-number">Mobile Number</Label>
-                        <Input
-                          id="mobile-number"
-                          placeholder="Enter mobile number"
-                          value={transportDetails.mobileNumber}
-                          onChange={(e) =>
-                            setTransportDetails({
-                              ...transportDetails,
-                              mobileNumber: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="dispatch-remarks">
-                          Remarks (Optional)
-                        </Label>
-                        <Textarea
-                          id="dispatch-remarks"
-                          placeholder="Add any remarks or notes"
-                          value={remarks}
-                          onChange={(e) => setRemarks(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setOpenDispatchDialog(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleDispatch}
-                        disabled={
-                          loading ||
-                          !transportDetails.vehicleNumber ||
-                          !transportDetails.driverName ||
-                          !transportDetails.mobileNumber
-                        }
-                      >
-                        {loading ? "Processing..." : "Dispatch"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              )}
-
-              {showReceiveButton && (
-                <Dialog
-                  open={openReceiveDialog}
-                  onOpenChange={setOpenReceiveDialog}
-                >
-                  <DialogTrigger asChild>
-                    <Button className="gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      Receive Machine
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Receive Machine</DialogTitle>
-                      <DialogDescription>
-                        Confirm that you have received the machine at your site.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="receive-remarks">
-                          Final Remarks (Optional)
-                        </Label>
-                        <Textarea
-                          id="receive-remarks"
-                          placeholder="Add any final remarks or notes about the condition of the machine"
-                          value={remarks}
-                          onChange={(e) => setRemarks(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setOpenReceiveDialog(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button onClick={handleReceive} disabled={loading}>
-                        {loading ? "Processing..." : "Confirm Receipt"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

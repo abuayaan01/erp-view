@@ -26,11 +26,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Search, FileText, BookDown, MoreHorizontal } from "lucide-react";
+import {
+  Search,
+  FileText,
+  BookDown,
+  MoreHorizontal,
+  PlusCircle,
+} from "lucide-react";
 import api from "@/services/api/api-service";
 import Loader from "../ui/loader";
 import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -302,7 +308,10 @@ export function TransferHistory() {
           <TableBody>
             {transfers.length > 0 ? (
               transfers.map((transfer) => (
-                <TableRow className="text-sm text-center" key={transfer.id}>
+                <TableRow
+                  className="text-sm text-center cursor-pointer"
+                  key={transfer.id}
+                >
                   <TableCell>{transfer.name}</TableCell>
                   <TableCell>{transfer.machine?.machineName || "NA"}</TableCell>
                   <TableCell>
@@ -331,7 +340,9 @@ export function TransferHistory() {
                       {transfer.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+
+                  {/* View Logs Code Transfer it to details page */}
+                  <TableCell className="text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
@@ -340,80 +351,16 @@ export function TransferHistory() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              // onClick={() => viewTransferLogs(transfer)}
-                            >
-                              <FileText className="h-4 w-4 mr-1" />
-                              View Logs
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>
-                                Transfer Logs: {transfer.id}
-                              </DialogTitle>
-                              <DialogDescription>
-                                History of actions for this transfer
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                              <div className="space-y-2">
-                                <h3 className="text-sm font-medium">
-                                  Machine: {transfer.machine?.machineName}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {transfer.requestType === "Site Transfer"
-                                    ? `From ${transfer.currentSite?.name} to ${transfer.destinationSite?.name}`
-                                    : transfer.requestType === "Sell"
-                                    ? `From ${
-                                        transfer.currentSite?.name
-                                      } to buyer: ${
-                                        transfer.buyerName || "N/A"
-                                      }`
-                                    : `From ${
-                                        transfer.currentSite?.name
-                                      } to scrap vendor: ${
-                                        transfer.scrapVendor || "N/A"
-                                      }`}
-                                </p>
-                              </div>
-
-                              <div className="space-y-2">
-                                <h3 className="text-sm font-medium">
-                                  Activity Log
-                                </h3>
-                                <div className="space-y-2">
-                                  {transfer?.logs?.map((log, index) => (
-                                    <div
-                                      key={index}
-                                      className="border-l-2 border-muted pl-4 py-1"
-                                    >
-                                      <p className="text-sm font-medium">
-                                        {log?.action}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {log?.date} by {log.user}
-                                      </p>
-                                      {log?.reason && (
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                          Reason: {log.reason}
-                                        </p>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                        {/* <DropdownMenuItem className="text-red-600">
-                          <BookDown className="mr-2 h-4 w-4" />
-                          Download Challan
-                        </DropdownMenuItem> */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={"w-full"}
+                          onClick={() => {
+                            navigate(`./${transfer.id}`);
+                          }}
+                        >
+                          View Details
+                        </Button>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

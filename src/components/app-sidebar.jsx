@@ -136,53 +136,7 @@ const data = {
       title: "Machine Transfer",
       url: "/machine-transfer",
       icon: Truck,
-      collapsible: true,
-      items: [
-        // {
-        //   title: "Home",
-        //   url: "/machine-transfer/home",
-        // },
-        {
-          title: "New Transfer",
-          url: "/machine-transfer/new",
-          allowedRoles: [
-            ROLES.MECHANICAL_STORE_MANAGER.id,
-            ROLES.MECHANICAL_INCHARGE.id,
-            ROLES.PROJECT_MANAGER.id,
-          ],
-        },
-        {
-          title: "Approve",
-          url: "/machine-transfer/approve",
-          allowedRoles: [
-            ROLES.ADMIN.id,
-            ROLES.MECHANICAL_HEAD.id,
-            ROLES.MECHANICAL_MANAGER.id,
-          ],
-        },
-        {
-          title: "History",
-          url: "/machine-transfer/history",
-        },
-        {
-          title: "Dispatch",
-          url: "/machine-transfer/dispatch",
-          allowedRoles: [
-            ROLES.MECHANICAL_STORE_MANAGER.id,
-            ROLES.MECHANICAL_INCHARGE.id,
-            ROLES.PROJECT_MANAGER.id,
-          ],
-        },
-        {
-          title: "Receive",
-          url: "/machine-transfer/receive",
-          allowedRoles: [
-            ROLES.MECHANICAL_STORE_MANAGER.id,
-            ROLES.MECHANICAL_INCHARGE.id,
-            ROLES.PROJECT_MANAGER.id,
-          ],
-        },
-      ],
+      collapsible: false,
     },
     {
       title: "Log Book",

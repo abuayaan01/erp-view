@@ -48,7 +48,7 @@ const transferTypes = [
   { id: "scrap", name: "Scrap Machine" },
 ];
 
-export function TransferForm({ baseUrl = "/machine-transfer/history" }) {
+export function TransferForm({ baseUrl = "/machine-transfer" }) {
   const navigate = useNavigate();
   const { toast } = useToast();
 
