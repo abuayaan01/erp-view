@@ -420,13 +420,13 @@ const MaterialIssueDetails = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">To Site</p>
-                    <p className="font-medium">{toSite.name}</p>
+                    <p className="font-medium">{toSite.name || "NA"}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">
                       To Site Code
                     </p>
-                    <p className="font-medium">{toSite.code}</p>
+                    <p className="font-medium">{toSite.code || "NA"}</p>
                   </div>
 
                   {issue.items?.[0]?.issueTo
@@ -469,13 +469,14 @@ const MaterialIssueDetails = () => {
                         <TableCell>{item.Item?.partNumber || "N/A"}</TableCell>
                         <TableCell>{item.Item?.hsnCode || "N/A"}</TableCell>
                         <TableCell>
-                          {item.quantity} {" "}
-                          {item.Item?.Unit?.shortName}
+                          {item.quantity} {item.Item?.Unit?.shortName}
                         </TableCell>
                         <TableCell className="capitalize">
-                          {item.machine.machineName +
-                            "/" +
-                            item.machine.erpCode || "N/A"}
+                          {issue.issueType !== "Site Transfer"
+                            ? item.machine?.machineName +
+                              "/" +
+                              item.machine?.erpCode
+                            : toSite.name}
                         </TableCell>
                       </TableRow>
                     ))}

@@ -7,23 +7,26 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { z } from 'zod';
+import { z } from "zod";
 import { FormMessage } from "./ui/form";
 import SelectDropdown from "./ui/select-dropdown";
 import { useNavigate } from "react-router";
 import { fetchMachines } from "@/features/machine/machine-slice";
 
-
-const Step1 = ({ onNext, primaryCategories, machineCategories, siteList, watch }) => {
-
+const Step1 = ({
+  onNext,
+  primaryCategories,
+  machineCategories,
+  siteList,
+  watch,
+}) => {
   const [machineCat, setMachineCat] = useState([]);
-  let pcid = watch("primaryCategoryId")
+  let pcid = watch("primaryCategoryId");
 
   useEffect(() => {
-    const machineCategory = primaryCategories.find((item) => (item.id == pcid))
-    if (machineCategory)
-      setMachineCat(machineCategory.machineCategories)
-  }, [pcid])
+    const machineCategory = primaryCategories.find((item) => item.id == pcid);
+    if (machineCategory) setMachineCat(machineCategory.machineCategories);
+  }, [pcid]);
 
   return (
     <>
@@ -61,7 +64,9 @@ const Step1 = ({ onNext, primaryCategories, machineCategories, siteList, watch }
             {...onNext.register("machineName", { required: true })}
           />
           {onNext.formState.errors.machineName && (
-            <FormMessage>{onNext.formState.errors.machineName.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.machineName.message}
+            </FormMessage>
           )}
         </div>
 
@@ -72,7 +77,9 @@ const Step1 = ({ onNext, primaryCategories, machineCategories, siteList, watch }
             {...onNext.register("registrationNumber", { required: true })}
           />
           {onNext.formState.errors.registrationNumber && (
-            <FormMessage>{onNext.formState.errors.registrationNumber.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.registrationNumber.message}
+            </FormMessage>
           )}
         </div>
       </div>
@@ -85,7 +92,9 @@ const Step1 = ({ onNext, primaryCategories, machineCategories, siteList, watch }
             {...onNext.register("machineNumber", { required: true })}
           />
           {onNext.formState.errors.machineNumber && (
-            <FormMessage>{onNext.formState.errors.machineNumber.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.machineNumber.message}
+            </FormMessage>
           )}
         </div>
 
@@ -96,7 +105,9 @@ const Step1 = ({ onNext, primaryCategories, machineCategories, siteList, watch }
             {...onNext.register("machineCode", { required: true })}
           />
           {onNext.formState.errors.machineCode && (
-            <FormMessage>{onNext.formState.errors.machineCode.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.machineCode.message}
+            </FormMessage>
           )}
         </div>
       </div>
@@ -139,7 +150,9 @@ const Step2 = ({ onNext }) => {
             {...onNext.register("chassisNumber", { required: true })}
           />
           {onNext.formState.errors.chassisNumber && (
-            <FormMessage>{onNext.formState.errors.chassisNumber.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.chassisNumber.message}
+            </FormMessage>
           )}
         </div>
 
@@ -150,7 +163,9 @@ const Step2 = ({ onNext }) => {
             {...onNext.register("engineNumber", { required: true })}
           />
           {onNext.formState.errors.engineNumber && (
-            <FormMessage>{onNext.formState.errors.engineNumber.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.engineNumber.message}
+            </FormMessage>
           )}
         </div>
       </div>
@@ -163,7 +178,9 @@ const Step2 = ({ onNext }) => {
             {...onNext.register("serialNumber", { required: true })}
           />
           {onNext.formState.errors.serialNumber && (
-            <FormMessage>{onNext.formState.errors.serialNumber.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.serialNumber.message}
+            </FormMessage>
           )}
         </div>
 
@@ -192,7 +209,9 @@ const Step2 = ({ onNext }) => {
             {...onNext.register("purchaseDate", { required: true })}
           />
           {onNext.formState.errors.purchaseDate && (
-            <FormMessage>{onNext.formState.errors.purchaseDate.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.purchaseDate.message}
+            </FormMessage>
           )}
         </div>
       </div>
@@ -217,7 +236,9 @@ const Step2 = ({ onNext }) => {
             {...onNext.register("capacity", { required: true })}
           />
           {onNext.formState.errors.capacity && (
-            <FormMessage>{onNext.formState.errors.capacity.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.capacity.message}
+            </FormMessage>
           )}
         </div>
       </div>
@@ -244,7 +265,9 @@ const Step3 = ({ onNext }) => {
             {...onNext.register("fitnessCertificateFile")}
           />
           {onNext.formState.errors.fitnessCertificateExpiry && (
-            <FormMessage>{onNext.formState.errors.fitnessCertificateExpiry.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.fitnessCertificateExpiry.message}
+            </FormMessage>
           )}
         </div>
         <div className="col-span-6">
@@ -260,7 +283,9 @@ const Step3 = ({ onNext }) => {
             {...onNext.register("motorVehicleTaxFile")}
           />
           {onNext.formState.errors.motorVehicleTaxDue && (
-            <FormMessage>{onNext.formState.errors.motorVehicleTaxDue.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.motorVehicleTaxDue.message}
+            </FormMessage>
           )}
         </div>
       </div>
@@ -279,7 +304,9 @@ const Step3 = ({ onNext }) => {
             {...onNext.register("permitFile")}
           />
           {onNext.formState.errors.permitExpiryDate && (
-            <FormMessage>{onNext.formState.errors.permitExpiryDate.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.permitExpiryDate.message}
+            </FormMessage>
           )}
         </div>
 
@@ -296,7 +323,9 @@ const Step3 = ({ onNext }) => {
             {...onNext.register("nationalPermitFile")}
           />
           {onNext.formState.errors.nationalPermitExpiry && (
-            <FormMessage>{onNext.formState.errors.nationalPermitExpiry.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.nationalPermitExpiry.message}
+            </FormMessage>
           )}
         </div>
       </div>
@@ -315,7 +344,9 @@ const Step3 = ({ onNext }) => {
             {...onNext.register("insuranceFile")}
           />
           {onNext.formState.errors.insuranceExpiry && (
-            <FormMessage>{onNext.formState.errors.insuranceExpiry.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.insuranceExpiry.message}
+            </FormMessage>
           )}
         </div>
 
@@ -336,14 +367,14 @@ const Step3 = ({ onNext }) => {
             {...onNext.register("pollutionCertificateFile")}
           />
           {onNext.formState.errors.pollutionCertificateExpiry && (
-            <FormMessage>{onNext.formState.errors.pollutionCertificateExpiry.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.pollutionCertificateExpiry.message}
+            </FormMessage>
           )}
         </div>
 
         <div className="col-span-6">
-          <Label htmlFor="machineImageFile">
-            Machine Image
-          </Label>
+          <Label htmlFor="machineImageFile">Machine Image</Label>
           <Input
             id="machineImageFile"
             type="file"
@@ -366,7 +397,9 @@ const Step4 = ({ onNext }) => {
             {...onNext.register("ownerName", { required: true })}
           />
           {onNext.formState.errors.ownerName && (
-            <FormMessage>{onNext.formState.errors.ownerName.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.ownerName.message}
+            </FormMessage>
           )}
         </div>
 
@@ -374,11 +407,16 @@ const Step4 = ({ onNext }) => {
           <SelectDropdown
             label={"Owner Type *"}
             name={"ownerType"}
-            data={[{ name: "Company", id: "Company" }, { name: "Individual", id: "Individual" }]}
+            data={[
+              { name: "Company", id: "Company" },
+              { name: "Individual", id: "Individual" },
+            ]}
             control={onNext.control}
           />
           {onNext.formState.errors.ownerType && (
-            <FormMessage>{onNext.formState.errors.ownerType.message}</FormMessage>
+            <FormMessage>
+              {onNext.formState.errors.ownerType.message}
+            </FormMessage>
           )}
         </div>
       </div>
@@ -430,7 +468,12 @@ const AddMachineMultiStepForm = () => {
     },
   });
 
-  const { handleSubmit, watch, setValue, formState: { errors } } = methods;
+  const {
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = methods;
 
   const navigateToStep = (stepNumber) => {
     setStep(stepNumber);
@@ -455,12 +498,12 @@ const AddMachineMultiStepForm = () => {
       if (
         value === null ||
         value === undefined ||
-        value === '' ||
+        value === "" ||
         (value instanceof FileList && value.length === 0)
       ) {
         return;
       }
-    
+
       if (value instanceof FileList) {
         Array.from(value).forEach((file) => {
           formData.append(key, file);
@@ -485,7 +528,7 @@ const AddMachineMultiStepForm = () => {
         description: "Machine created successfully",
       });
       dispatch(fetchMachines());
-      navigate('/list-machine');
+      navigate("/list-machine");
     } catch (error) {
       toast({
         variant: "destructive",
@@ -534,7 +577,7 @@ const AddMachineMultiStepForm = () => {
               />
 
               <div className="flex justify-between mt-4">
-                {step > 1 && (
+                {step > 1 ? (
                   <span
                     className={
                       "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground px-4 py-2 h-9 cursor-pointer"
@@ -545,8 +588,19 @@ const AddMachineMultiStepForm = () => {
                   >
                     Back
                   </span>
+                ) : (
+                  <button
+                    disabled
+                    className={
+                      "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground px-4 py-2 h-9 cursor-pointer"
+                    }
+                  >
+                    Back
+                  </button>
                 )}
-                <Button loading={loading} type="submit">{step < 4 ? "Next" : "Submit"}</Button>
+                <Button loading={loading} type="submit">
+                  {step < 4 ? "Next" : "Submit"}
+                </Button>
               </div>
             </form>
           </FormProvider>
@@ -566,7 +620,7 @@ const Sidebar = ({ steps, currentStep, navigateToStep }) => {
               variant={currentStep === index + 1 ? "default" : "outline"}
               onClick={() => {
                 // navigateToStep(index + 1)
-                console.warn("Navigation disabled")
+                console.warn("Navigation disabled");
               }}
               className="w-full text-xs cursor-default hover:bg-red"
             >
@@ -578,7 +632,6 @@ const Sidebar = ({ steps, currentStep, navigateToStep }) => {
     </aside>
   );
 };
-
 
 // Step 1 Validation Schema
 const step1Schema = z.object({
@@ -600,7 +653,11 @@ const step2Schema = z.object({
   model: z.string().optional(),
   make: z.string().optional(),
   purchaseDate: z.string().optional(),
-  yom: z.string().min(4, "Year of Manufacture must be a valid year").max(4, "Year of Manufacture must be a valid year").or(z.literal("")),
+  yom: z
+    .string()
+    .min(4, "Year of Manufacture must be a valid year")
+    .max(4, "Year of Manufacture must be a valid year")
+    .or(z.literal("")),
   capacity: z.string().optional(),
 });
 
@@ -619,19 +676,30 @@ const step3Schema = z.object({
   ...step4Schema.shape,
 
   fitnessCertificateExpiry: z.string().optional(),
-  fitnessCertificateFile: z.instanceof(FileList, "Fitness Certificate File is required").optional(),
+  fitnessCertificateFile: z
+    .instanceof(FileList, "Fitness Certificate File is required")
+    .optional(),
   motorVehicleTaxDue: z.string().optional(),
-  motorVehicleTaxFile: z.instanceof(FileList, "Motor Vehicle Tax File is required").optional(),
+  motorVehicleTaxFile: z
+    .instanceof(FileList, "Motor Vehicle Tax File is required")
+    .optional(),
   permitExpiryDate: z.string().optional(),
   permitFile: z.instanceof(FileList, "Permit File is required").optional(),
   nationalPermitExpiry: z.string().optional(),
-  nationalPermitFile: z.instanceof(FileList, "National Permit File is required").optional(),
+  nationalPermitFile: z
+    .instanceof(FileList, "National Permit File is required")
+    .optional(),
   insuranceExpiry: z.string().optional(),
-  insuranceFile: z.instanceof(FileList, "Insurance File is required").optional(),
+  insuranceFile: z
+    .instanceof(FileList, "Insurance File is required")
+    .optional(),
   pollutionCertificateExpiry: z.string().optional(),
-  pollutionCertificateFile: z.instanceof(FileList, "Pollution Certificate File is required").optional(),
-  machineImageFile: z.instanceof(FileList, "Machine Image File is required").optional(),
+  pollutionCertificateFile: z
+    .instanceof(FileList, "Pollution Certificate File is required")
+    .optional(),
+  machineImageFile: z
+    .instanceof(FileList, "Machine Image File is required")
+    .optional(),
 });
-
 
 export default AddMachineMultiStepForm;

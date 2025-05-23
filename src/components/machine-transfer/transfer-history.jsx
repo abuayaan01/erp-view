@@ -89,43 +89,47 @@ export function TransferHistory() {
 
   // Update the filteredTransfers function to include type filtering
   // Replace the filteredTransfers constant with this updated one
-  // const filteredTransfers = transfers.filter((transfer) => {
-  //   const matchesSearch =
-  //     transfer.machine?.machineName
-  //       .toLowerCase()
-  //       .includes(searchTerm.toLowerCase()) ||
-  //     transfer.fromSite.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //     (transfer.toSite &&
-  //       transfer.toSite.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredTransfers = transfers.filter((transfer) => {
+    const matchesSearch =
+      transfer.machine?.machineName
+        ?.toLowerCase()
+        .includes(searchTerm?.toLowerCase()) ||
+      transfer.fromSite?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      (transfer.toSite &&
+        transfer.toSite?.toLowerCase().includes(searchTerm?.toLowerCase())) ||
+      transfer.name?.toLowerCase().includes(searchTerm?.toLowerCase());
 
-  //   const matchesStatus =
-  //     statusFilter === "All Statuses" || transfer.status === statusFilter;
-  //   const matchesSite =
-  //     siteFilter === "All Sites" ||
-  //     transfer.fromSite === siteFilter ||
-  //     (transfer.toSite && transfer.toSite === siteFilter);
-  //   const matchesMachine =
-  //     machineFilter === "All Machines" ||
-  //     transfer.machine.machineName === machineFilter;
+    const matchesStatus =
+      statusFilter === "All Statuses" || transfer.status === statusFilter;
+    const matchesSite =
+      siteFilter === "All Sites" ||
+      transfer.fromSite === siteFilter ||
+      (transfer.toSite && transfer.toSite === siteFilter);
+    const matchesMachine =
+      machineFilter === "All Machines" ||
+      transfer.machine.machineName === machineFilter;
 
-  //   let matchesType = true;
-  //   if (typeFilter !== "All Types") {
-  //     if (typeFilter === "Site Transfer" && transfer.type !== "site_transfer")
-  //       matchesType = false;
-  //     if (typeFilter === "Sell" && transfer.type !== "sell")
-  //       matchesType = false;
-  //     if (typeFilter === "Scrap" && transfer.type !== "scrap")
-  //       matchesType = false;
-  //   }
+    let matchesType = true;
+    if (typeFilter !== "All Types") {
+      if (
+        typeFilter === "Site Transfer" &&
+        transfer.requestType !== "Site Transfer"
+      )
+        matchesType = false;
+      if (typeFilter === "Sell" && transfer.requestType !== "Sell")
+        matchesType = false;
+      if (typeFilter === "Scrap" && transfer.requestType !== "Scrap")
+        matchesType = false;
+    }
 
-  //   return (
-  //     matchesSearch &&
-  //     matchesStatus &&
-  //     matchesSite &&
-  //     matchesMachine &&
-  //     matchesType
-  //   );
-  // });
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesSite &&
+      matchesMachine &&
+      matchesType
+    );
+  });
 
   // Update the getStatusColor function to include new statuses
   // Replace the getStatusColor function with this updated one
@@ -213,7 +217,7 @@ export function TransferHistory() {
     </div>
   ) : (
     <div className="space-y-4">
-      {/* <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex flex-1 items-center space-x-2">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -226,9 +230,9 @@ export function TransferHistory() {
             />
           </div>
         </div>
-      </div> */}
+      </div>
 
-      {/* <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger>
@@ -244,7 +248,7 @@ export function TransferHistory() {
           </Select>
         </div>
 
-        <div className="flex-1">
+        {/* <div className="flex-1">
           <Select value={siteFilter} onValueChange={setSiteFilter}>
             <SelectTrigger>
               <SelectValue placeholder="Filter by site" />
@@ -272,8 +276,8 @@ export function TransferHistory() {
               ))}
             </SelectContent>
           </Select>
-        </div>
-        
+        </div> */}
+
         <div className="flex-1">
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger>
@@ -288,7 +292,7 @@ export function TransferHistory() {
             </SelectContent>
           </Select>
         </div>
-      </div> */}
+      </div>
 
       <div className="rounded-md border">
         {/* Update the table header to include Type column */}
@@ -307,7 +311,7 @@ export function TransferHistory() {
           {/* Update the table body to display the transfer type and handle different types */}
           <TableBody>
             {transfers.length > 0 ? (
-              transfers.map((transfer) => (
+              filteredTransfers.map((transfer) => (
                 <TableRow
                   className="text-sm text-center cursor-pointer"
                   key={transfer.id}

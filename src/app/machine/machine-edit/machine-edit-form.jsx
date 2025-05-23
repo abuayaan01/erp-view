@@ -1,9 +1,9 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router"
-import { CalendarIcon, Loader2 } from "lucide-react"
+import { CalendarIcon, Loader2, Upload, X } from "lucide-react"
 import { format } from "date-fns"
 
 import { Button } from "@/components/ui/button"
@@ -21,38 +21,40 @@ import { useDispatch } from "react-redux"
 
 // Define the form schema with Zod
 const machineFormSchema = z.object({
-  primaryCategory: z.string().min(1, "Primary category is required"),
-  machineCategory: z.string().min(1, "Machine category is required"),
-  primaryCategoryId: z.number(),
-  machineCategoryId: z.number(),
-  erpCode: z.string().min(1, "ERP code is required"),
-  registrationNumber: z.string().min(1, "Registration number is required"),
-  machineNumber: z.string().min(1, "Machine number is required"),
-  machineCode: z.string().min(1, "Machine code is required"),
-  chassisNumber: z.string().min(1, "Chassis number is required"),
-  engineNumber: z.string().min(1, "Engine number is required"),
-  serialNumber: z.string().min(1, "Serial number is required"),
-  model: z.string().min(1, "Model is required"),
-  make: z.string().min(1, "Make is required"),
+  primaryCategory: z.string().nullable().optional(),
+  machineCategory: z.string().nullable().optional(),
+  primaryCategoryId: z.number().nullable().optional(),
+  machineCategoryId: z.number().nullable().optional(),
+  erpCode: z.string().nullable().optional(),
+  registrationNumber: z.string().nullable().optional(),
+  machineNumber: z.string().nullable().optional(),
+  machineCode: z.string().nullable().optional(),
+  chassisNumber: z.string().nullable().optional(),
+  engineNumber: z.string().nullable().optional(),
+  serialNumber: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+  make: z.string().nullable().optional(),
   yom: z.coerce
     .number()
     .int()
     .min(1900, "Year must be valid")
-    .max(new Date().getFullYear(), "Year cannot be in the future"),
-  purchaseDate: z.date(),
-  capacity: z.string().min(1, "Capacity is required"),
-  ownerName: z.string().min(1, "Owner name is required"),
-  ownerType: z.string().min(1, "Owner type is required"),
-  siteId: z.coerce.number().int().positive("Site ID must be a positive number"),
-  isActive: z.boolean().default(true),
-  machineName: z.string().min(1, "Machine name is required"),
-  fitnessCertificateExpiry: z.date(),
-  motorVehicleTaxDue: z.date(),
-  permitExpiryDate: z.date(),
-  nationalPermitExpiry: z.date(),
-  insuranceExpiry: z.date(),
-  pollutionCertificateExpiry: z.date(),
-  status: z.string().min(1, "Status is required"),
+    .max(new Date().getFullYear(), "Year cannot be in the future")
+    .nullable()
+    .optional(),
+  purchaseDate: z.date().nullable().optional(),
+  capacity: z.string().nullable().optional(),
+  ownerName: z.string().nullable().optional(),
+  ownerType: z.string().nullable().optional(),
+  siteId: z.coerce.number().int().positive("Site ID must be a positive number").nullable().optional(),
+  isActive: z.boolean().default(true).nullable().optional(),
+  machineName: z.string().nullable().optional(),
+  fitnessCertificateExpiry: z.date().nullable().optional(),
+  motorVehicleTaxDue: z.date().nullable().optional(),
+  permitExpiryDate: z.date().nullable().optional(),
+  nationalPermitExpiry: z.date().nullable().optional(),
+  insuranceExpiry: z.date().nullable().optional(),
+  pollutionCertificateExpiry: z.date().nullable().optional(),
+  status: z.string().nullable().optional(),
 })
 
 // Status options for the machine
@@ -64,8 +66,21 @@ const ownerTypeOptions = ["Company", "Individual"]
 export function MachineEditForm({ machineId }) {
   const [isLoading, setIsLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(true)
+  const [originalData, setOriginalData] = useState(null)
+  const [uploadedFiles, setUploadedFiles] = useState({})
   const router = useNavigate()
-  const dispatch = useDispatch();
+  const dispatch = useDispatch()
+
+  // File refs for each certificate
+  const fileRefs = {
+    fitnessCertificateFile: useRef(null),
+    motorVehicleTaxFile: useRef(null),
+    permitFile: useRef(null),
+    nationalPermitFile: useRef(null),
+    insuranceFile: useRef(null),
+    pollutionCertificateFile: useRef(null),
+    machineImageFile: useRef(null),
+  }
 
   // Initialize the form
   const form = useForm({
@@ -75,20 +90,67 @@ export function MachineEditForm({ machineId }) {
     },
   })
 
+  // Handle file upload
+  const handleFileUpload = (fieldName, event) => {
+    const file = event.target.files[0]
+    if (file) {
+      setUploadedFiles(prev => ({
+        ...prev,
+        [fieldName]: file
+      }))
+    }
+  }
+
+  // Remove uploaded file
+  const removeFile = (fieldName) => {
+    setUploadedFiles(prev => {
+      const newFiles = { ...prev }
+      delete newFiles[fieldName]
+      return newFiles
+    })
+    if (fileRefs[fieldName]?.current) {
+      fileRefs[fieldName].current.value = ''
+    }
+  }
+
+  // Compare objects to find changes
+  const getChangedFields = (original, current) => {
+    const changes = {}
+    
+    for (const key in current) {
+      if (key === 'primaryCategory' || key === 'machineCategory') {
+        continue // Skip these as they're display-only
+      }
+      
+      const originalValue = original[key]
+      const currentValue = current[key]
+      
+      // Handle date comparison
+      if (originalValue instanceof Date && currentValue instanceof Date) {
+        if (originalValue.getTime() !== currentValue.getTime()) {
+          changes[key] = currentValue
+        }
+      } else if (originalValue !== currentValue) {
+        changes[key] = currentValue
+      }
+    }
+    
+    return changes
+  }
+
   // Fetch machine data
   useEffect(() => {
     async function fetchMachineData() {
       try {
         setIsFetching(true)
-        // In a real app, replace with your actual API endpoint
-        const response = await api.get(`/machinery/${machineId}`);
+        const response = await api.get(`/machinery/${machineId}`)
         
 
         if (!response.status) {
           throw new Error("Failed to fetch machine data")
         }
 
-        const data = await response.data;
+        const data = await response.data
 
         // Convert string dates to Date objects for the form
         const formattedData = {
@@ -111,6 +173,9 @@ export function MachineEditForm({ machineId }) {
             : new Date(),
         }
 
+        // Store original data for comparison
+        setOriginalData(formattedData)
+        
         // Reset form with fetched data
         form.reset(formattedData)
       } catch (error) {
@@ -133,12 +198,44 @@ export function MachineEditForm({ machineId }) {
     try {
       setIsLoading(true)
 
-      const { primaryCategory, machineCategory, ...formattedData } = data;
+      const { primaryCategory, machineCategory, ...formattedData } = data
+      
+      // Get only changed fields
+      const changedFields = getChangedFields(originalData, formattedData)
+      
+      // Create FormData for file upload
+      const formData = new FormData()
+      
+      // Add changed fields to FormData
+      Object.keys(changedFields).forEach(key => {
+        const value = changedFields[key]
+        if (value instanceof Date) {
+          formData.append(key, value.toISOString())
+        } else {
+          formData.append(key, value)
+        }
+      })
+      
+      // Add uploaded files to FormData
+      Object.keys(uploadedFiles).forEach(key => {
+        formData.append(key, uploadedFiles[key])
+      })
+      
+      // Only proceed if there are changes or files to upload
+      if (Object.keys(changedFields).length === 0 && Object.keys(uploadedFiles).length === 0) {
+        toast({
+          title: "No Changes",
+          description: "No changes detected to update.",
+        })
+        setIsLoading(false)
+        return
+      }
 
-    //   console.log(formattedData)
-    //   return ;
-        
-      const response = await api.put(`/machinery/${machineId}`, formattedData)
+      const response = await api.put(`/machinery/${machineId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
 
       if (!response.status) {
         throw new Error("Failed to update machine")
@@ -150,7 +247,7 @@ export function MachineEditForm({ machineId }) {
       })
 
       // Navigate back to the machine details page
-      dispatch(fetchMachines());
+      dispatch(fetchMachines())
       router(`/machines/${machineId}`)
 
     } catch (error) {
@@ -513,168 +610,410 @@ export function MachineEditForm({ machineId }) {
         <Card>
           <CardContent className="pt-6">
             <h3 className="text-lg font-medium mb-4">Certification & Compliance</h3>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <FormField
-                control={form.control}
-                name="fitnessCertificateExpiry"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Fitness Certificate Expiry</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
-                          >
-                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                            <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Fitness Certificate */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="fitnessCertificateExpiry"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Fitness Certificate Expiry</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
+                            >
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileRefs.fitnessCertificateFile}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileUpload('fitnessCertificateFile', e)}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileRefs.fitnessCertificateFile.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Certificate
+                  </Button>
+                  {uploadedFiles.fitnessCertificateFile && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <span>{uploadedFiles.fitnessCertificateFile.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile('fitnessCertificateFile')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="motorVehicleTaxDue"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Motor Vehicle Tax Due</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
-                          >
-                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                            <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Motor Vehicle Tax */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="motorVehicleTaxDue"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Motor Vehicle Tax Due</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
+                            >
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileRefs.motorVehicleTaxFile}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileUpload('motorVehicleTaxFile', e)}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileRefs.motorVehicleTaxFile.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Document
+                  </Button>
+                  {uploadedFiles.motorVehicleTaxFile && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <span>{uploadedFiles.motorVehicleTaxFile.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile('motorVehicleTaxFile')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="permitExpiryDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Permit Expiry Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
-                          >
-                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                            <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Permit Expiry */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="permitExpiryDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Permit Expiry Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
+                            >
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileRefs.permitFile}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileUpload('permitFile', e)}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileRefs.permitFile.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Permit
+                  </Button>
+                  {uploadedFiles.permitFile && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <span>{uploadedFiles.permitFile.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile('permitFile')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="nationalPermitExpiry"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>National Permit Expiry</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
-                          >
-                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                            <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* National Permit */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="nationalPermitExpiry"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>National Permit Expiry</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
+                            >
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileRefs.nationalPermitFile}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileUpload('nationalPermitFile', e)}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileRefs.nationalPermitFile.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Document
+                  </Button>
+                  {uploadedFiles.nationalPermitFile && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <span>{uploadedFiles.nationalPermitFile.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile('nationalPermitFile')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="insuranceExpiry"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Insurance Expiry</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
-                          >
-                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                            <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Insurance Expiry */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="insuranceExpiry"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Insurance Expiry</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
+                            >
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileRefs.insuranceFile}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileUpload('insuranceFile', e)}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileRefs.insuranceFile.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Insurance
+                  </Button>
+                  {uploadedFiles.insuranceFile && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <span>{uploadedFiles.insuranceFile.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile('insuranceFile')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="pollutionCertificateExpiry"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Pollution Certificate Expiry</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
-                          >
-                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                            <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Pollution Certificate */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="pollutionCertificateExpiry"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Pollution Certificate Expiry</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={`w-full pl-3 text-left bg-transparent font-normal ${!field.value ? "text-muted-foreground" : ""}`}
+                            >
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileRefs.pollutionCertificateFile}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleFileUpload('pollutionCertificateFile', e)}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileRefs.pollutionCertificateFile.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Certificate
+                  </Button>
+                  {uploadedFiles.pollutionCertificateFile && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <span>{uploadedFiles.pollutionCertificateFile.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile('pollutionCertificateFile')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Machine Image */}
+              <div className="space-y-4">
+                <div>
+                  <FormLabel>Machine Image</FormLabel>
+                  <div className="flex items-center gap-2 mt-2">
+                    <input
+                      ref={fileRefs.machineImageFile}
+                      type="file"
+                      accept=".jpg,.jpeg,.png"
+                      onChange={(e) => handleFileUpload('machineImageFile', e)}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileRefs.machineImageFile.current?.click()}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Image
+                    </Button>
+                    {uploadedFiles.machineImageFile && (
+                      <div className="flex items-center gap-2 text-sm text-green-600">
+                        <span>{uploadedFiles.machineImageFile.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile('machineImageFile')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

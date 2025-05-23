@@ -66,8 +66,8 @@ export default function EditUserForm({ userData, fetchUsersData, close }) {
       email: userData.email || "",
       phone: userData.phone || "",
       code: userData.code || "",
-      roleId: userData.roleName || "", // assuming userData has roleName
-      siteId: userData.siteName || "", // assuming userData has siteName
+      roleId: userData.Role.name || "", // assuming userData has roleName
+      siteId: userData.Site.name || "", // assuming userData has siteName
       password: "",
       confirm_password: "",
     },
@@ -155,7 +155,11 @@ export default function EditUserForm({ userData, fetchUsersData, close }) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="example@domain.com" type="email" {...field} />
+                    <Input
+                      placeholder="example@domain.com"
+                      type="email"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -190,7 +194,7 @@ export default function EditUserForm({ userData, fetchUsersData, close }) {
                 <FormItem>
                   <FormLabel>Employee Code</FormLabel>
                   <FormControl>
-                    <Input type="text" {...field} />
+                    <Input disabled type="text" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -238,27 +242,31 @@ export default function EditUserForm({ userData, fetchUsersData, close }) {
               render={({ field }) => (
                 <FormItem className="flex flex-col mt-2">
                   <FormLabel>Site</FormLabel>
-                  <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                  <Popover open={popoverOpen} onOpenChange={setPopoverOpen} modal={true}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[200px] justify-between",
-                            !field.value && "text-muted-foreground"
+                            "justify-between text-wrap",
+                            !field.value && "text-muted-foreground "
                           )}
                         >
                           {field.value
-                            ? sites.find((site) => site.name === field.value)?.name
+                            ? sites.find((site) => site.name === field.value)
+                                ?.name
                             : "Select site"}
                           <ChevronsUpDown className="opacity-50 ml-2" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
+                    <PopoverContent className="w-[250px] p-0">
                       <Command>
-                        <CommandInput placeholder="Search sites..." className="h-9" />
+                        <CommandInput
+                          placeholder="Search sites..."
+                          className="h-9"
+                        />
                         <CommandList>
                           <CommandEmpty>No sites found.</CommandEmpty>
                           <CommandGroup>
@@ -275,7 +283,9 @@ export default function EditUserForm({ userData, fetchUsersData, close }) {
                                 <Check
                                   className={cn(
                                     "ml-auto",
-                                    site.name === field.value ? "opacity-100" : "opacity-0"
+                                    site.name === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
                                   )}
                                 />
                               </CommandItem>

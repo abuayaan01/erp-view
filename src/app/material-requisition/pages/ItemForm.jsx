@@ -57,7 +57,6 @@ const ItemForm = () => {
       // Load item data for editing
       const items = storedItems.data;
       const item = items.find((item) => item.id == id);
-      console.log(item)
 
       if (item) {
         setFormData({

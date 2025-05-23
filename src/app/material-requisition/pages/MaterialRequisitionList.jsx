@@ -246,7 +246,7 @@ const MaterialRequisitionList = () => {
           return (
             <>
               <Button variant="ghost" size="icon">
-                <Link to={`/requisitions/view/${req.id}`}>
+                <Link to={`/requisitions/${req.id}`}>
                   <Eye className="h-4 w-4" />
                   <span className="sr-only">View</span>
                 </Link>
@@ -262,7 +262,7 @@ const MaterialRequisitionList = () => {
         case "forwarded":
           return (
             <Button variant="ghost" size="icon">
-              <Link to={`/requisitions/view/${req.id}`}>
+              <Link to={`/requisitions/${req.id}`}>
                 <Eye className="h-4 w-4" />
                 <span className="sr-only">View</span>
               </Link>
@@ -272,7 +272,7 @@ const MaterialRequisitionList = () => {
           return (
             <>
               <Button variant="ghost" size="icon">
-                <Link to={`/requisitions/view/${req.id}`}>
+                <Link to={`/requisitions/${req.id}`}>
                   <Eye className="h-4 w-4" />
                   <span className="sr-only">View</span>
                 </Link>
@@ -288,7 +288,7 @@ const MaterialRequisitionList = () => {
         default:
           return (
             <Button variant="ghost" size="icon">
-              <Link to={`/requisitions/view/${req.id}`}>
+              <Link to={`/requisitions/${req.id}`}>
                 <Eye className="h-4 w-4" />
                 <span className="sr-only">View</span>
               </Link>
@@ -303,7 +303,7 @@ const MaterialRequisitionList = () => {
           return (
             <>
               <Button variant="ghost" size="icon">
-                <Link to={`/requisitions/view/${req.id}`}>
+                <Link to={`/requisitions/${req.id}`}>
                   <Eye className="h-4 w-4" />
                   <span className="sr-only">View</span>
                 </Link>
@@ -319,7 +319,7 @@ const MaterialRequisitionList = () => {
         } else {
           return (
             <Button variant="ghost" size="icon">
-              <Link to={`/requisitions/view/${req.id}`}>
+              <Link to={`/requisitions/${req.id}`}>
                 <Eye className="h-4 w-4" />
                 <span className="sr-only">View</span>
               </Link>
@@ -332,7 +332,7 @@ const MaterialRequisitionList = () => {
           return (
             <>
               <Button variant="ghost" size="icon">
-                <Link to={`/requisitions/view/${req.id}`}>
+                <Link to={`/requisitions/${req.id}`}>
                   <Eye className="h-4 w-4" />
                   <span className="sr-only">View</span>
                 </Link>
@@ -349,7 +349,7 @@ const MaterialRequisitionList = () => {
           return (
             <>
               <Button variant="ghost" size="icon">
-                <Link to={`/requisitions/view/${req.id}`}>
+                <Link to={`/requisitions/${req.id}`}>
                   <Eye className="h-4 w-4" />
                   <span className="sr-only">View</span>
                 </Link>
@@ -365,7 +365,7 @@ const MaterialRequisitionList = () => {
         } else {
           return (
             <Button variant="ghost" size="icon">
-              <Link to={`/requisitions/view/${req.id}`}>
+              <Link to={`/requisitions/${req.id}`}>
                 <Eye className="h-4 w-4" />
                 <span className="sr-only">View</span>
               </Link>
@@ -520,7 +520,12 @@ const MaterialRequisitionList = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              {getActionButtons(req)}
+                              <Button variant="ghost" size="icon">
+                                <Link to={`/requisitions/${req.id}`}>
+                                  <Eye className="h-4 w-4" />
+                                  <span className="sr-only">View</span>
+                                </Link>
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>

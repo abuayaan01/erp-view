@@ -218,12 +218,12 @@ function AppRouter() {
 
         {/* Material Requisition */}
         <Route
-          path="/requisitions/list"
+          path="/requisitions"
           element={<MaterialRequisitionList />}
         />
         <Route path="/requisitions/new" element={<MaterialRequisitionForm />} />
         <Route
-          path="/requisitions/view/:id"
+          path="/requisitions/:id"
           element={<MaterialRequisitionView />}
         />
         <Route

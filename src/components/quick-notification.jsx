@@ -42,7 +42,7 @@ const apiService = {
 
   markAllAsRead: async () => {
     try {
-      const data = await api.post("api/notifications/read-all");
+      const data = await api.post("notifications/read-all");
 
       return { success: data.status, message: data.message };
     } catch (error) {

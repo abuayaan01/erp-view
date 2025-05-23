@@ -161,17 +161,7 @@ const data = {
       title: "Material Requisition",
       url: "/requisitions",
       icon: ClipboardList,
-      collapsible: true,
-      items: [
-        {
-          title: "List",
-          url: "/requisitions/list",
-        },
-        {
-          title: "New ",
-          url: "/requisitions/new",
-        },
-      ]
+      collapsible: false,
     },
     {
       title: "Material Issue",

@@ -8,43 +8,6 @@ import { useEffect, useState } from "react"
 import { useParams } from "react-router"
 
 // This would typically come from an API call
-const siteData = {
-  status: true,
-  message: "Site fetched successfully",
-  data: {
-    id: 14,
-    name: "Hazaribagh",
-    code: "HZB",
-    address: "Main Road",
-    departmentId: 1,
-    status: "active",
-    createdAt: "2025-02-07T01:10:40.091Z",
-    updatedAt: "2025-02-07T01:10:40.091Z",
-    deletedAt: null,
-    Department: {
-      id: 1,
-      name: "Mechanical",
-    },
-    Machinery: [
-      {
-        id: 30,
-        machineName: "Light Box",
-        capacity: "20L",
-        ownerName: "Abu Ayaan",
-        ownerType: "Company",
-      },
-      {
-        id: 32,
-        machineName: " Box",
-        capacity: "2",
-        ownerName: "Abu Ayaan",
-        ownerType: "Company",
-      },
-    ],
-  },
-  timestamp: "2025-03-15T20:13:01.730Z",
-}
-
 export default function SiteDetailPage() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState();
