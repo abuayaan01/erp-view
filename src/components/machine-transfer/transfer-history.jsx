@@ -313,6 +313,7 @@ export function TransferHistory() {
             {transfers.length > 0 ? (
               filteredTransfers.map((transfer) => (
                 <TableRow
+                  onDoubleClick={() => navigate(`./${transfer.id}`)}
                   className="text-sm text-center cursor-pointer"
                   key={transfer.id}
                 >
@@ -349,7 +350,7 @@ export function TransferHistory() {
                   <TableCell className="text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button onDoubleClick={(e) => {e.stopPropagation();}} variant="ghost" size="icon">
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Open menu</span>
                         </Button>

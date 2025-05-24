@@ -113,9 +113,9 @@ const data = {
     },
     {
       title: "Machine",
-      url: "#",
+      url: "/machine",
       icon: Drill,
-      collapsible: true,
+      collapsible: false,
       items: [
         {
           title: "Add",

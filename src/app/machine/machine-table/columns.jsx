@@ -261,12 +261,12 @@ export const columns = [
             {/* Edit */}
             {/* </DropdownMenuItem> */}
             <DropdownMenuItem
-              onClick={() => navigate(`/machines/${row.original.id}`)}
+              onClick={() => navigate(`/machine/${row.original.id}`)}
             >
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => navigate(`/machines/edit/${row.original.id}`)}
+              onClick={() => navigate(`/machine/edit/${row.original.id}`)}
             >
               Edit
             </DropdownMenuItem>

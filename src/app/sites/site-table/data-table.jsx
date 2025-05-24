@@ -28,8 +28,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import AddSiteForm from "@/components/add-site-form";
+import TableSkeleton from "@/components/ui/table-skeleton";
 
-export function DataTable({ columns, data }) {
+export function DataTable({ columns, data, loading }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [pagination, setPagination] = React.useState({
@@ -58,7 +59,7 @@ export function DataTable({ columns, data }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-2 py-4">
+      <div className="flex items-center justify-between gap-2 py-2">
         <Input
           placeholder="Filter sites..."
           value={table.getColumn("name")?.getFilterValue() ?? ""}
@@ -70,61 +71,72 @@ export function DataTable({ columns, data }) {
         <AddSiteDialog />
       </div>
       <div className="max-w-[95vw] lg:w-[80vw] overflow-x-auto rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className={`text-sm min-w-[150px] text-nowrap ${
-                        header.column.columnDef.className || ""
-                      }`}
+        <div>
+          {loading ? (
+            <div className="flex-1 flex justify-center">
+              <TableSkeleton cols={9} />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead
+                          key={header.id}
+                          className={`text-sm min-w-[150px] text-nowrap ${
+                            header.column.columnDef.className || ""
+                          }`}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          className={`text-xs py-[0.3rem] ${
+                            cell.column.columnDef.className || ""
+                          }`}
+                          key={cell.id}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
                           )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell className={`text-xs py-[0.3rem] ${
-                      cell.column.columnDef.className || ""
-                    }`} key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </div>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
@@ -157,7 +169,7 @@ function AddSiteDialog() {
     <Dialog open={openForm} onOpenChange={setOpenForm}>
       <DialogTrigger asChild>
         <Button onClick={() => setOpenForm(true)} variant="outline">
-          Add site
+          Add Site
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">

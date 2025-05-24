@@ -10,8 +10,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
 import { FormMessage } from "./ui/form";
 import SelectDropdown from "./ui/select-dropdown";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { fetchMachines } from "@/features/machine/machine-slice";
+import { ArrowLeft, Backpack, PlusCircle, ReceiptRussianRuble } from "lucide-react";
 
 const Step1 = ({
   onNext,
@@ -612,7 +613,7 @@ const AddMachineMultiStepForm = () => {
 
 const Sidebar = ({ steps, currentStep, navigateToStep }) => {
   return (
-    <aside className="bg-accent mb-2 rounded p-4">
+    <aside className="bg-accent flex justify-between mb-2 rounded p-4">
       <ul className="flex gap-4">
         {steps.map((step, index) => (
           <li key={index}>
@@ -629,6 +630,12 @@ const Sidebar = ({ steps, currentStep, navigateToStep }) => {
           </li>
         ))}
       </ul>
+      <Link to={`/machine/list`}>
+        <Button variant={"outline"}>
+          <ArrowLeft className="h-4 w-4" />
+          <span className="ml-2">Back to list</span>
+        </Button>
+      </Link>
     </aside>
   );
 };

@@ -7,13 +7,7 @@ export default function SiteTable() {
   const { data, loading } = useSelector((state) => state.sites);
   return (
     <div className="container mx-auto py-2 min-h-screen flex flex-col">
-      {loading ? (
-        <div className="flex-1 flex justify-center items-center">
-          <Loader />
-        </div>
-      ) : (
-        <DataTable columns={columns} data={data} />
-      )}
+        <DataTable columns={columns} data={data} loading={loading} />
     </div>
   );
 }

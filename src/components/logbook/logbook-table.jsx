@@ -143,10 +143,10 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={8}
+                  colSpan={10}
                   className="text-center py-6 text-muted-foreground"
                 >
-                  {tableLoader ? <Loader /> : "No logbook entries found"}
+                  {tableLoader ? <Loader size={"sm"} /> : "No logbook entries found"}
                 </TableCell>
               </TableRow>
             )}

@@ -18,6 +18,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import api from "@/services/api/api-service"
 import { fetchMachines } from "@/features/machine/machine-slice"
 import { useDispatch } from "react-redux"
+import Loading from "./loading"
 
 // Define the form schema with Zod
 const machineFormSchema = z.object({
@@ -264,9 +265,10 @@ export function MachineEditForm({ machineId }) {
 
   if (isFetching) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2 text-lg">Loading machine data...</span>
+      <div className="flex items-center justify-center">
+        {/* <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-lg">Loading machine data...</span> */}
+        <Loading />
       </div>
     )
   }
@@ -1023,7 +1025,7 @@ export function MachineEditForm({ machineId }) {
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Changes
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading}>
+          <Button type="button" variant="outline" onClick={() => router('/machine')} disabled={isLoading}>
             Cancel
           </Button>
         </div>

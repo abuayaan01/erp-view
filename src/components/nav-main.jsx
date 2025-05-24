@@ -1,4 +1,3 @@
-import { ChevronRight } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -14,8 +13,9 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { NavLink } from "react-router";
+import { ChevronRight } from "lucide-react";
 import { useSelector } from "react-redux";
+import { NavLink } from "react-router";
 
 export function NavMain({ items }) {
   const { user } = useSelector((state) => state.auth);
@@ -64,7 +64,15 @@ export function NavMain({ items }) {
         {filteredItems.map((item) => {
           if (!item.collapsible) {
             return (
-              <NavLink key={item.title} className={"rounded-md"} to={item.url}>
+              <NavLink
+                key={item.title}
+                className={({ isActive }) =>
+                  `rounded-md ${
+                    isActive && "bg-primary text-foreground "
+                  }`
+                }
+                to={item.url}
+              >
                 <SidebarMenuButton tooltip={item.title}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>

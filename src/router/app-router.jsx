@@ -146,7 +146,7 @@ function AppRouter() {
 
         {/* Machines Management */}
         <Route
-          path="/add-machine"
+          path="/machine/add"
           element={
             <ProtectedRoute
               element={<AddMachine />}
@@ -158,9 +158,9 @@ function AppRouter() {
             />
           }
         />
-        <Route path="/list-machine" element={<MachineTable />} />
-        <Route path="/machines/:id" element={<MachineryDetailPage />} />
-        <Route path="/machines/edit/:id" element={<MachineEditPage />} />
+        <Route path="/machine" element={<MachineTable />} />
+        <Route path="/machine/:id" element={<MachineryDetailPage />} />
+        <Route path="/machine/edit/:id" element={<MachineEditPage />} />
         {/* Machines Management End*/}
 
         {/* Logbook */}
