@@ -53,7 +53,7 @@ const UnitList = () => {
 
   useEffect(() => {
     setUnits(storedUnits.data);
-  }, []);
+  }, [storedUnits]);
 
   const handleDelete = (id) => {
     const unit = units.find((unit) => unit.id === id);

@@ -40,45 +40,8 @@ const InvoiceForm = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // const response = await api.get(`/procurements/${procurementId}`);
-        // setProcurement(response.data);
-        setProcurement({
-          id: 101,
-          procurementNo: "PROC-2025-0005",
-          expectedDeliveryDate: "2025-05-25T00:00:00.000Z",
-          createdAt: "2025-05-15T12:30:00.000Z",
-          vendor: {
-            id: 11,
-            name: "ABC Supplies Pvt. Ltd.",
-          },
-          requisition: {
-            id: 55,
-            requisitionNo: "REQ-2025-0234",
-          },
-          items: [
-            {
-              id: 1,
-              name: "Mild Steel Rods",
-              quantity: 50,
-              rate: 1200,
-              amount: 60000,
-            },
-            {
-              id: 2,
-              name: "Bearing Set",
-              quantity: 10,
-              rate: 4500,
-              amount: 45000,
-            },
-            {
-              id: 3,
-              name: "Lubricant Oil Can",
-              quantity: 20,
-              rate: 500,
-              amount: 10000,
-            },
-          ],
-        });
+        const response = await api.get(`/procurements/${procurementId}`);
+        setProcurement(response.data);
 
         // Set default invoice amount based on procurement total
         const totalAmount =
@@ -98,13 +61,55 @@ const InvoiceForm = () => {
             error.response?.data?.message || "Failed to load procurement data",
           variant: "destructive",
         });
-        // navigate("/procurements/list");
+        navigate("/procurements");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    // fetchData();
+    const mockProcurement = {
+      procurementNo: "PRC-2025-0001",
+      requisition: {
+        requisitionNo: "REQ-2025-0005",
+      },
+      createdAt: "2025-05-15T10:30:00Z",
+      expectedDeliveryDate: "2025-06-01T00:00:00Z",
+      status: "Delivered",
+      vendor: {
+        name: "Shree Industrial Suppliers",
+        contactPerson: "Mr. Suresh Patel",
+        phone: "+91-9876543210",
+        email: "contact@shreeindustrial.com",
+        address: "Plot 14, Industrial Area, Kolkata, West Bengal, India",
+      },
+      items: [
+        {
+          name: "Mild Steel Plate",
+          quantity: 10,
+          unitName: "pcs",
+          rate: 2500,
+          amount: 25000,
+        },
+        {
+          name: "Welding Rods",
+          quantity: 100,
+          unitName: "pcs",
+          rate: 30,
+          amount: 3000,
+        },
+        {
+          name: "Cutting Wheel",
+          quantity: 25,
+          unitName: "pcs",
+          rate: 80,
+          amount: 2000,
+        },
+      ],
+    };
+
+    setProcurement(mockProcurement);
+    setLoading(false)
   }, [procurementId, navigate, toast]);
 
   const handleInputChange = (e) => {
@@ -118,6 +123,32 @@ const InvoiceForm = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "File size must be less than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file type
+      const allowedTypes = [
+        "application/pdf",
+        "image/png",
+        "image/jpg",
+        "image/jpeg",
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Error",
+          description: "Please upload only PDF, PNG, JPG, or JPEG files",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setInvoice((prev) => ({
         ...prev,
         file: file,
@@ -144,6 +175,12 @@ const InvoiceForm = () => {
       URL.revokeObjectURL(filePreview.url);
     }
     setFilePreview(null);
+
+    // Clear the file input
+    const fileInput = document.getElementById("file-upload");
+    if (fileInput) {
+      fileInput.value = "";
+    }
   };
 
   const formatBytes = (bytes, decimals = 2) => {
@@ -190,48 +227,48 @@ const InvoiceForm = () => {
 
       // Create FormData if there's a file to upload
       let requestData = invoice;
+      let headers = {};
 
       if (invoice.file) {
         const formData = new FormData();
         formData.append("procurementId", invoice.procurementId);
         formData.append("invoiceNumber", invoice.invoiceNumber);
         formData.append("invoiceDate", invoice.invoiceDate);
-        formData.append("amount", invoice.amount);
+        formData.append("amount", invoice.amount.toString());
         formData.append("notes", invoice.notes);
         formData.append("file", invoice.file);
 
         requestData = formData;
+        headers = {
+          "Content-Type": "multipart/form-data",
+        };
       }
 
-      const response = await api.post("/invoices", requestData, {
-        headers: invoice.file
-          ? {
-              "Content-Type": "multipart/form-data",
-            }
-          : {},
-      });
+      // const response = await api.post("/invoices", requestData, { headers });
 
-      if (response.status) {
-        toast({
-          title: "Success",
-          description: "Invoice added successfully",
-        });
+      // if (response.status || response.data) {
+      //   toast({
+      //     title: "Success",
+      //     description: "Invoice added successfully",
+      //   });
 
-        // Navigate to payment form for this invoice
-        navigate(`/payment/${response.data.id}`);
-      } else {
-        toast({
-          title: "Error",
-          description: response.data?.message || "Failed to add invoice",
-          variant: "destructive",
-        });
-      }
+      // Navigate to payment form for this invoice
+      // navigate(`/payment/${response.data.id}`);
+      navigate(`/payment/1`);
+      // } else {
+      //   toast({
+      //     title: "Error",
+      //     description: response.data?.message || "Failed to add invoice",
+      //     variant: "destructive",
+      //   });
+      // }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to add invoice",
-        variant: "destructive",
-      });
+      console.log(error);
+      // toast({
+      //   title: "Error",
+      //   description: error.response?.data?.message || "Failed to add invoice",
+      //   variant: "destructive",
+      // });
     } finally {
       setSubmitting(false);
     }
@@ -239,14 +276,48 @@ const InvoiceForm = () => {
 
   const formatDate = (dateString) => {
     try {
-      return new Date(dateString).toLocaleDateString();
+      return new Date(dateString).toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
     } catch (error) {
       return dateString || "-";
     }
   };
 
   const getVendorName = () => {
-    return procurement?.vendor?.name || "Unknown Vendor";
+    // Handle both old structure (vendor.name) and new structure (vendor object with details)
+    if (procurement?.vendor) {
+      return procurement.vendor.name || "Unknown Vendor";
+    }
+    return "Unknown Vendor";
+  };
+
+  const getVendorDetails = () => {
+    if (procurement?.vendor) {
+      return {
+        name: procurement.vendor.name || "-",
+        contactPerson: procurement.vendor.contactPerson || "-",
+        phone: procurement.vendor.phone || "-",
+        email: procurement.vendor.email || "-",
+        address: procurement.vendor.address || "-",
+      };
+    }
+    return {
+      name: "-",
+      contactPerson: "-",
+      phone: "-",
+      email: "-",
+      address: "-",
+    };
+  };
+
+  const getTotalAmount = () => {
+    return (
+      procurement?.items?.reduce((sum, item) => sum + (item.amount || 0), 0) ||
+      0
+    );
   };
 
   if (loading) {
@@ -255,6 +326,8 @@ const InvoiceForm = () => {
     );
   }
 
+  const vendorDetails = getVendorDetails();
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -262,7 +335,7 @@ const InvoiceForm = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/procurements/list")}
+            onClick={() => navigate("/procurements")}
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
@@ -285,19 +358,19 @@ const InvoiceForm = () => {
                   <p className="text-sm text-muted-foreground">
                     Procurement No
                   </p>
-                  <p className="font-medium">{procurement?.procurementNo}</p>
+                  <p className="font-medium">
+                    {procurement?.procurementNo || "-"}
+                  </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">
                     Requisition No
                   </p>
                   <p className="font-medium">
-                    {procurement?.requisition?.requisitionNo || "-"}
+                    {procurement?.requisition?.requisitionNo ||
+                      procurement?.requisitionNo ||
+                      "-"}
                   </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Vendor</p>
-                  <p className="font-medium">{getVendorName()}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Created Date</p>
@@ -315,13 +388,88 @@ const InvoiceForm = () => {
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Total Amount</p>
+                  <p className="font-medium">₹{getTotalAmount().toFixed(2)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Status</p>
                   <p className="font-medium">
-                    ₹
-                    {procurement?.items
-                      ?.reduce((sum, item) => sum + (item.amount || 0), 0)
-                      .toFixed(2) || "0.00"}
+                    {procurement?.status || "Active"}
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Vendor Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Vendor Name</p>
+                  <p className="font-medium">{vendorDetails.name}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">
+                    Contact Person
+                  </p>
+                  <p className="font-medium">{vendorDetails.contactPerson}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Phone</p>
+                  <p className="font-medium">{vendorDetails.phone}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-medium">{vendorDetails.email}</p>
+                </div>
+                <div className="space-y-1 md:col-span-2">
+                  <p className="text-sm text-muted-foreground">Address</p>
+                  <p className="font-medium">{vendorDetails.address}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Procurement Items</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Sr. No</TableHead>
+                      <TableHead>Item Name</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Rate (₹)</TableHead>
+                      <TableHead>Amount (₹)</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {procurement?.items?.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{item.name || "-"}</TableCell>
+                        <TableCell>
+                          {item.quantity} {item.unitName || ""}
+                        </TableCell>
+                        <TableCell>₹{(item.rate || 0).toFixed(2)}</TableCell>
+                        <TableCell>₹{(item.amount || 0).toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-right font-medium">
+                        Total:
+                      </TableCell>
+                      <TableCell className="font-bold">
+                        ₹{getTotalAmount().toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
@@ -333,18 +481,19 @@ const InvoiceForm = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="invoiceNumber">Invoice Number*</Label>
+                  <Label htmlFor="invoiceNumber">Invoice Number *</Label>
                   <Input
                     id="invoiceNumber"
                     name="invoiceNumber"
                     value={invoice.invoiceNumber}
                     onChange={handleInputChange}
+                    placeholder="Enter invoice number"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="invoiceDate">Invoice Date*</Label>
+                  <Label htmlFor="invoiceDate">Invoice Date *</Label>
                   <Input
                     id="invoiceDate"
                     name="invoiceDate"
@@ -356,7 +505,7 @@ const InvoiceForm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (₹)*</Label>
+                  <Label htmlFor="amount">Amount (₹) *</Label>
                   <Input
                     id="amount"
                     name="amount"
@@ -365,6 +514,7 @@ const InvoiceForm = () => {
                     step="0.01"
                     value={invoice.amount}
                     onChange={handleInputChange}
+                    placeholder="Enter invoice amount"
                     required
                   />
                 </div>
@@ -388,8 +538,8 @@ const InvoiceForm = () => {
                         className={`border-2 border-dashed rounded-md p-6 ${
                           filePreview
                             ? "border-green-500 bg-green-50"
-                            : "border-gray-300"
-                        } flex flex-col items-center justify-center cursor-pointer`}
+                            : "border-gray-300 hover:border-gray-400"
+                        } flex flex-col items-center justify-center cursor-pointer transition-colors`}
                         onClick={() =>
                           document.getElementById("file-upload").click()
                         }
@@ -403,10 +553,10 @@ const InvoiceForm = () => {
                         />
                         {filePreview ? (
                           <div className="flex flex-col items-center">
-                            <p className="text-sm font-medium">
+                            <p className="text-sm font-medium text-green-700">
                               {filePreview.name}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-green-600">
                               {formatBytes(filePreview.size)}
                             </p>
                           </div>
@@ -429,6 +579,7 @@ const InvoiceForm = () => {
                         variant="outline"
                         size="icon"
                         onClick={clearFile}
+                        className="text-red-600 hover:text-red-700"
                       >
                         <X className="h-4 w-4" />
                         <span className="sr-only">Remove file</span>

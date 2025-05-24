@@ -266,7 +266,7 @@ function AppRouter() {
 
         {/* Payments */}
         <Route path="/payments" element={<PaymentList />} />
-        <Route path="/payment/create" element={<PaymentSlipForm />} />
+        <Route path="/payment/:id" element={<PaymentSlipForm />} />
         <Route path="/payment/invoice/:id" element={<PaymentSlipForm />} />
 
         {/* Users Management */}

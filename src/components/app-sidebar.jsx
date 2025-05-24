@@ -24,6 +24,8 @@ import {
   Puzzle,
   Send,
   Warehouse,
+  ShoppingCart,
+  Receipt,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -156,7 +158,7 @@ const data = {
       icon: Warehouse,
       collapsible: false,
     },
-    
+
     {
       title: "Material Requisition",
       url: "/requisitions",
@@ -167,6 +169,18 @@ const data = {
       title: "Material Issue",
       url: "/issues",
       icon: Send,
+      collapsible: false,
+    },
+    {
+      title: "Material Prourement",
+      url: "/procurements",
+      icon: ShoppingCart,
+      collapsible: false,
+    },
+    {
+      title: "Payment Slip",
+      url: "/payments",
+      icon: Receipt,
       collapsible: false,
     },
     {

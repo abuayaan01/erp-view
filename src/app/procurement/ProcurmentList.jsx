@@ -179,7 +179,7 @@ useEffect(() => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Procurements</h1>
-        <Button onClick={() => navigate("/requisitions/list")}>
+        <Button onClick={() => navigate("/requisitions")}>
           <Plus className="mr-2 h-4 w-4" /> Create New Procurement
         </Button>
       </div>
@@ -210,7 +210,7 @@ useEffect(() => {
           </Select>
         </div>
 
-        <div className="w-full sm:w-auto min-w-[200px]">
+        {/* <div className="w-full sm:w-auto min-w-[200px]">
           <Select value={selectedVendor} onValueChange={setSelectedVendor}>
             <SelectTrigger>
               <SelectValue placeholder="Select Vendor" />
@@ -224,7 +224,7 @@ useEffect(() => {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
       </div>
 
       {loading ? (

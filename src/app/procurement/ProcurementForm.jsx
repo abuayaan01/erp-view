@@ -15,13 +15,6 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/services/api/api-service";
@@ -32,13 +25,17 @@ const ProcurementForm = () => {
   const { toast } = useToast();
 
   const [requisition, setRequisition] = useState(null);
-  const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState("");
   const [procurement, setProcurement] = useState({
     requisitionId: requisitionId,
-    vendorId: "",
+    vendor: {
+      name: "",
+      contactPerson: "",
+      email: "",
+      phone: "",
+      address: ""
+    },
     expectedDeliveryDate: "",
     notes: "",
     items: []
@@ -58,7 +55,7 @@ const ProcurementForm = () => {
             description: "Only approved requisitions can be procured",
             variant: "destructive",
           });
-          // navigate("/requisitions/list");
+          // navigate("/requisitions");
           return;
         }
         
@@ -80,16 +77,13 @@ const ProcurementForm = () => {
           items: initialItems
         }));
         
-        // Fetch vendors
-        // const vendorsRes = await api.get('/vendors');
-        // setVendors(vendorsRes.data || []);
       } catch (error) {
         toast({
           title: "Error",
           description: error.response?.data?.message || "Failed to load data",
           variant: "destructive",
         });
-        // navigate("/requisitions/list");
+        // navigate("/requisitions");
       } finally {
         setLoading(false);
       }
@@ -98,11 +92,13 @@ const ProcurementForm = () => {
     fetchData();
   }, [requisitionId, navigate, toast]);
 
-  const handleVendorChange = (value) => {
-    setSelectedVendor(value);
+  const handleVendorChange = (field, value) => {
     setProcurement(prev => ({
       ...prev,
-      vendorId: value
+      vendor: {
+        ...prev.vendor,
+        [field]: value
+      }
     }));
   };
 
@@ -135,10 +131,29 @@ const ProcurementForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!procurement.vendorId) {
+    // Validate vendor details
+    if (!procurement.vendor.name.trim()) {
       toast({
         title: "Error",
-        description: "Please select a vendor",
+        description: "Please enter vendor name",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!procurement.vendor.contactPerson.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter vendor contact person",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!procurement.vendor.phone.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter vendor phone number",
         variant: "destructive",
       });
       return;
@@ -167,21 +182,21 @@ const ProcurementForm = () => {
     try {
       setSubmitting(true);
       
-      const response = await api.post('/procurements', procurement);
+      // const response = await api.post('/procurements', procurement);
       
-      if (response.status) {
+      // if (response.status) {
         toast({
           title: "Success",
           description: "Procurement created successfully",
         });
-        navigate(`/procurements/list`);
-      } else {
-        toast({
-          title: "Error",
-          description: response.data?.message || "Failed to create procurement",
-          variant: "destructive",
-        });
-      }
+        navigate(`/procurements`);
+      // } else {
+      //   toast({
+      //     title: "Error",
+      //     description: response.data?.message || "Failed to create procurement",
+      //     variant: "destructive",
+      //   });
+      // }
     } catch (error) {
       toast({
         title: "Error",
@@ -210,7 +225,7 @@ const ProcurementForm = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/requisitions/list")}
+            onClick={() => navigate("/requisitions")}
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
@@ -225,40 +240,85 @@ const ProcurementForm = () => {
         <div className="space-y-6">
           <Card>
             <CardHeader>
+              <CardTitle>Vendor Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="vendorName">Vendor Name *</Label>
+                  <Input
+                    id="vendorName"
+                    value={procurement.vendor.name}
+                    onChange={(e) => handleVendorChange('name', e.target.value)}
+                    placeholder="Enter vendor name"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contactPerson">Contact Person *</Label>
+                  <Input
+                    id="contactPerson"
+                    value={procurement.vendor.contactPerson}
+                    onChange={(e) => handleVendorChange('contactPerson', e.target.value)}
+                    placeholder="Enter contact person name"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="vendorEmail">Email</Label>
+                  <Input
+                    id="vendorEmail"
+                    type="email"
+                    value={procurement.vendor.email}
+                    onChange={(e) => handleVendorChange('email', e.target.value)}
+                    placeholder="Enter vendor email"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="vendorPhone">Phone Number *</Label>
+                  <Input
+                    id="vendorPhone"
+                    value={procurement.vendor.phone}
+                    onChange={(e) => handleVendorChange('phone', e.target.value)}
+                    placeholder="Enter phone number"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="vendorAddress">Address</Label>
+                  <Input
+                    id="vendorAddress"
+                    value={procurement.vendor.address}
+                    onChange={(e) => handleVendorChange('address', e.target.value)}
+                    placeholder="Enter vendor address"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Procurement Details</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="vendor">Vendor</Label>
-                  <Select 
-                    value={selectedVendor} 
-                    onValueChange={handleVendorChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select vendor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {vendors.map(vendor => (
-                        <SelectItem key={vendor.id} value={vendor.id}>
-                          {vendor.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="expectedDeliveryDate">Expected Delivery Date</Label>
+                  <Label htmlFor="expectedDeliveryDate">Expected Delivery Date *</Label>
                   <Input
                     id="expectedDeliveryDate"
                     type="date"
                     value={procurement.expectedDeliveryDate}
                     onChange={handleDateChange}
+                    required
                   />
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
                   <Label htmlFor="notes">Notes</Label>
                   <Input
                     id="notes"

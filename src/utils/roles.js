@@ -33,8 +33,8 @@ const useUserRoleLevel = () => {
   const user = useSelector((state) => state.auth.user);
   const roleId = user?.roleId;
 
-  if (ADMIN_ROLES.includes(roleId)) return {role:"admin",siteId: user?.site?.id};
-  if (SITE_ROLES.includes(roleId)) return {role:"site",siteId: user?.site?.id};
+  if (ADMIN_ROLES.includes(roleId)) return { role: "admin", siteId: user?.site?.id, siteName: user?.site?.name };
+  if (SITE_ROLES.includes(roleId)) return { role: "site", siteId: user?.site?.id, siteName: user?.site?.name };
   return null; // unknown or unauthenticated
 };
 

@@ -81,13 +81,13 @@ const ItemGroupForm = () => {
       newErrors.name = "Item Group name is required";
     }
 
-    if (!formData.shortName.trim()) {
-      newErrors.shortName = "Short name is required";
-    }
+    // if (!formData.shortName.trim()) {
+    //   newErrors.shortName = "Short name is required";
+    // }
 
-    if (!formData.itemType.trim()) {
-      newErrors.itemType = "Item Type is required";
-    }
+    // if (!formData.itemType.trim()) {
+    //   newErrors.itemType = "Item Type is required";
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -184,7 +184,7 @@ const ItemGroupForm = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="shortName">Item Group Short Name *</Label>
+              <Label htmlFor="shortName">Item Group Short Name</Label>
               <Input
                 id="shortName"
                 name="shortName"
@@ -198,7 +198,7 @@ const ItemGroupForm = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="itemType">Item Type *</Label>
+              <Label htmlFor="itemType">Item Type</Label>
               <Input
                 id="itemType"
                 name="itemType"

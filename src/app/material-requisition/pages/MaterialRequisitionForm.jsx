@@ -36,8 +36,10 @@ import { PDFViewer } from "@react-pdf/renderer";
 import MaterialRequisitionPDF from "./MaterialRequisitionPDF";
 import { useDispatch, useSelector } from "react-redux";
 import api from "@/services/api/api-service";
+import { useUserRoleLevel } from "@/utils/roles";
 
 const MaterialRequisitionForm = () => {
+  const roleLevel = useUserRoleLevel();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPdf, setShowPdf] = useState(false);
@@ -60,6 +62,7 @@ const MaterialRequisitionForm = () => {
   const [units, setUnits] = useState([]);
   const [sites, setSites] = useState([]); // Mock sites
   const [selectedItemGroup, setSelectedItemGroup] = useState("");
+  const [selectedSite, setSelectedSite] = useState(null);
   const [selectedItem, setSelectedItem] = useState({});
   const [itemQuantity, setItemQuantity] = useState("");
   const [itemSize, setItemSize] = useState("");
@@ -79,6 +82,15 @@ const MaterialRequisitionForm = () => {
     setUnits(storedUnits.data);
     setSites(storedSites.data);
     setPreparedBy(currentUser);
+    setSelectedSite(
+      storedSites.data.find((site) => site.id == roleLevel.siteId)
+    );
+    setFormData({
+      ...formData,
+      requestingSite: storedSites.data.find(
+        (site) => site.id == roleLevel.siteId
+      ),
+    });
   }, []);
 
   useEffect(() => {
@@ -384,6 +396,7 @@ const MaterialRequisitionForm = () => {
                     <div className="space-y-2">
                       <Label htmlFor="requestingSite">Requesting Site *</Label>
                       <Select
+                        disabled={roleLevel.siteId}
                         value={formData.requestingSite}
                         onValueChange={(value) =>
                           handleSelectChange("requestingSite", value)

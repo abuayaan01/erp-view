@@ -35,8 +35,10 @@ import { PDFViewer } from "@react-pdf/renderer";
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import api from "@/services/api/api-service";
+import { useUserRoleLevel } from "@/utils/roles";
 
 const MaterialIssueForm = () => {
+  const roleLevel = useUserRoleLevel();
   const [issueType, setIssueType] = useState("Consumption");
   const [selectedItemGroup, setSelectedItemGroup] = useState("");
   const [selectedItem, setSelectedItem] = useState("");
@@ -72,6 +74,15 @@ const MaterialIssueForm = () => {
   const vehicles = useSelector((state) => state.machines.data) || [];
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setFormData({
+      ...formData,
+      issueLocation: roleLevel.siteName,
+    });
+
+    fetchInventoryData(roleLevel.siteId);
+  }, []);
 
   useEffect(() => {
     // Reset issue to when issue type changes
@@ -359,10 +370,11 @@ const MaterialIssueForm = () => {
               <div className="space-y-2">
                 <Label htmlFor="issueLocation">Issue Site *</Label>
                 <Select
+                  disabled={roleLevel.siteName}
                   value={formData.issueLocation}
-                  onValueChange={(value) =>
-                    handleSelectChange("issueLocation", value)
-                  }
+                  onValueChange={(value) => {
+                    handleSelectChange("issueLocation", value);
+                  }}
                 >
                   <SelectTrigger id="issueLocation">
                     <SelectValue placeholder="Select issue site" />

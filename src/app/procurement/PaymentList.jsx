@@ -352,9 +352,9 @@ const PaymentList = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Payment Slips</h1>
-        <Button onClick={handleCreatePaymentSlip}>
+        {/* <Button onClick={handleCreatePaymentSlip}>
           <PlusCircle className="mr-2 h-4 w-4" /> Create Payment Slip
-        </Button>
+        </Button> */}
       </div>
 
       <Card>
@@ -381,9 +381,9 @@ const PaymentList = () => {
                   </button>
                 )}
               </div>
-              <Button variant="outline" onClick={() => fetchPayments()}>
+              {/* <Button variant="outline" onClick={() => fetchPayments()}>
                 <Filter className="mr-2 h-4 w-4" /> Filter
-              </Button>
+              </Button> */}
             </div>
 
             <div className="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-2 w-full md:w-auto">
@@ -404,7 +404,7 @@ const PaymentList = () => {
                 </SelectContent>
               </Select>
 
-              <Select
+              {/* <Select
                 value={vendorFilter}
                 onValueChange={(value) => {
                   setVendorFilter(value);
@@ -422,7 +422,7 @@ const PaymentList = () => {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select> */}
 
               <Select
                 value={dateSort}

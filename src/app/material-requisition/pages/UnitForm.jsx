@@ -98,9 +98,9 @@ const UnitForm = () => {
       newErrors.shortName = "Short name is required";
     }
 
-    if (formData.decimalPlaces === "") {
-      newErrors.decimalPlaces = "Decimal places is required";
-    }
+    // if (formData.decimalPlaces === "") {
+    //   newErrors.decimalPlaces = "Decimal places is required";
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -184,7 +184,7 @@ const UnitForm = () => {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Unit Name</Label>
+              <Label htmlFor="name">Unit Name *</Label>
               <Input
                 id="name"
                 name="name"
@@ -198,7 +198,7 @@ const UnitForm = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="shortName">Short Name</Label>
+              <Label htmlFor="shortName">Short Name *</Label>
               <Input
                 id="shortName"
                 name="shortName"

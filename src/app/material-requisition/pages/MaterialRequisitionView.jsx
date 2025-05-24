@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ArrowLeft, Printer, CheckCircle } from "lucide-react";
+import { ArrowLeft, Printer, CheckCircle, Package, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -122,13 +122,13 @@ const MaterialRequisitionView = () => {
       setApproving(true);
       // Call the approve API endpoint
       const response = await api.post(`/requisitions/${id}/approve`);
-      
+
       if (response.status) {
         toast({
           title: "Success",
           description: "Requisition has been approved successfully.",
         });
-        
+
         // Update the local state with the new data
         setRequisition({
           ...requisition,
@@ -140,14 +140,16 @@ const MaterialRequisitionView = () => {
       } else {
         toast({
           title: "Error",
-          description: response.data?.message || "Failed to approve requisition",
+          description:
+            response.data?.message || "Failed to approve requisition",
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to approve requisition",
+        description:
+          error.response?.data?.message || "Failed to approve requisition",
         variant: "destructive",
       });
     } finally {
@@ -204,14 +206,34 @@ const MaterialRequisitionView = () => {
             </div>
             <div className="flex gap-2">
               {requisition.status.toLowerCase() === "pending" && (
-                <Button 
-                  variant="default" 
-                  onClick={handleApprove} 
+                <Button
+                  variant="default"
+                  onClick={handleApprove}
                   disabled={approving}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
-                  <CheckCircle className="mr-2 h-4 w-4" /> 
+                  <CheckCircle className="mr-2 h-4 w-4" />
                   {approving ? "Approving..." : "Approve"}
+                </Button>
+              )}
+              {requisition.status.toLowerCase() === "approved" && (
+                <Button
+                  variant="default"
+                  onClick={() => navigate(`/procure/${requisition.id}`)}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Procure
+                </Button>
+              )}
+              {requisition.status.toLowerCase() === "approved" && (
+                <Button
+                  variant="default"
+                  onClick={() => navigate(`/issues/new`)}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  <Package className="mr-2 h-4 w-4" />
+                  Issue
                 </Button>
               )}
               <Button onClick={handlePrint}>
