@@ -56,7 +56,7 @@ const MaterialRequisitionView = () => {
             description: response.data.message || "Failed to fetch requisition",
             variant: "destructive",
           });
-          navigate("/requisitions/list");
+          navigate("/requisitions");
         }
       } catch (error) {
         toast({
@@ -64,7 +64,7 @@ const MaterialRequisitionView = () => {
           description: "The requisition you're looking for doesn't exist.",
           variant: "destructive",
         });
-        navigate("/requisitions/list");
+        navigate("/requisitions");
       } finally {
         setLoading(false);
       }
@@ -229,7 +229,7 @@ const MaterialRequisitionView = () => {
               {requisition.status.toLowerCase() === "approved" && (
                 <Button
                   variant="default"
-                  onClick={() => navigate(`/issues/new`)}
+                  onClick={() => navigate(`/issues/new?req_id=${requisition.id}`)}
                   className="bg-orange-600 hover:bg-orange-700"
                 >
                   <Package className="mr-2 h-4 w-4" />

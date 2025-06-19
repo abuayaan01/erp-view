@@ -32,13 +32,17 @@ import {
 import { Printer, Save, Plus, Trash2 } from "lucide-react";
 import MaterialIssuePDF from "./MaterialIssuePDF";
 import { PDFViewer } from "@react-pdf/renderer";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { useSelector } from "react-redux";
 import api from "@/services/api/api-service";
 import { useUserRoleLevel } from "@/utils/roles";
 
 const MaterialIssueForm = () => {
   const roleLevel = useUserRoleLevel();
+  const [searchParams] = useSearchParams();
+  const [requisitionData, setRequisitionData] = useState(null);
+  const reqId = searchParams.get("req_id");
+
   const [issueType, setIssueType] = useState("Consumption");
   const [selectedItemGroup, setSelectedItemGroup] = useState("");
   const [selectedItem, setSelectedItem] = useState("");
@@ -74,6 +78,57 @@ const MaterialIssueForm = () => {
   const vehicles = useSelector((state) => state.machines.data) || [];
 
   const navigate = useNavigate();
+  const fetchRequisitionData = async (requisitionId) => {
+    try {
+      const response = await api.get(`/requisitions/${requisitionId}`);
+      setRequisitionData(response.data);
+
+      // Auto-populate form based on requisition
+      populateFormFromRequisition(response.data);
+    } catch (error) {
+      console.error("Failed to fetch requisition data:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (reqId) {
+      fetchRequisitionData(reqId);
+    }
+  }, [reqId]);
+
+  const populateFormFromRequisition = (reqData) => {
+    // Set issue type to transfer since it's from requisition
+    setIssueType("transfer");
+
+    // Set form data
+    setFormData((prev) => ({
+      ...prev,
+      issueLocation: roleLevel.siteName || "", // Current user's site (issuing from)
+      fromSite: roleLevel.siteName || "",
+      toSite: reqData.requestingSite.name,
+    }));
+
+    // Auto-populate items from requisition
+    const mappedItems = reqData.items.map((reqItem, index) => ({
+      id: `req-${reqItem.id}-${Date.now()}-${index}`,
+      itemId: reqItem.itemId,
+      itemName: reqItem.Item.name,
+      itemGroup: "", // You'll need to fetch this from your inventory
+      quantity: reqItem.quantity,
+      unit: "", // You'll need to get this from inventory
+      balance: 0, // Will be updated when inventory is fetched
+      issueTo: "Other Site",
+      vehicleId: null,
+      vehicleNumber: "",
+      vehicleKm: "",
+      vehicleHours: "",
+      siteId: reqData.requestingSiteId,
+      siteName: reqData.requestingSite.name,
+      requisitionItemId: reqItem.id, // Keep reference to original requisition item
+    }));
+
+    setIssueItems(mappedItems);
+  };
 
   useEffect(() => {
     setFormData({
@@ -204,6 +259,18 @@ const MaterialIssueForm = () => {
       return;
     }
 
+    if (reqId) {
+      const existingItem = issueItems.find(
+        (item) => item.itemId === Number(selectedItem)
+      );
+      if (existingItem) {
+        alert(
+          "Item already exists from requisition. Please modify the existing item instead."
+        );
+        return;
+      }
+    }
+
     // For transfer, use the global destination site
     const selectedToSite =
       issueType === "transfer"
@@ -239,6 +306,28 @@ const MaterialIssueForm = () => {
     setVehicleHours("");
   };
 
+  // Add function to modify existing items
+  const handleModifyItem = (itemId, newQuantity) => {
+    if (newQuantity <= 0) {
+      alert("Quantity must be greater than 0");
+      return;
+    }
+
+    const item = issueItems.find((i) => i.id === itemId);
+    const inventoryItem = items.find((i) => i.id === item.itemId);
+
+    if (newQuantity > inventoryItem.balance) {
+      alert(
+        `Quantity exceeds available balance of ${inventoryItem.balance} ${inventoryItem.unit}`
+      );
+      return;
+    }
+
+    setIssueItems((prev) =>
+      prev.map((i) => (i.id === itemId ? { ...i, quantity: newQuantity } : i))
+    );
+  };
+
   const handleRemoveItem = (id) => {
     setIssueItems(issueItems.filter((item) => item.id !== id));
   };
@@ -272,6 +361,7 @@ const MaterialIssueForm = () => {
           : null;
 
       const requestBody = {
+        requisitionId: reqId ? Number(reqId) : null,
         issueDate: `${formData.issueDate} ${formData.issueTime}:00.000000`,
         issueType:
           issueType === "Consumption" ? "Consumption" : "Site Transfer",
@@ -326,7 +416,14 @@ const MaterialIssueForm = () => {
       {!showPdf ? (
         <>
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Material Issue</h1>
+            <div>
+              <h1 className="text-3xl font-bold">Material Issue</h1>
+              {reqId && requisitionData && (
+                <p className="text-sm text-muted-foreground">
+                  From Requisition: {requisitionData.requisitionNo}
+                </p>
+              )}
+            </div>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -355,6 +452,7 @@ const MaterialIssueForm = () => {
                   value={issueType}
                   onValueChange={setIssueType}
                   className="flex flex-wrap gap-4"
+                  disabled={!!reqId}
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="Consumption" id="Consumption" />
@@ -414,69 +512,95 @@ const MaterialIssueForm = () => {
                 </div>
               )}
 
-              <div className="border p-4 rounded-md space-y-4">
-                <h3 className="font-medium">Add Items</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="itemGroup">Item Group *</Label>
-                    <Select
-                      disabled={isLoading ? true : false}
-                      value={selectedItemGroup}
-                      onValueChange={setSelectedItemGroup}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select item group" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {itemGroups.map((group) => (
-                          <SelectItem
-                            key={group.id}
-                            value={group.id.toString()}
-                          >
-                            {group.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+              {!reqId && (
+                <div className="border p-4 rounded-md space-y-4">
+                  <h3 className="font-medium">Add Items</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="itemGroup">Item Group *</Label>
+                      <Select
+                        disabled={isLoading ? true : false}
+                        value={selectedItemGroup}
+                        onValueChange={setSelectedItemGroup}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select item group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {itemGroups.map((group) => (
+                            <SelectItem
+                              key={group.id}
+                              value={group.id.toString()}
+                            >
+                              {group.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="item">Item *</Label>
-                    <Select
-                      value={selectedItem}
-                      onValueChange={setSelectedItem}
-                      disabled={!selectedItemGroup}
-                    >
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            selectedItemGroup
-                              ? "Select item"
-                              : "Select item group first"
-                          }
+                    <div className="space-y-2">
+                      <Label htmlFor="item">Item *</Label>
+                      <Select
+                        value={selectedItem}
+                        onValueChange={setSelectedItem}
+                        disabled={!selectedItemGroup}
+                      >
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              selectedItemGroup
+                                ? "Select item"
+                                : "Select item group first"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filteredItems.map((item) => (
+                            <SelectItem
+                              key={item.id}
+                              value={item.id.toString()}
+                            >
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="quantity">Quantity *</Label>
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          id="quantity"
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          value={quantity}
+                          onChange={(e) => setQuantity(e.target.value)}
+                          placeholder="Enter quantity"
                         />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredItems.map((item) => (
-                          <SelectItem key={item.id} value={item.id.toString()}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                        <div className="w-16 text-sm">
+                          {selectedItem &&
+                            items.find((i) => i.id === Number(selectedItem))
+                              ?.unit}
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantity *</Label>
+                    <Label>Balance Quantity</Label>
                     <div className="flex items-center space-x-2">
                       <Input
-                        id="quantity"
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        value={quantity}
-                        onChange={(e) => setQuantity(e.target.value)}
-                        placeholder="Enter quantity"
+                        value={
+                          selectedItem
+                            ? items.find((i) => i.id === Number(selectedItem))
+                                ?.balance || ""
+                            : ""
+                        }
+                        readOnly
+                        disabled
                       />
                       <div className="w-16 text-sm">
                         {selectedItem &&
@@ -485,144 +609,124 @@ const MaterialIssueForm = () => {
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label>Balance Quantity</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      value={
-                        selectedItem
-                          ? items.find((i) => i.id === Number(selectedItem))
-                              ?.balance || ""
-                          : ""
-                      }
-                      readOnly
-                      disabled
-                    />
-                    <div className="w-16 text-sm">
-                      {selectedItem &&
-                        items.find((i) => i.id === Number(selectedItem))?.unit}
-                    </div>
+                  <div className="space-y-2">
+                    <Label>Issue To</Label>
+                    <RadioGroup
+                      value={issueTo}
+                      onValueChange={setIssueTo}
+                      className="flex flex-wrap gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem
+                          value="vehicle"
+                          id="vehicle"
+                          disabled={issueType === "transfer"}
+                        />
+                        <Label htmlFor="vehicle">Vehicle</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem
+                          value="Other Site"
+                          id="site"
+                          disabled={issueType === "Consumption"}
+                        />
+                        <Label htmlFor="site">Other Site</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label>Issue To</Label>
-                  <RadioGroup
-                    value={issueTo}
-                    onValueChange={setIssueTo}
-                    className="flex flex-wrap gap-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem
-                        value="vehicle"
-                        id="vehicle"
-                        disabled={issueType === "transfer"}
-                      />
-                      <Label htmlFor="vehicle">Vehicle</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem
-                        value="Other Site"
-                        id="site"
-                        disabled={issueType === "Consumption"}
-                      />
-                      <Label htmlFor="site">Other Site</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
+                  {issueTo === "vehicle" ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="vehicle">Vehicle No *</Label>
+                        <Select
+                          value={selectedVehicle}
+                          onValueChange={setSelectedVehicle}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select vehicle" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {vehicles.map((vehicle) => (
+                              <SelectItem key={vehicle.id} value={vehicle.id}>
+                                {vehicle.machineName}/{vehicle.erpCode}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                {issueTo === "vehicle" ? (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="km">KM</Label>
+                        <Input
+                          id="km"
+                          type="number"
+                          value={vehicleKm}
+                          onChange={(e) => setVehicleKm(e.target.value)}
+                          placeholder="Enter KM reading"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="hours">Hours Meter</Label>
+                        <Input
+                          id="hours"
+                          type="number"
+                          value={vehicleHours}
+                          onChange={(e) => setVehicleHours(e.target.value)}
+                          placeholder="Enter hours meter reading"
+                        />
+                      </div>
+                    </div>
+                  ) : (
                     <div className="space-y-2">
-                      <Label htmlFor="vehicle">Vehicle No *</Label>
+                      <Label htmlFor="site">Site Name *</Label>
                       <Select
-                        value={selectedVehicle}
-                        onValueChange={setSelectedVehicle}
+                        value={selectedSite}
+                        onValueChange={setSelectedSite}
+                        disabled={issueType === "transfer"}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select vehicle" />
+                          <SelectValue
+                            placeholder={
+                              issueType === "transfer"
+                                ? formData.toSite ||
+                                  "Select destination site first"
+                                : "Select site"
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          {vehicles.map((vehicle) => (
-                            <SelectItem key={vehicle.id} value={vehicle.id}>
-                              {vehicle.machineName}/{vehicle.erpCode}
-                            </SelectItem>
-                          ))}
+                          {sites
+                            .filter(
+                              (site) => site.name !== formData.issueLocation
+                            )
+                            .map((site) => (
+                              <SelectItem key={site.id} value={site.id}>
+                                {site.name}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
 
-                    <div className="space-y-2">
-                      <Label htmlFor="km">KM</Label>
-                      <Input
-                        id="km"
-                        type="number"
-                        value={vehicleKm}
-                        onChange={(e) => setVehicleKm(e.target.value)}
-                        placeholder="Enter KM reading"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="hours">Hours Meter</Label>
-                      <Input
-                        id="hours"
-                        type="number"
-                        value={vehicleHours}
-                        onChange={(e) => setVehicleHours(e.target.value)}
-                        placeholder="Enter hours meter reading"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="site">Site Name *</Label>
-                    <Select
-                      value={selectedSite}
-                      onValueChange={setSelectedSite}
-                      disabled={issueType === "transfer"}
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleAddItem}
+                      disabled={
+                        !selectedItem ||
+                        !quantity ||
+                        (issueTo === "vehicle" && !selectedVehicle) ||
+                        (issueTo === "Other Site" && issueType !== "transfer")
+                      }
                     >
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            issueType === "transfer"
-                              ? formData.toSite ||
-                                "Select destination site first"
-                              : "Select site"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sites
-                          .filter(
-                            (site) => site.name !== formData.issueLocation
-                          )
-                          .map((site) => (
-                            <SelectItem key={site.id} value={site.id}>
-                              {site.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                      <Plus className="mr-2 h-4 w-4" /> Add Item
+                    </Button>
                   </div>
-                )}
-
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handleAddItem}
-                    disabled={
-                      !selectedItem ||
-                      !quantity ||
-                      (issueTo === "vehicle" && !selectedVehicle) ||
-                      (issueTo === "Other Site" && issueType !== "transfer")
-                    }
-                  >
-                    <Plus className="mr-2 h-4 w-4" /> Add Item
-                  </Button>
                 </div>
-              </div>
+              )}
 
               <div className="rounded-md border">
                 <Table>
@@ -644,7 +748,9 @@ const MaterialIssueForm = () => {
                           colSpan={7}
                           className="text-center py-6 text-muted-foreground"
                         >
-                          No items added yet.
+                          {reqId
+                            ? "No items from requisition"
+                            : "No items added yet."}
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -652,7 +758,26 @@ const MaterialIssueForm = () => {
                         <TableRow key={item.id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{item.itemName}</TableCell>
-                          <TableCell>{item.quantity}</TableCell>
+                          {/* <TableCell>{item.quantity}</TableCell> */}
+                          <TableCell>
+                            {reqId ? (
+                              <Input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                value={item.quantity}
+                                onChange={(e) =>
+                                  handleModifyItem(
+                                    item.id,
+                                    Number(e.target.value)
+                                  )
+                                }
+                                className="w-20"
+                              />
+                            ) : (
+                              item.quantity
+                            )}
+                          </TableCell>
                           <TableCell>{item.unit}</TableCell>
                           <TableCell>
                             {item.issueTo === "vehicle"

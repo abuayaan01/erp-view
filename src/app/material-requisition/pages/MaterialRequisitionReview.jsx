@@ -190,7 +190,7 @@ const MaterialRequisitionReview = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/requisitions/list")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/requisitions")}>
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Button>
