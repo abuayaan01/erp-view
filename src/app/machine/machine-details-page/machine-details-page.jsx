@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import PlacehoolderImage from "@/assets/images/placeholder-image.webp";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import MaintenanceLogModal from "@/app/maintanance-log/MaintenanceLogModal";
 // Helper function to format dates
 const formatDate = (dateString) => {
@@ -57,8 +57,8 @@ export default function MachineryDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState();
-  const [showMaintenanceLog, setShowMaintenanceLog] = useState(false);
   const params = useParams();
+  const navigate = useNavigate();
   // const { data } = siteData
 
   useEffect(() => {
@@ -149,8 +149,15 @@ export default function MachineryDetailPage() {
               {/* <Button variant="outline" size="sm">
                 Edit
               </Button> */}
-              <Button size="sm" onClick={() => setShowMaintenanceLog(true)}>
-                Maintenance Log
+              <Button
+                size="sm"
+                onClick={() => {
+                  navigate(`/machine/${data.id}/logs`, {
+                    state: { machineName: data?.machineName },
+                  });
+                }}
+              >
+                Maintainance Log
               </Button>
             </div>
           </div>
@@ -519,14 +526,12 @@ export default function MachineryDetailPage() {
         </div>
       )}
 
-      {!loading && (
+      {/* {!loading && (
         <MaintenanceLogModal
-          isOpen={showMaintenanceLog}
-          onClose={() => setShowMaintenanceLog(false)}
           machineId={data?.id}
           machineName={data?.machineName}
         />
-      )}
+      )} */}
     </div>
   );
 }

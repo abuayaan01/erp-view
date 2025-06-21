@@ -73,13 +73,9 @@ export function DataTable({ columns, data, loading }) {
         <div className="flex gap-4">
           <Input
             placeholder="Filter machines..."
-            value={
-              table.getColumn("machineName")?.getFilterValue() ?? ""
-            }
+            value={table.getColumn("machineName")?.getFilterValue() ?? ""}
             onChange={(event) =>
-              table
-                .getColumn("machineName")
-                ?.setFilterValue(event.target.value)
+              table.getColumn("machineName")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />
@@ -171,6 +167,18 @@ export function DataTable({ columns, data, loading }) {
                             cell.column.columnDef.cell,
                             cell.getContext()
                           )}
+                          {!cell.getValue() &&
+                            ![
+                              "fitnessCertificateExpiry",
+                              "motorVehicleTaxDue",
+                              "permitExpiryDate",
+                              "nationalPermitExpiry",
+                              "insuranceExpiry",
+                              "pollutionCertificateExpiry",
+                              "actions",
+                              "Documents"
+                            ].includes(cell.column.id) &&
+                            "NA"}
                         </TableCell>
                       ))}
                     </TableRow>

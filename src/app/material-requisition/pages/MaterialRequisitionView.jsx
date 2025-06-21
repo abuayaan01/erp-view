@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ArrowLeft, Printer, CheckCircle, Package, ShoppingCart } from "lucide-react";
+import {
+  ArrowLeft,
+  Printer,
+  CheckCircle,
+  Package,
+  ShoppingCart,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -20,12 +26,15 @@ import MaterialRequisitionPDF from "./MaterialRequisitionPDF";
 import { useSelector } from "react-redux";
 import axios from "axios"; // Assuming you're using axios
 import api from "@/services/api/api-service";
+import { getIdByRole, useUserRoleLevel } from "@/utils/roles";
 
 const MaterialRequisitionView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+
+  const { user: currentUser } = useSelector((state) => state.auth);
 
   const [requisition, setRequisition] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,6 +45,7 @@ const MaterialRequisitionView = () => {
 
   const storedItemGroups = useSelector((state) => state.itemGroups) || [];
   const storedUnits = useSelector((state) => state.units) || [];
+  const userRoleLevel = useUserRoleLevel();
 
   const shouldPrint =
     new URLSearchParams(location.search).get("print") === "true";
@@ -93,13 +103,13 @@ const MaterialRequisitionView = () => {
   const getPriorityBadge = (priority) => {
     switch (priority.toLowerCase()) {
       case "urgent":
-        return <Badge variant="destructive">Urgent</Badge>;
+        return <Badge className={"bg-red-500"}>Urgent</Badge>;
       case "high":
-        return <Badge variant="destructive">High</Badge>;
+        return <Badge className={"bg-red-500"}>High</Badge>;
       case "medium":
-        return <Badge variant="default">Medium</Badge>;
+        return <Badge className={"bg-orange-400"}>Medium</Badge>;
       case "low":
-        return <Badge variant="outline">Low</Badge>;
+        return <Badge className={"bg-yellow-400"}>Low</Badge>;
       default:
         return <Badge variant="secondary">{priority}</Badge>;
     }
@@ -117,11 +127,50 @@ const MaterialRequisitionView = () => {
     setShowPdf(true);
   };
 
-  const handleApprove = async () => {
+  const handleApprovalByHO = async () => {
     try {
       setApproving(true);
       // Call the approve API endpoint
-      const response = await api.post(`/requisitions/${id}/approve`);
+      const response = await api.post(`/requisitions/${id}/ho-approve`);
+
+      if (response.status) {
+        toast({
+          title: "Success",
+          description: "Requisition has been approved successfully.",
+        });
+
+        // Update the local state with the new data
+        setRequisition({
+          ...requisition,
+          status: "Approved",
+          approvedAt: new Date().toISOString(),
+          // The API might return the approvedBy information
+          // which we could use to update the state more accurately
+        });
+      } else {
+        toast({
+          title: "Error",
+          description:
+            response.data?.message || "Failed to approve requisition",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to approve requisition",
+        variant: "destructive",
+      });
+    } finally {
+      setApproving(false);
+    }
+  };
+  const handleApprovalByPm = async () => {
+    try {
+      setApproving(true);
+      // Call the approve API endpoint
+      const response = await api.post(`/requisitions/${id}/pm-approve`);
 
       if (response.status) {
         toast({
@@ -186,6 +235,85 @@ const MaterialRequisitionView = () => {
     );
   }
 
+  function getApprovalButton() {
+    const isPending = requisition.status.toLowerCase() === "pending";
+    const isApprovedByPm = requisition.status.toLowerCase() === "approvedbypm";
+    const isProjectManager =
+      currentUser.roleId === getIdByRole("Project Manager");
+    const isAdmin = userRoleLevel.role === "admin";
+
+    if (isPending && isProjectManager) {
+      const isSameSite = currentUser.site.id == requisition.requestingSite.id;
+      if (isSameSite) {
+        return (
+          <Button
+            variant="default"
+            onClick={handleApprovalByPm}
+            disabled={approving}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <CheckCircle className="mr-2 h-4 w-4" />
+            {approving ? "Forwarding..." : "Forward to Head Office"}
+          </Button>
+        );
+      } else return null;
+    } else if (isApprovedByPm && isAdmin) {
+      return (
+        <Button
+          variant="default"
+          onClick={handleApprovalByHO}
+          disabled={approving}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <CheckCircle className="mr-2 h-4 w-4" />
+          {approving ? "Approving..." : "Approve"}
+        </Button>
+      );
+    }
+
+    return null;
+  }
+
+  function getProcurementButton() {
+    const isApprovedByHo = requisition.status.toLowerCase() === "approvedbyho";
+    if (isApprovedByHo) {
+      const isAdmin = userRoleLevel.role === "admin";
+      if (isAdmin) {
+        return (
+          <Button
+            variant="default"
+            onClick={() => navigate(`/procure/${requisition.id}`)}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            Procure
+          </Button>
+        );
+      }
+    } else return null;
+  }
+
+  function getIssueButton() {
+    const isApprovedByHo = requisition.status.toLowerCase() === "approvedbyho";
+    const isAdmin = userRoleLevel.role === "admin";
+    if (isApprovedByHo && !isAdmin) {
+      const isSameSite = currentUser.site.id == requisition.requestingSite.id;
+      console.log(isApprovedByHo,isAdmin,isSameSite)
+      if (!isSameSite) {
+        return (
+          <Button
+            variant="default"
+            onClick={() => navigate(`/issues/new?req_id=${requisition.id}`)}
+            className="bg-orange-600 hover:bg-orange-700"
+          >
+            <Package className="mr-2 h-4 w-4" />
+            Issue
+          </Button>
+        );
+      }
+    } else return null;
+  }
+
   return (
     <div className="space-y-6">
       {!showPdf ? (
@@ -205,37 +333,9 @@ const MaterialRequisitionView = () => {
               </h1>
             </div>
             <div className="flex gap-2">
-              {requisition.status.toLowerCase() === "pending" && (
-                <Button
-                  variant="default"
-                  onClick={handleApprove}
-                  disabled={approving}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  {approving ? "Approving..." : "Approve"}
-                </Button>
-              )}
-              {requisition.status.toLowerCase() === "approved" && (
-                <Button
-                  variant="default"
-                  onClick={() => navigate(`/procure/${requisition.id}`)}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Procure
-                </Button>
-              )}
-              {requisition.status.toLowerCase() === "approved" && (
-                <Button
-                  variant="default"
-                  onClick={() => navigate(`/issues/new?req_id=${requisition.id}`)}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
-                  <Package className="mr-2 h-4 w-4" />
-                  Issue
-                </Button>
-              )}
+              {getApprovalButton()}
+              {getProcurementButton()}
+              {getIssueButton()}
               <Button onClick={handlePrint}>
                 <Printer className="mr-2 h-4 w-4" /> Print
               </Button>

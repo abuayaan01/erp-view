@@ -17,6 +17,7 @@ import { PlusCircle } from "lucide-react";
 import { useSelector } from "react-redux";
 import { ROLES } from "@/utils/roles";
 import api from "@/services/api/api-service";
+import TableSkeleton from "@/components/ui/table-skeleton";
 
 export function LogbookPage() {
   const [logEntries, setLogEntries] = useState([]);
@@ -174,7 +175,7 @@ export function LogbookPage() {
   });
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto space-y-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Machine Logbook</h1>
         {/* <Button
@@ -219,12 +220,18 @@ export function LogbookPage() {
             </CardHeader>
             <CardContent>
               {/* <LogbookFilters filters={filters} setFilters={setFilters} /> */}
-              <LogbookTable
-                entries={filteredEntries}
-                tableLoader={tableLoader}
-                onEdit={handleEditEntry}
-                onDelete={handleDeleteEntry}
-              />
+              {tableLoader ? (
+                <div className="flex-1 flex flex-col justify-center">
+                  <TableSkeleton cols={9} rows={6} />
+                </div>
+              ) : (
+                <LogbookTable
+                  entries={filteredEntries}
+                  tableLoader={tableLoader}
+                  onEdit={handleEditEntry}
+                  onDelete={handleDeleteEntry}
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>

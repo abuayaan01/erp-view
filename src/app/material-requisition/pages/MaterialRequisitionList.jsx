@@ -42,6 +42,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import api from "@/services/api/api-service";
+import TableSkeleton from "@/components/ui/table-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const MaterialRequisitionList = () => {
   const [requisitions, setRequisitions] = useState([]);
@@ -99,11 +101,11 @@ const MaterialRequisitionList = () => {
     switch (priority.toLowerCase()) {
       case "urgent":
       case "high":
-        return <Badge variant="destructive">Urgent</Badge>;
+        return <Badge className={"bg-red-500"}>Urgent</Badge>;
       case "medium":
-        return <Badge variant="default">Medium</Badge>;
+        return <Badge className={"bg-orange-400"}>Medium</Badge>;
       case "low":
-        return <Badge variant="outline">Low</Badge>;
+        return <Badge className={"bg-yellow-400"}>Low</Badge>;
       default:
         return <Badge variant="secondary">{priority}</Badge>;
     }
@@ -122,13 +124,22 @@ const MaterialRequisitionList = () => {
             <Clock className="h-3 w-3" /> Pending
           </Badge>
         );
-      case "approved":
+      case "approvedbypm":
         return (
           <Badge
             variant="outline"
             className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1"
           >
-            <CheckCircle className="h-3 w-3" /> Approved
+            <CheckCircle className="h-3 w-3" /> Approved - PM
+          </Badge>
+        );
+      case "approvedbyho":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1"
+          >
+            <CheckCircle className="h-3 w-3" /> Approved - HO
           </Badge>
         );
       case "forwarded":
@@ -376,14 +387,6 @@ const MaterialRequisitionList = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        Loading requisitions...
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="text-red-500">Error loading requisitions: {error}</div>
@@ -464,6 +467,11 @@ const MaterialRequisitionList = () => {
           </div>
 
           {/* Responsive table with data */}
+          {loading ? (
+            <div className="flex-1 flex flex-col justify-center">
+              <TableSkeleton cols={9} rows={6} />
+            </div>
+          ) :
           <div className="overflow-auto">
             <div className="rounded-md border min-w-full">
               <Table>
@@ -501,8 +509,10 @@ const MaterialRequisitionList = () => {
                     currentItems?.map((req) => {
                       return (
                         <TableRow key={req.id}>
-                          <TableCell className="font-medium">
-                            {req.requisitionNo}
+                          <TableCell className="font-medium text-blue-500 underline cursor-pointer">
+                            <Link to={`/requisitions/${req.id}`}>
+                              {req.requisitionNo}
+                            </Link>
                           </TableCell>
                           <TableCell>{formatDate(req.requestedAt)}</TableCell>
                           <TableCell className="hidden sm:table-cell">
@@ -535,7 +545,7 @@ const MaterialRequisitionList = () => {
                 </TableBody>
               </Table>
             </div>
-          </div>
+          </div> }
         </CardContent>
 
         {/* Pagination */}

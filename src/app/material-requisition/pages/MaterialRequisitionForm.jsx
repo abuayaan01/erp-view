@@ -76,6 +76,7 @@ const MaterialRequisitionForm = () => {
   const storedUnits = useSelector((state) => state.units) || [];
   const storedSites = useSelector((state) => state.sites) || [];
   const currentUser = useSelector((state) => state.auth.user) || {};
+  const [submitLoader,setsubmitLoader] = useState(false);
   useEffect(() => {
     setItemGroups(storedItemGroups.data);
     setItems(storedItems.data);
@@ -168,6 +169,7 @@ const MaterialRequisitionForm = () => {
       toast({
         title: "Invalid Item",
         description: "Please select an item and enter a valid quantity.",
+        duration: 2000,
         variant: "destructive",
       });
       return;
@@ -214,6 +216,7 @@ const MaterialRequisitionForm = () => {
 
     toast({
       title: "Item Added",
+      duration: 1000,
       description: "The item has been added to the requisition.",
     });
   };
@@ -281,16 +284,19 @@ const MaterialRequisitionForm = () => {
       return;
     }
     //Call Here API POST REQUEST
-    toast({
-      title: "Requisition Created",
-      description: "The material requisition has been created successfully.",
-    });
+    
     try {
+      setsubmitLoader(true);
       const payload = prepareRequestPayload();
       console.log("Submitting payload:", payload);
       const res = await api.post("/requisitions", payload);
+      toast({
+        title: "Requisition Created",
+        description: "The material requisition has been created successfully.",
+        duration: 2000,
+      });
       const newRequisition = res.data;
-      navigate(`/requisitions/view/${newRequisition.id}`);
+      navigate(`/requisitions/${newRequisition.id}`);
     } catch (error) {
       console.error("Error submitting requisition:", error);
       toast({
@@ -298,10 +304,10 @@ const MaterialRequisitionForm = () => {
         description: "Failed to create the requisition. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setsubmitLoader(false);
     }
 
-    // return;
-    // Redirect to view page
   };
 
   const handlePrint = () => {
@@ -888,6 +894,7 @@ const MaterialRequisitionForm = () => {
                     <Button
                       type="button"
                       variant="outline"
+                      loading={submitLoader}
                       onClick={handleSubmit}
                     >
                       <Save className="mr-2 h-4 w-4" /> Save

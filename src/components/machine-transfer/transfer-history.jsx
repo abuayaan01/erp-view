@@ -43,6 +43,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import TableSkeleton from "../ui/table-skeleton";
 
 // Update the mock data to include the new transfer types
 // Replace the historyTransfers array with this updated one
@@ -209,13 +210,7 @@ export function TransferHistory() {
     fetchHistory();
   }, []);
 
-  return loading ? (
-    <div className="mx-auto min-h-[70vh] flex flex-col">
-      <div className="flex-1 flex justify-center items-center">
-        <Loader />
-      </div>
-    </div>
-  ) : (
+  return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex flex-1 items-center space-x-2">
@@ -294,93 +289,109 @@ export function TransferHistory() {
         </div>
       </div>
 
-      <div className="rounded-md border">
-        {/* Update the table header to include Type column */}
-        <table className="w-full">
-          <TableHeader>
-            <TableRow className="text-sm">
-              <TableHead className="text-center">Transfer No.</TableHead>
-              <TableHead className="text-center">Machine Name</TableHead>
-              <TableHead className="text-center">Type</TableHead>
-              <TableHead className="w-[250px] text-center">From → To</TableHead>
-              <TableHead className="text-center">Transfer Date</TableHead>
-              <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-center">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          {/* Update the table body to display the transfer type and handle different types */}
-          <TableBody>
-            {transfers.length > 0 ? (
-              filteredTransfers.map((transfer) => (
-                <TableRow
-                  onDoubleClick={() => navigate(`./${transfer.id}`)}
-                  className="text-sm text-center cursor-pointer"
-                  key={transfer.id}
-                >
-                  <TableCell>{transfer.name}</TableCell>
-                  <TableCell>{transfer.machine?.machineName || "NA"}</TableCell>
-                  <TableCell>
-                    {transfer.requestType === "Site Transfer"
-                      ? "Site Transfer"
-                      : transfer.requestType === "Sell"
-                      ? "Sell"
-                      : "Scrap"}
-                  </TableCell>
-                  <TableCell>
-                    {transfer.currentSite?.name || "NA"} →{" "}
-                    {transfer.requestType === "Site Transfer"
-                      ? transfer.destinationSite?.name || "NA"
-                      : transfer.requestType === "Sell"
-                      ? transfer.buyerName || "Buyer"
-                      : transfer.scrapVendor || "Scrap"}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(transfer.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      className={getStatusColor(transfer.status)}
-                      variant="outline"
-                    >
-                      {transfer.status}
-                    </Badge>
-                  </TableCell>
+      {loading ? (
+        <div className="flex-1 flex justify-center">
+          <TableSkeleton cols={6} rows={6} />
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          {/* Update the table header to include Type column */}
+          <table className="w-full">
+            <TableHeader>
+              <TableRow className="text-sm">
+                <TableHead className="text-center">Transfer No.</TableHead>
+                <TableHead className="text-center">Machine Name</TableHead>
+                <TableHead className="text-center">Type</TableHead>
+                <TableHead className="w-[250px] text-center">
+                  From → To
+                </TableHead>
+                <TableHead className="text-center">Transfer Date</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            {/* Update the table body to display the transfer type and handle different types */}
+            <TableBody>
+              {transfers.length > 0 ? (
+                filteredTransfers.map((transfer) => (
+                  <TableRow
+                    onDoubleClick={() => navigate(`./${transfer.id}`)}
+                    className="text-sm text-center cursor-pointer"
+                    key={transfer.id}
+                  >
+                    <TableCell>{transfer.name}</TableCell>
+                    <TableCell>
+                      {transfer.machine?.machineName || "NA"}
+                    </TableCell>
+                    <TableCell>
+                      {transfer.requestType === "Site Transfer"
+                        ? "Site Transfer"
+                        : transfer.requestType === "Sell"
+                        ? "Sell"
+                        : "Scrap"}
+                    </TableCell>
+                    <TableCell>
+                      {transfer.currentSite?.name || "NA"} →{" "}
+                      {transfer.requestType === "Site Transfer"
+                        ? transfer.destinationSite?.name || "NA"
+                        : transfer.requestType === "Sell"
+                        ? transfer.buyerName || "Buyer"
+                        : transfer.scrapVendor || "Scrap"}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(transfer.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        className={getStatusColor(transfer.status)}
+                        variant="outline"
+                      >
+                        {transfer.status}
+                      </Badge>
+                    </TableCell>
 
-                  {/* View Logs Code Transfer it to details page */}
-                  <TableCell className="text-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button onDoubleClick={(e) => {e.stopPropagation();}} variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Open menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className={"w-full"}
-                          onClick={() => {
-                            navigate(`./${transfer.id}`);
-                          }}
-                        >
-                          View Details
-                        </Button>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {/* View Logs Code Transfer it to details page */}
+                    <TableCell className="text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            variant="ghost"
+                            size="icon"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Open menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={"w-full"}
+                            onClick={() => {
+                              navigate(`./${transfer.id}`);
+                            }}
+                          >
+                            View Details
+                          </Button>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-4">
+                    No transfers found
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-4">
-                  No transfers found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </table>
-      </div>
+              )}
+            </TableBody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

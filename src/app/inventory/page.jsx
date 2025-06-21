@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import api from "@/services/api/api-service";
 import { toast } from "@/hooks/use-toast";
+import TableSkeleton from "@/components/ui/table-skeleton";
 
 const InventoryList = () => {
   const [inventory, setInventory] = useState([]);
@@ -143,14 +144,6 @@ const InventoryList = () => {
     setCurrentPage(1); // Reset to first page when changing items per page
   };
   
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        Loading inventories...
-      </div>
-    );
-  }
-  
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -221,6 +214,11 @@ const InventoryList = () => {
             </div>
           </div>
 
+          {loading ? (
+            <div className="flex-1 flex flex-col justify-center">
+              <TableSkeleton cols={9} rows={6} />
+            </div>
+          ) :
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -277,7 +275,7 @@ const InventoryList = () => {
                 )}
               </TableBody>
             </Table>
-          </div>
+          </div> }
           
           {/* Pagination Controls */}
           {filteredInventory?.length > 0 && (

@@ -59,6 +59,7 @@ import InvoiceForm from "@/app/procurement/InvoiceForm";
 import PaymentList from "@/app/procurement/PaymentList";
 import PaymentSlipForm from "@/app/procurement/PaymentSlipForm";
 import TransferDetailPage from "@/components/machine-transfer/page";
+import MaintenanceLogPage from "@/app/maintanance-log/MaintenanceLogModal";
 
 function AppRouter() {
   const dispatch = useDispatch();
@@ -161,6 +162,7 @@ function AppRouter() {
         <Route path="/machine" element={<MachineTable />} />
         <Route path="/machine/:id" element={<MachineryDetailPage />} />
         <Route path="/machine/edit/:id" element={<MachineEditPage />} />
+        <Route path="/machine/:id/logs" element={<MaintenanceLogPage />} />
         {/* Machines Management End*/}
 
         {/* Logbook */}

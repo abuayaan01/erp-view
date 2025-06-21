@@ -244,7 +244,12 @@ export function SparePartsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <SparePartsTable spareParts={filteredParts} />
+            {loading ? (
+            <div className="flex-1 flex flex-col justify-center">
+              <TableSkeleton cols={9} rows={6} />
+            </div>
+          ) :
+              <SparePartsTable spareParts={filteredParts} /> }
             </CardContent>
           </Card>
         </TabsContent>
