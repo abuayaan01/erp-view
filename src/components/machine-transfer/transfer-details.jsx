@@ -824,11 +824,15 @@ export default function MachineTransferDetail({
                     <p className="text-sm">
                       by {transfer.approver?.name || "Unknown"}
                     </p>
+                    {transfer.approveRemarks && (
+                      <p className="text-sm mt-1 text-muted-foreground">
+                        "{transfer.approveRemarks}"
+                      </p>
+                    )}
                   </div>
                 </div>
               </>
             )}
-
             {transfer.rejectedAt && (
               <>
                 <Separator />
@@ -927,21 +931,66 @@ export default function MachineTransferDetail({
                       <p className="text-sm font-medium text-muted-foreground">
                         Vehicle Number
                       </p>
-                      <p>{transfer.transportDetails.vehicleNumber}</p>
+                      <p>{transfer.transportDetails?.vehicleNumber}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
                         Driver Name
                       </p>
-                      <p>{transfer.transportDetails.driverName}</p>
+                      <p>{transfer.transportDetails?.driverName}</p>
                     </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Mobile Number
+                      </p>
+                      <p>{transfer.transportDetails?.mobileNumber}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Fuel Gauge Reading
+                      </p>
+                      <p>{transfer.fuelGaugeReading || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Odometer Reading
+                      </p>
+                      <p>{transfer.odometerReading || "N/A"}</p>
+                    </div>
+                    {/* {transfer.hrsMeter && ( */}
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Hours Meter
+                      </p>
+                      <p>{transfer.hrsMeter || "N/A"}</p>
+                    </div>
+                    {/* )} */}
                   </div>
+
+                  {transfer.itemsIncluded &&
+                    transfer.itemsIncluded.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Items Included
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {transfer.itemsIncluded.map((item, index) => (
+                            <Badge key={index} variant="secondary">
+                              {item.charAt(0).toUpperCase() + item.slice(1)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* {transfer.dispatchRemarks && ( */}
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      Mobile Number
+                      Dispatch Remarks
                     </p>
-                    <p>{transfer.transportDetails.mobileNumber}</p>
+                    <p className="mt-1">{transfer.dispatchRemarks || "N/A"}</p>
                   </div>
+                  {/* )} */}
                 </>
               ) : (
                 <Alert>
@@ -956,6 +1005,80 @@ export default function MachineTransferDetail({
             </CardContent>
           </Card>
         )}
+
+        {transfer.files && transfer.files.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Attached Files</CardTitle>
+              <CardDescription>
+                Files uploaded during the transfer process
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {transfer.files.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 border rounded-lg"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {file.originalName || `File ${index + 1}`}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        window.open(file.url || file.path, "_blank")
+                      }
+                    >
+                      <FileDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {/* Additional Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Information</CardTitle>
+            <CardDescription>Other transfer details</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Requested At
+                </p>
+                <p>
+                  {transfer.requestedAt
+                    ? formatDate(transfer.requestedAt)
+                    : "N/A"}
+                </p>
+              </div>
+              {transfer.scrapDetails && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Scrap Details
+                  </p>
+                  <p>{JSON.stringify(transfer.scrapDetails)}</p>
+                </div>
+              )}
+              {transfer.buyerDetails && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Buyer Details
+                  </p>
+                  <p>{JSON.stringify(transfer.buyerDetails)}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

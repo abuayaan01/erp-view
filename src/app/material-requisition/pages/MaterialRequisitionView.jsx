@@ -8,6 +8,12 @@ import {
   CheckCircle,
   Package,
   ShoppingCart,
+  ArrowLeft,
+  Printer,
+  CheckCircle,
+  Package,
+  ShoppingCart,
+  X, // Add this for reject button
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,6 +52,7 @@ const MaterialRequisitionView = () => {
   const storedItemGroups = useSelector((state) => state.itemGroups) || [];
   const storedUnits = useSelector((state) => state.units) || [];
   const userRoleLevel = useUserRoleLevel();
+  const [approvingIssue, setApprovingIssue] = useState(false);
 
   const shouldPrint =
     new URLSearchParams(location.search).get("print") === "true";
@@ -206,6 +213,98 @@ const MaterialRequisitionView = () => {
     }
   };
 
+  const handleIssueApproval = async (issueId) => {
+    try {
+      setApprovingIssue(true);
+      const response = await api.post(`/material-issues/${issueId}/approve`);
+
+      if (response.status) {
+        toast({
+          title: "Success",
+          description: "Material issue has been approved successfully.",
+        });
+
+        // Refresh the requisition data to get updated issue status
+        const updatedResponse = await api.get(`/requisitions/${id}`);
+        if (updatedResponse.status && updatedResponse.data) {
+          setRequisition(updatedResponse.data);
+        }
+      } else {
+        toast({
+          title: "Error",
+          description:
+            response.data?.message || "Failed to approve material issue",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to approve material issue",
+        variant: "destructive",
+      });
+    } finally {
+      setApprovingIssue(false);
+    }
+  };
+
+  const handleIssueRejection = async (issueId) => {
+    try {
+      setApprovingIssue(true);
+      const response = await api.post(`/material-issues/${issueId}/reject`);
+
+      if (response.status) {
+        toast({
+          title: "Success",
+          description: "Material issue has been rejected successfully.",
+        });
+
+        // Refresh the requisition data to get updated issue status
+        const updatedResponse = await api.get(`/requisitions/${id}`);
+        if (updatedResponse.status && updatedResponse.data) {
+          setRequisition(updatedResponse.data);
+        }
+      } else {
+        toast({
+          title: "Error",
+          description:
+            response.data?.message || "Failed to reject material issue",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to reject material issue",
+        variant: "destructive",
+      });
+    } finally {
+      setApprovingIssue(false);
+    }
+  };
+
+  // 3. Add function to get issue status badge
+  const getIssueStatusBadge = (status) => {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return <Badge variant="outline">Pending</Badge>;
+      case "approved":
+        return <Badge className="bg-green-500">Approved</Badge>;
+      case "issued":
+        return <Badge className="bg-blue-500">Issued</Badge>;
+      case "dispatched":
+        return <Badge className="bg-indigo-500">Dispatched</Badge>;
+      case "received":
+        return <Badge className="bg-green-600">Received</Badge>;
+      case "rejected":
+        return <Badge variant="destructive">Rejected</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status.toLowerCase()) {
       case "pending":
@@ -298,7 +397,7 @@ const MaterialRequisitionView = () => {
     const isAdmin = userRoleLevel.role === "admin";
     if (isApprovedByHo && !isAdmin) {
       const isSameSite = currentUser.site.id == requisition.requestingSite.id;
-      console.log(isApprovedByHo,isAdmin,isSameSite)
+      console.log(isApprovedByHo, isAdmin, isSameSite);
       if (!isSameSite) {
         return (
           <Button
@@ -473,6 +572,142 @@ const MaterialRequisitionView = () => {
               </div>
             </CardContent>
           </Card>
+
+          {requisition.materialIssues &&
+            requisition.materialIssues.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Material Issues</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {requisition.materialIssues.map((issue, index) => (
+                      <div key={issue.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">
+                                Issue Number
+                              </p>
+                              <p className="font-medium">{issue.issueNumber}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">
+                                Issue Date
+                              </p>
+                              <p className="font-medium">
+                                {issue.issueDate
+                                  ? new Date(
+                                      issue.issueDate
+                                    ).toLocaleDateString()
+                                  : "N/A"}
+                              </p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">
+                                Issue Type
+                              </p>
+                              <p className="font-medium">{issue.issueType}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">
+                                Status
+                              </p>
+                              <div className="font-medium print:hidden">
+                                {getIssueStatusBadge(issue.status)}
+                              </div>
+                              <p className="font-medium hidden print:block">
+                                {issue.status}
+                              </p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">
+                                From Site
+                              </p>
+                              <p className="font-medium">
+                                {issue.siteId || "N/A"}
+                              </p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">
+                                To Site
+                              </p>
+                              <p className="font-medium">
+                                {issue.otherSiteId || "N/A"}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Admin approval/rejection buttons */}
+                          {userRoleLevel.role === "admin" &&
+                            issue.status.toLowerCase() === "pending" && (
+                              <div className="flex gap-2 ml-4">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleIssueApproval(issue.id)}
+                                  disabled={approvingIssue}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  <CheckCircle className="mr-1 h-3 w-3" />
+                                  {approvingIssue ? "Approving..." : "Approve"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleIssueRejection(issue.id)}
+                                  disabled={approvingIssue}
+                                >
+                                  ✕ Reject
+                                </Button>
+                              </div>
+                            )}
+                        </div>
+
+                        {/* Issue Items */}
+                        {issue.items && issue.items.length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="font-medium mb-2">Items:</h4>
+                            <div className="rounded-md border">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Sr. No</TableHead>
+                                    <TableHead>Item</TableHead>
+                                    <TableHead>Part No</TableHead>
+                                    <TableHead>Quantity</TableHead>
+                                    <TableHead>Issue To</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {issue.items.map((item, itemIndex) => (
+                                    <TableRow key={itemIndex}>
+                                      <TableCell>{itemIndex + 1}</TableCell>
+                                      <TableCell>
+                                        {item.Item?.name || "N/A"}
+                                      </TableCell>
+                                      <TableCell>
+                                        {item.Item?.partNumber || "-"}
+                                      </TableCell>
+                                      <TableCell>
+                                        {item.quantity}{" "}
+                                        {getUnitName(item.Item?.unitId)}
+                                      </TableCell>
+                                      <TableCell>
+                                        {item.issueTo || "N/A"}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
         </>
       ) : (
         <div className="flex flex-col h-screen">

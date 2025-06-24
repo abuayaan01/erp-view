@@ -175,7 +175,7 @@ const MaintenanceLogList = ({ machineId, onViewLog }) => {
                   <TableCell className="font-medium">{log.title}</TableCell>
                   <TableCell>{log.technician}</TableCell>
                   <TableCell>{log.hoursAtService}</TableCell>
-                  <TableCell>${log.cost}</TableCell>
+                  <TableCell>₹{log.cost}</TableCell>
                   <TableCell>{getStatusBadge(log.status)}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => onViewLog(log)}>

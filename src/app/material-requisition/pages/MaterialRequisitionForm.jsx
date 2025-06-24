@@ -76,7 +76,9 @@ const MaterialRequisitionForm = () => {
   const storedUnits = useSelector((state) => state.units) || [];
   const storedSites = useSelector((state) => state.sites) || [];
   const currentUser = useSelector((state) => state.auth.user) || {};
-  const [submitLoader,setsubmitLoader] = useState(false);
+  const [submitLoader, setsubmitLoader] = useState(false);
+  const [inventoryQuantity, setInventoryQuantity] = useState(null);
+  const [loadingInventory, setLoadingInventory] = useState(false);
   useEffect(() => {
     setItemGroups(storedItemGroups.data);
     setItems(storedItems.data);
@@ -235,7 +237,34 @@ const MaterialRequisitionForm = () => {
       description: "The item has been removed from the requisition.",
     });
   };
+  const fetchInventoryQuantity = async (siteId, itemId) => {
+    if (!itemId) {
+      setInventoryQuantity(null);
+      return;
+    }
 
+    setLoadingInventory(true);
+    try {
+      const response = await api.get(`/inventory/item/${itemId}`);
+      const data = response.data[0];
+      setInventoryQuantity(data.quantity || 0);
+    } catch (error) {
+      console.error("Error fetching inventory quantity:", error);
+      setInventoryQuantity(0);
+    } finally {
+      setLoadingInventory(false);
+    }
+  };
+
+  // 3. Update the item selection handler
+  const handleItemChange = (item) => {
+    setSelectedItem(item);
+    if (item) {
+      fetchInventoryQuantity(formData.siteId, item.id);
+    } else {
+      setInventoryQuantity(null);
+    }
+  };
   const validateForm = () => {
     const newErrors = {};
 
@@ -255,7 +284,7 @@ const MaterialRequisitionForm = () => {
   const prepareRequestPayload = () => {
     return {
       requestedAt: new Date(),
-      requestingSiteId: formData.requestingSite.id,
+      requestingSiteId: formData.requestingSite?.id,
       requestedFor: formData.requestedFor.value,
       chargeType: formData.chargeType === "foc" ? "Foc" : "Chargeable",
       requestPriority:
@@ -284,7 +313,7 @@ const MaterialRequisitionForm = () => {
       return;
     }
     //Call Here API POST REQUEST
-    
+
     try {
       setsubmitLoader(true);
       const payload = prepareRequestPayload();
@@ -307,7 +336,6 @@ const MaterialRequisitionForm = () => {
     } finally {
       setsubmitLoader(false);
     }
-
   };
 
   const handlePrint = () => {
@@ -430,7 +458,7 @@ const MaterialRequisitionForm = () => {
                       <Label htmlFor="location">Location *</Label>
                       <Input
                         placeholder={`Enter Location`}
-                        value={formData.requestingSite.address || ""}
+                        value={formData.requestingSite?.address || ""}
                         disabled
                         readOnly
                       />
@@ -620,7 +648,7 @@ const MaterialRequisitionForm = () => {
                       <Label htmlFor="item">Item *</Label>
                       <Select
                         value={selectedItem}
-                        onValueChange={setSelectedItem}
+                        onValueChange={handleItemChange}
                         disabled={!selectedItemGroup}
                       >
                         <SelectTrigger id="item">
@@ -684,6 +712,36 @@ const MaterialRequisitionForm = () => {
                           )}
                         </div>
                       </div>
+                      {/* Inventory quantity display */}
+                      {selectedItem && (
+                        <div className="flex items-center space-x-2 text-sm">
+                          <span className="text-muted-foreground">
+                            Available:
+                          </span>
+                          {loadingInventory ? (
+                            <span className="text-muted-foreground">
+                              Loading...
+                            </span>
+                          ) : (
+                            <span
+                              className={`font-medium ${
+                                inventoryQuantity === 0
+                                  ? "text-destructive"
+                                  : inventoryQuantity <
+                                    parseFloat(itemQuantity || 0)
+                                  ? "text-orange-600"
+                                  : "text-green-600"
+                              }`}
+                            >
+                              {inventoryQuantity !== null
+                                ? `${inventoryQuantity} ${
+                                    selectedItem?.Unit?.shortName || ""
+                                  }`
+                                : "N/A"}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -795,13 +853,13 @@ const MaterialRequisitionForm = () => {
                         Requesting Site
                       </Label>
                       <p className="font-medium">
-                        {formData.requestingSite.name}
+                        {formData.requestingSite?.name}
                       </p>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-muted-foreground">Location</Label>
                       <p className="font-medium">
-                        {formData.requestingSite.address}
+                        {formData.requestingSite?.address}
                       </p>
                     </div>
 

@@ -64,19 +64,19 @@ const MaintenanceLogPage = () => {
 
   // Reset form when modal closes
   useEffect(() => {
-      setShowAddForm(false);
-      setSelectedLog(null);
-      setVendors([]);
-      setFormData({
-        type: "repair",
-        date: new Date(),
-        title: "",
-        description: "",
-        cost: "",
-        technician: "",
-        status: "completed",
-        hoursAtService: "",
-      });
+    setShowAddForm(false);
+    setSelectedLog(null);
+    setVendors([]);
+    setFormData({
+      type: "repair",
+      date: new Date(),
+      title: "",
+      description: "",
+      cost: "",
+      technician: "",
+      status: "completed",
+      hoursAtService: "",
+    });
   }, []);
 
   const handleInputChange = (e) => {
@@ -144,19 +144,19 @@ const MaintenanceLogPage = () => {
     const maintenanceData = {
       machineId,
       ...formData,
-      vendors: vendors,
+      vendorAndPartsDetails: vendors,
       // totalCost: vendors.reduce((sum, vendor) => sum + vendor.totalCost, 0),
-      parts: vendors.flatMap((vendor) =>
-        vendor.parts.map((part) => ({
-          ...part,
-          vendorName: vendor.name,
-          vendorId: vendor.id,
-        }))
-      ),
+      // parts: vendors.flatMap((vendor) =>
+      //   vendor.parts.map((part) => ({
+      //     ...part,
+      //     vendorName: vendor.name,
+      //     vendorId: vendor.id,
+      //   }))
+      // ),
     };
 
-    console.log(maintenanceData);
-    return;
+    // console.log(maintenanceData);
+    // return;
 
     createMaintenanceLog(maintenanceData)
       .then((res) => {
