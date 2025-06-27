@@ -56,6 +56,7 @@ import PaymentList from "@/app/procurement/PaymentList";
 import PaymentSlipForm from "@/app/procurement/PaymentSlipForm";
 import TransferDetailPage from "@/components/machine-transfer/page";
 import MaintenanceLogPage from "@/app/maintanance-log/MaintenanceLogModal";
+import AddInventoryItems from "@/app/inventory/add-items/page";
 
 function AppRouter() {
   const dispatch = useDispatch();
@@ -246,6 +247,7 @@ function AppRouter() {
 
         {/* Inventory */}
         <Route path="/inventory" element={<InventoryList />} />
+        <Route path="/inventory/add" element={<AddInventoryItems />} />
         <Route path="/inventory/:id" element={<MaterialDetails />} />
         {/* Inventory End*/}
 

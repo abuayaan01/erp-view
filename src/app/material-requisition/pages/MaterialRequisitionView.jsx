@@ -8,11 +8,6 @@ import {
   CheckCircle,
   Package,
   ShoppingCart,
-  ArrowLeft,
-  Printer,
-  CheckCircle,
-  Package,
-  ShoppingCart,
   X, // Add this for reject button
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
