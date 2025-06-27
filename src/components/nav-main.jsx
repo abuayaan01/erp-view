@@ -68,7 +68,7 @@ export function NavMain({ items }) {
                 key={item.title}
                 className={({ isActive }) =>
                   `rounded-md ${
-                    isActive && "bg-primary text-white "
+                    isActive && "bg-primary text-primary-foreground"
                   }`
                 }
                 to={item.url}

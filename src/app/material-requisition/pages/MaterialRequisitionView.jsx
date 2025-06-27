@@ -8,7 +8,8 @@ import {
   CheckCircle,
   Package,
   ShoppingCart,
-  X, // Add this for reject button
+  X,
+  Clock, // Add this for reject button
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -301,15 +302,81 @@ const MaterialRequisitionView = () => {
   };
 
   const getStatusBadge = (status) => {
+    if (!status) return <Badge variant="secondary">Unknown</Badge>;
+
     switch (status.toLowerCase()) {
       case "pending":
-        return <Badge variant="outline">Pending</Badge>;
-      case "approved":
-        return <Badge variant="success">Approved</Badge>;
+        return (
+          <Badge
+            variant="outline"
+            className="bg-yellow-50 text-yellow-700 border-yellow-200 items-center gap-1"
+          >
+            <Clock className="h-3 w-3" /> Pending
+          </Badge>
+        );
+      case "approvedbypm":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-blue-50 text-blue-700 border-blue-200 items-center gap-1"
+          >
+            <CheckCircle className="h-3 w-3" /> Approved - PM
+          </Badge>
+        );
+      case "approvedbyho":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-blue-50 text-blue-700 border-blue-200  items-center gap-1"
+          >
+            <CheckCircle className="h-3 w-3" /> Approved - HO
+          </Badge>
+        );
+      case "forwarded":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-purple-50 text-purple-700 border-purple-200 items-center gap-1"
+          >
+            <Truck className="h-3 w-3" /> Forwarded
+          </Badge>
+        );
+      case "partially_approved":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-orange-50 text-orange-700 border-orange-200 items-center gap-1"
+          >
+            <AlertTriangle className="h-3 w-3" /> Partially Approved
+          </Badge>
+        );
       case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>;
+        return (
+          <Badge
+            variant="outline"
+            className="bg-red-50 text-red-700 border-red-200 items-center gap-1"
+          >
+            <XCircle className="h-3 w-3" /> Rejected
+          </Badge>
+        );
+      case "issued":
+        return (
+          <Badge
+            variant="outline"
+            className="bg-indigo-50 text-indigo-700 border-indigo-200 items-center gap-1"
+          >
+            <Truck className="h-3 w-3" /> Issued
+          </Badge>
+        );
       case "received":
-        return <Badge variant="default">Received</Badge>;
+        return (
+          <Badge
+            variant="outline"
+            className="bg-green-50 text-green-700 border-green-200 items-center gap-1"
+          >
+            <CheckCircle className="h-3 w-3" /> Received
+          </Badge>
+        );
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -505,7 +572,7 @@ const MaterialRequisitionView = () => {
 
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Status</p>
-                  <div className="font-medium print:hidden">
+                  <div className="font-medium print:hidden w-auto">
                     {getStatusBadge(requisition.status)}
                   </div>
                   <p className="font-medium hidden print:block">
@@ -593,8 +660,8 @@ const MaterialRequisitionView = () => {
                               <p className="font-medium">
                                 {issue.issueDate
                                   ? new Date(
-                                      issue.issueDate
-                                    ).toLocaleDateString()
+                                    issue.issueDate
+                                  ).toLocaleDateString()
                                   : "N/A"}
                               </p>
                             </div>
