@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { LogbookForm } from "@/components/logbook/Logbook-form";
-import { LogbookTable } from "@/components/logbook/Logbook-table";
-import { LogbookFilters } from "@/components/logbook/Logbook-filters";
+import { LogbookForm } from "@/components/logbook/logbook-form";
+import { LogbookTable } from "@/components/logbook/logbook-table";
+import { LogbookFilters } from "@/components/logbook/logbook-filters";
 import {
   Card,
   CardContent,
