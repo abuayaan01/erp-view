@@ -630,7 +630,7 @@ const Sidebar = ({ steps, currentStep, navigateToStep }) => {
           </li>
         ))}
       </ul>
-      <Link to={`/machine/list`}>
+      <Link to={`/machine`}>
         <Button variant={"outline"}>
           <ArrowLeft className="h-4 w-4" />
           <span className="ml-2">Back to list</span>

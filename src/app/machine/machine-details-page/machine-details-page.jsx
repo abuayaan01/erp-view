@@ -73,6 +73,7 @@ export default function MachineryDetailPage() {
       setLoading(false);
     } catch (error) {
       console.log(error);
+    } finally {
       setLoading(false);
     }
   };
@@ -116,6 +117,10 @@ export default function MachineryDetailPage() {
       icon: <FileText className="h-5 w-5" />,
     },
   ];
+
+  if(!loading && !data){
+    throw new Error(`Machine id "${params.id}" not found.`);
+  }
 
   return (
     <div className="container mx-auto py-2 min-h-screen flex flex-col">
