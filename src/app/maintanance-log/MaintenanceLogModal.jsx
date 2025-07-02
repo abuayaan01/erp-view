@@ -185,10 +185,10 @@ const MaintenanceLogPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-screen-xl">
+    <div className="container mx-auto max-w-screen-xl">
       <div className="sm:max-w-[1200px]">
         <div>
-          <div className="text-xl flex items-center gap-2">
+          <div className="text-xl flex items-center font-bold gap-2">
             <Wrench className="h-5 w-5" />
             Maintenance Log
           </div>
@@ -332,7 +332,7 @@ const MaintenanceLogPage = () => {
                       />
                     </div>
 
-                    <div className="space-y-2 md:col-span-2">
+                    {/* <div className="space-y-2 md:col-span-2">
                       <Label htmlFor="status">Status</Label>
                       <Select
                         value={formData.status}
@@ -351,7 +351,7 @@ const MaintenanceLogPage = () => {
                           <SelectItem value="scheduled">Scheduled</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
+                    </div> */}
                   </div>
 
                   <div className="space-y-2">

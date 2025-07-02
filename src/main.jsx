@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { BrowserRouter } from "react-router";
 import { ThemeProvider } from "./common/context/theme/theme-provider.jsx";
+import { ErrorBoundary } from "./app/error/error-boundary/page.jsx";
 import { LoaderProvider } from "./common/context/loader/loader-provider.jsx";
 
 createRoot(document.getElementById("root")).render(
@@ -15,7 +16,9 @@ createRoot(document.getElementById("root")).render(
         <BrowserRouter>
           <ThemeProvider>
             <LoaderProvider>
-              <App />
+              <ErrorBoundary>
+                <App />
+              </ErrorBoundary>
             </LoaderProvider>
           </ThemeProvider>
         </BrowserRouter>

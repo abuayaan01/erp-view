@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -38,7 +38,7 @@ const InventoryList = () => {
   const [categories, setCategories] = useState([]);
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -115,7 +115,7 @@ const InventoryList = () => {
 
     return matchesSearch && matchesCategory && matchesSite;
   });
-  
+
   // Update total pages whenever filtered inventory changes
   useEffect(() => {
     if (filteredInventory) {
@@ -143,18 +143,20 @@ const InventoryList = () => {
     setItemsPerPage(Number(value));
     setCurrentPage(1); // Reset to first page when changing items per page
   };
-  
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">
           Spare Parts Inventory
         </h1>
-        {/* <Button>
+        <div>
           <Link to="/inventory/add">
-            <Plus className="mr-2 h-4 w-4" /> Add Item
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Item
+            </Button>
           </Link>
-        </Button> */}
+        </div>
       </div>
 
       <Card>
@@ -219,64 +221,64 @@ const InventoryList = () => {
               <TableSkeleton cols={9} rows={6} />
             </div>
           ) :
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Part No.</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Current Stock</TableHead>
-                  {/* <TableHead>Min. Level</TableHead>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Part No.</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Current Stock</TableHead>
+                    {/* <TableHead>Min. Level</TableHead>
                   <TableHead>Site</TableHead>
                   <TableHead>Last Updated</TableHead> */}
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {currentItems?.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="text-center py-6 text-muted-foreground"
-                    >
-                      {searchTerm ||
-                      filterCategory !== "all" ||
-                      filterSite !== "all"
-                        ? "No items found matching your search criteria."
-                        : "No inventory items found."}
-                    </TableCell>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ) : (
-                  currentItems?.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        {item.Item?.name}
-                      </TableCell>
-                      <TableCell>{item.Item?.partNumber}</TableCell>
-                      <TableCell>{item.Item?.ItemGroup?.name}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {item.quantity} {getStockStatus(item)}
-                        </div>
-                      </TableCell>
-                      {/* <TableCell>—</TableCell> 
-                      <TableCell>{item.Site?.name || "Unknown Site"}</TableCell>
-                      <TableCell>{formatDate(item.updatedAt)}</TableCell> */}
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          <Link to={`/inventory/${item.id || item.itemId}`}>
-                            View
-                          </Link>
-                        </Button>
+                </TableHeader>
+                <TableBody>
+                  {currentItems?.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={8}
+                        className="text-center py-6 text-muted-foreground"
+                      >
+                        {searchTerm ||
+                          filterCategory !== "all" ||
+                          filterSite !== "all"
+                          ? "No items found matching your search criteria."
+                          : "No inventory items found."}
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div> }
-          
+                  ) : (
+                    currentItems?.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">
+                          {item.Item?.name}
+                        </TableCell>
+                        <TableCell>{item.Item?.partNumber}</TableCell>
+                        <TableCell>{item.Item?.ItemGroup?.name}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {item.quantity} {getStockStatus(item)}
+                          </div>
+                        </TableCell>
+                        {/* <TableCell>—</TableCell> 
+                      <TableCell>{item.Site?.name || "Unknown Site"}</TableCell>
+                      <TableCell>{formatDate(item.updatedAt)}</TableCell> */}
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm">
+                            <Link to={`/inventory/${item.id || item.itemId}`}>
+                              View
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>}
+
           {/* Pagination Controls */}
           {filteredInventory?.length > 0 && (
             <div className="flex items-center justify-between">
@@ -299,7 +301,7 @@ const InventoryList = () => {
                     <SelectItem value="100">100</SelectItem>
                   </SelectContent>
                 </Select>
-                
+
                 <div className="flex items-center space-x-1">
                   <Button
                     variant="outline"
@@ -312,7 +314,7 @@ const InventoryList = () => {
                   </Button>
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum;
-                    
+
                     // Logic to show pages around current page
                     if (totalPages <= 5) {
                       pageNum = i + 1;
@@ -323,7 +325,7 @@ const InventoryList = () => {
                     } else {
                       pageNum = currentPage - 2 + i;
                     }
-                    
+
                     return (
                       <Button
                         key={pageNum}
