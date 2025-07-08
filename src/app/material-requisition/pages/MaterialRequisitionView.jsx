@@ -5,7 +5,13 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   ShoppingCart,
   X,
-  Clock, // Add this for reject button
+  Clock,
+  ArrowLeft,
+  Printer,
+  CheckCircle,
+  Package,
+  DoorClosed,
+  ShieldCloseIcon, // Add this for reject button
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +43,7 @@ const MaterialRequisitionView = () => {
   const [requisition, setRequisition] = useState(null);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
+  const [close, setClose] = useState(false);
   const [itemGroups, setItemGroups] = useState([]);
   const [units, setUnits] = useState([]);
   const [showPdf, setShowPdf] = useState(false);
@@ -471,6 +478,65 @@ const MaterialRequisitionView = () => {
     } else return null;
   }
 
+  function getClosureButton() {
+    const handleCloseRequisition = async () => {
+      try {
+        setClose(true);
+        // Call the approve API endpoint
+        const response = await api.post(`/requisitions/${id}/complete`);
+  
+        if (response.status) {
+          toast({
+            title: "Success",
+            description: "Requisition has been completed successfully.",
+          });
+  
+          // Update the local state with the new data
+          setRequisition({
+            ...requisition,
+            status: "Completed",
+            approvedAt: new Date().toISOString(),
+            // The API might return the approvedBy information
+            // which we could use to update the state more accurately
+          });
+        } else {
+          toast({
+            title: "Error",
+            description:
+              response.data?.message || "Failed to complete requisition",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description:
+            error.response?.data?.message || "Failed to complete requisition",
+          variant: "destructive",
+        });
+      } finally {
+        setClose(false);
+      }
+    }
+    const isApprovedByHo = requisition.status.toLowerCase() === "approvedbyho";
+    if (isApprovedByHo) {
+      const isAdmin = userRoleLevel.role === "admin";
+      if (isAdmin) {
+        return (
+          <Button
+            variant="default"
+            onClick={() => handleCloseRequisition()}
+            className="bg-sky-600 hover:bg-sky-700"
+            loading={close}
+          >
+            <ShieldCloseIcon className="mr-2 h-4 w-4" />
+            Close
+          </Button>
+        );
+      }
+    } else return null;
+  }
+
   return (
     <div className="space-y-6">
       {!showPdf ? (
@@ -493,6 +559,7 @@ const MaterialRequisitionView = () => {
               {getApprovalButton()}
               {getProcurementButton()}
               {getIssueButton()}
+              {getClosureButton()}
               <Button onClick={handlePrint}>
                 <Printer className="mr-2 h-4 w-4" /> Print
               </Button>
@@ -719,6 +786,7 @@ const MaterialRequisitionView = () => {
                                 </Button>
                               </div>
                             )}
+
                         </div>
 
                         {/* Issue Items */}

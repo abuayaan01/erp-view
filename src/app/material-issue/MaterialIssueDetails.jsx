@@ -30,7 +30,7 @@ import MaterialIssuePDF from "./MaterialIssuePDF";
 import api from "@/services/api/api-service";
 import { toast } from "@/hooks/use-toast";
 import { useSelector } from "react-redux";
-import { ROLES } from "@/utils/roles";
+import { getIdByRole, ROLES } from "@/utils/roles";
 
 const MaterialIssueDetails = () => {
   const { id } = useParams();
@@ -170,20 +170,16 @@ const MaterialIssueDetails = () => {
         variant: "destructive",
       });
 
-      // For development - update mock state
-      if (mockIssue.id === parseInt(id)) {
-        setIssue({ ...issue, status: "Approved" });
-      }
     } finally {
       setProcessingAction(false);
     }
   };
 
-  const handleIssue = async () => {
+  const handleIssueConsume = async () => {
     try {
       setProcessingAction(true);
       // Call the API to issue the materials
-      await api.patch(`/material-issues/${id}/issue`);
+      await api.post(`/material-issues/${id}/consume`);
 
       // Update local state with appropriate status
       // For site transfers, set to "In Transit" rather than "Completed"
@@ -210,14 +206,42 @@ const MaterialIssueDetails = () => {
         variant: "destructive",
       });
 
-      // For development - update mock state
-      if (mockIssue.id === parseInt(id)) {
-        const newStatus =
-          issue.issueType?.toLowerCase() === "site transfer"
-            ? "In Transit"
-            : "Completed";
-        setIssue({ ...issue, status: newStatus });
-      }
+    
+    } finally {
+      setProcessingAction(false);
+    }
+  };
+  const handleIssueDispatch = async () => {
+    try {
+      setProcessingAction(true);
+      // Call the API to issue the materials
+      await api.post(`/material-issues/${id}/dispatch`);
+
+      // Update local state with appropriate status
+      // For site transfers, set to "In Transit" rather than "Completed"
+      const newStatus =
+        issue.issueType?.toLowerCase() === "site transfer"
+          ? "In Transit"
+          : "Completed";
+      setIssue({ ...issue, status: newStatus });
+
+      // Show success message
+      toast({
+        title: "Materials Issued",
+        description: `Issue ${issue.issueNumber} has been processed successfully.`,
+        variant: "success",
+      });
+    } catch (err) {
+      console.error("Error issuing materials:", err);
+
+      // Show error message
+      toast({
+        title: "Issue Failed",
+        description:
+          "There was an error processing this issue. Please try again.",
+        variant: "destructive",
+      });
+
     } finally {
       setProcessingAction(false);
     }
@@ -227,7 +251,7 @@ const MaterialIssueDetails = () => {
     try {
       setProcessingAction(true);
       // Call the API to mark materials as received
-      await api.patch(`/material-issues/${id}/receive`);
+      await api.post(`/material-issues/${id}/receive`);
 
       // Update local state
       setIssue({ ...issue, status: "Completed" });
@@ -249,10 +273,6 @@ const MaterialIssueDetails = () => {
         variant: "destructive",
       });
 
-      // For development - update mock state
-      if (mockIssue.id === parseInt(id)) {
-        setIssue({ ...issue, status: "Completed" });
-      }
     } finally {
       setProcessingAction(false);
     }
@@ -296,7 +316,7 @@ const MaterialIssueDetails = () => {
   // Check if status is pending or approved to show appropriate action buttons
   const isPending = issue.status?.toLowerCase() === "pending";
   const isApproved = issue.status?.toLowerCase() === "approved";
-  const isInTransit = issue.status?.toLowerCase() === "in transit";
+  const isInTransit = issue.status?.toLowerCase() === "dispatched";
   const isSiteTransfer = issue.issueType?.toLowerCase() === "site transfer";
 
   return (
@@ -318,10 +338,20 @@ const MaterialIssueDetails = () => {
               </h1>
             </div>
             <div className="flex items-center gap-2">
-              {getStatusBadge(issue.status)}
+              {/* {getStatusBadge(issue.status)} */}
 
               {/* Action Buttons based on status */}
-              {isPending && adminRoles.includes(user.role?.id) && (
+              {isPending && adminRoles.includes(user.role?.id) && issue.issueType == "Site Transfer" && (
+                <Button
+                  onClick={handleApprove}
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={processingAction}
+                >
+                  <CheckSquare className="mr-2 h-4 w-4" /> Approve
+                </Button>
+              )}
+
+              {isPending && siteRoles.includes(user.role?.id) && user.role?.id === getIdByRole("Project Manager") && issue.issueType == "Consumption" && (
                 <Button
                   onClick={handleApprove}
                   className="bg-green-600 hover:bg-green-700"
@@ -332,14 +362,26 @@ const MaterialIssueDetails = () => {
               )}
 
               {isApproved &&
-                siteRoles.includes(user.role?.id) &&
+                siteRoles.includes(user.role?.id) && issue.issueType == "Consumption" &&
                 issue.siteId === user?.site?.id && (
                   <Button
-                    onClick={handleIssue}
+                    onClick={handleIssueConsume}
                     className="bg-blue-600 hover:bg-blue-700"
                     disabled={processingAction}
                   >
                     <Send className="mr-2 h-4 w-4" /> Issue Materials
+                  </Button>
+                )}
+
+              {isApproved &&
+                siteRoles.includes(user.role?.id) && issue.issueType == "Site Transfer" &&
+                issue.siteId === user?.site?.id && (
+                  <Button
+                    onClick={handleIssueDispatch}
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={processingAction}
+                  >
+                    <Send className="mr-2 h-4 w-4" /> Dispatch Materials
                   </Button>
                 )}
 
