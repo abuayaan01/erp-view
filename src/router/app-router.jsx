@@ -57,6 +57,7 @@ import PaymentSlipForm from "@/app/procurement/PaymentSlipForm";
 import TransferDetailPage from "@/components/machine-transfer/page";
 import MaintenanceLogPage from "@/app/maintanance-log/MaintenanceLogModal";
 import AddInventoryItems from "@/app/inventory/add-items/page";
+import ProcurementDetails from "@/app/procurement/ProcurementDetails";
 
 function AppRouter() {
   const dispatch = useDispatch();
@@ -194,15 +195,9 @@ function AppRouter() {
             />
           }
         />
-        <Route
-          path="/machine-transfer/:id"
-          element={<TransferDetailPage />}
-        />
-        
-        <Route
-          path="/machine-transfer"
-          element={<TransferHistoryPage />}
-        />
+        <Route path="/machine-transfer/:id" element={<TransferDetailPage />} />
+
+        <Route path="/machine-transfer" element={<TransferHistoryPage />} />
         {/* Machine Transfer End */}
         <Route path="/item-groups" element={<ItemGroupList />} />
         <Route path="/item-groups/new" element={<ItemGroupForm />} />
@@ -216,15 +211,9 @@ function AppRouter() {
         {/* Spare Parts ans Items End*/}
 
         {/* Material Requisition */}
-        <Route
-          path="/requisitions"
-          element={<MaterialRequisitionList />}
-        />
+        <Route path="/requisitions" element={<MaterialRequisitionList />} />
         <Route path="/requisitions/new" element={<MaterialRequisitionForm />} />
-        <Route
-          path="/requisitions/:id"
-          element={<MaterialRequisitionView />}
-        />
+        <Route path="/requisitions/:id" element={<MaterialRequisitionView />} />
         <Route
           path="/requisitions/approve/:id"
           element={<MaterialRequisitionApproval />}
@@ -259,6 +248,7 @@ function AppRouter() {
 
         {/* Procurements */}
         <Route path="/procurements" element={<ProcurementList />} />
+        <Route path="/procurements/:id" element={<ProcurementDetails />} />
         <Route path="/procure/:requisitionId" element={<ProcurementForm />} />
 
         {/* Invoices */}

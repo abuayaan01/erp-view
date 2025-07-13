@@ -446,7 +446,9 @@ const MaterialRequisitionView = () => {
         return (
           <Button
             variant="default"
-            onClick={() => navigate(`/procure/${requisition.id}`)}
+            onClick={() =>
+              navigate(`/procure/new?requisitionId=${requisition.id}`)
+            }
             className="bg-purple-600 hover:bg-purple-700"
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
@@ -484,13 +486,13 @@ const MaterialRequisitionView = () => {
         setClose(true);
         // Call the approve API endpoint
         const response = await api.post(`/requisitions/${id}/complete`);
-  
+
         if (response.status) {
           toast({
             title: "Success",
             description: "Requisition has been completed successfully.",
           });
-  
+
           // Update the local state with the new data
           setRequisition({
             ...requisition,
@@ -517,7 +519,7 @@ const MaterialRequisitionView = () => {
       } finally {
         setClose(false);
       }
-    }
+    };
     const isApprovedByHo = requisition.status.toLowerCase() === "approvedbyho";
     if (isApprovedByHo) {
       const isAdmin = userRoleLevel.role === "admin";
@@ -723,8 +725,8 @@ const MaterialRequisitionView = () => {
                               <p className="font-medium">
                                 {issue.issueDate
                                   ? new Date(
-                                    issue.issueDate
-                                  ).toLocaleDateString()
+                                      issue.issueDate
+                                    ).toLocaleDateString()
                                   : "N/A"}
                               </p>
                             </div>
@@ -786,7 +788,6 @@ const MaterialRequisitionView = () => {
                                 </Button>
                               </div>
                             )}
-
                         </div>
 
                         {/* Issue Items */}

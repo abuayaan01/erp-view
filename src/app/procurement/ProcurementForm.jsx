@@ -1,397 +1,774 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Save, Plus, Trash } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Search,
+  Eye,
+  Calendar,
+  DollarSign,
+  Package,
+  User,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Trash2,
+  Edit,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import api from "@/services/api/api-service";
+import { toast } from "@/hooks/use-toast";
 
 const ProcurementForm = () => {
-  const { requisitionId } = useParams();
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  // Get requisition ID from URL params (you can pass this as a prop instead)
+  const requisitionId =
+    new URLSearchParams(window.location.search).get("requisitionId") || "1";
 
-  const [requisition, setRequisition] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [procurement, setProcurement] = useState({
+  const [formData, setFormData] = useState({
     requisitionId: requisitionId,
-    vendor: {
-      name: "",
-      contactPerson: "",
-      email: "",
-      phone: "",
-      address: ""
-    },
-    expectedDeliveryDate: "",
+    vendorId: "",
+    expectedDelivery: "",
     notes: "",
-    items: []
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Fetch requisition data
-        const requisitionRes = await api.get(`/requisitions/${requisitionId}`);
-        
-        // Check if requisition is approved
-        if (requisitionRes.data?.status?.toLowerCase() !== "approved") {
-          toast({
-            title: "Error",
-            description: "Only approved requisitions can be procured",
-            variant: "destructive",
-          });
-          // navigate("/requisitions");
-          return;
+  const [requisition, setRequisition] = useState(null);
+  const [procurementItems, setProcurementItems] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [showNewVendorForm, setShowNewVendorForm] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [fetchingRequisition, setFetchingRequisition] = useState(false);
+  const [fetchingVendors, setFetchingVendors] = useState(false);
+
+  // Mock API for demonstration - replace with your actual A
+
+  const navigateBack = () => {
+    // Mock navigation - replace with your actual navigation
+    console.log("Navigating back to requisitions");
+    window.history.back();
+  };
+
+  // New vendor form
+  const [newVendor, setNewVendor] = useState({
+    name: "",
+    email: "",
+    contactPerson: "",
+    address: "",
+    // gstNumber: "",
+  });
+
+  // Fetch requisition details
+  const fetchRequisition = async () => {
+    if (!requisitionId) {
+      toast({
+        title: "Error",
+        description: "No requisition ID provided",
+        variant: "destructive",
+      });
+      navigateBack();
+      return;
+    }
+
+    try {
+      setFetchingRequisition(true);
+      const response = await api.get(`/requisitions/${requisitionId}`);
+
+      if (response.status && response.data) {
+        setRequisition(response.data);
+        console.log(response.data.items);
+
+        // Map requisition items to procurement items
+        if (response.data.items) {
+          const items = response.data.items.map((item) => ({
+            id: item.id,
+            name: item.Item?.name || "NA",
+            partNumber: item.Item?.partNumber || "NA",
+            quantity: item.quantity || item.requestedQuantity,
+            unitPrice: item.unitPrice || item.estimatedPrice || 0,
+            procurementQuantity: item.quantity || item.requestedQuantity,
+            rate: item.unitPrice || item.estimatedPrice || 0,
+            amount:
+              (item.quantity || item.requestedQuantity) *
+              (item.unitPrice || item.estimatedPrice || 0),
+            unit: item.unit,
+          }));
+          setProcurementItems(items);
         }
-        
-        setRequisition(requisitionRes.data);
-        
-        // Initialize procurement items based on requisition items
-        const initialItems = requisitionRes.data.items.map(item => ({
-          itemId: item.Item.id,
-          name: item.Item.name,
-          quantity: item.quantity,
-          rate: 0,
-          amount: 0,
-          unitId: item.Item.unitId,
-          unitName: item.Item.unitName || "",
-        }));
-        
-        setProcurement(prev => ({
+
+        // Set form data
+        setFormData((prev) => ({
           ...prev,
-          items: initialItems
+          requisitionId: response.data.id.toString(),
         }));
-        
-      } catch (error) {
+      } else {
         toast({
           title: "Error",
-          description: error.response?.data?.message || "Failed to load data",
+          description: response.data?.message || "Failed to fetch requisition",
           variant: "destructive",
         });
-        // navigate("/requisitions");
-      } finally {
-        setLoading(false);
+        navigateBack();
       }
-    };
-
-    fetchData();
-  }, [requisitionId, navigate, toast]);
-
-  const handleVendorChange = (field, value) => {
-    setProcurement(prev => ({
-      ...prev,
-      vendor: {
-        ...prev.vendor,
-        [field]: value
-      }
-    }));
+    } catch (error) {
+      console.error("Error fetching requisition:", error);
+      toast({
+        title: "Requisition Not Found",
+        description: "The requisition you're looking for doesn't exist.",
+        variant: "destructive",
+      });
+      navigateBack();
+    } finally {
+      setFetchingRequisition(false);
+    }
   };
 
-  const handleDateChange = (e) => {
-    setProcurement(prev => ({
-      ...prev,
-      expectedDeliveryDate: e.target.value
-    }));
-  };
-
-  const handleNotesChange = (e) => {
-    setProcurement(prev => ({
-      ...prev,
-      notes: e.target.value
-    }));
-  };
-
-  const handleRateChange = (index, value) => {
-    const numValue = parseFloat(value) || 0;
-    const updatedItems = [...procurement.items];
-    updatedItems[index].rate = numValue;
-    updatedItems[index].amount = numValue * updatedItems[index].quantity;
-    
-    setProcurement(prev => ({
-      ...prev,
-      items: updatedItems
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Validate vendor details
-    if (!procurement.vendor.name.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter vendor name",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!procurement.vendor.contactPerson.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter vendor contact person",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!procurement.vendor.phone.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter vendor phone number",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!procurement.expectedDeliveryDate) {
-      toast({
-        title: "Error",
-        description: "Please select an expected delivery date",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Validate rates
-    const invalidItems = procurement.items.filter(item => item.rate <= 0);
-    if (invalidItems.length > 0) {
-      toast({
-        title: "Error",
-        description: "All items must have a rate greater than zero",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  // Fetch vendors
+  const fetchVendors = async () => {
     try {
-      setSubmitting(true);
-      
-      // const response = await api.post('/procurements', procurement);
-      
-      // if (response.status) {
+      setFetchingVendors(true);
+      const response = await api.get('/vendors');
+      if (response.status && response.data) {
+        setVendors(response.data);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch vendors",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching vendors:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch vendors",
+        variant: "destructive",
+      });
+    } finally {
+      setFetchingVendors(false);
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    fetchRequisition();
+    fetchVendors();
+  }, [requisitionId]);
+
+  const handleItemUpdate = (itemId, field, value) => {
+    setProcurementItems((prev) =>
+      prev.map((item) => {
+        if (item.id === itemId) {
+          const updatedItem = { ...item, [field]: value };
+          if (field === "procurementQuantity" || field === "rate") {
+            updatedItem.amount =
+              updatedItem.procurementQuantity * updatedItem.rate;
+          }
+          return updatedItem;
+        }
+        return item;
+      })
+    );
+  };
+
+  const handleNewVendorSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await api.post("/vendors", newVendor);
+
+      if (response.status && response.data) {
+        const newVendorData = response.data;
+        setVendors((prev) => [...prev, newVendorData]);
+        setFormData((prev) => ({
+          ...prev,
+          vendorId: newVendorData.id.toString(),
+        }));
+        setShowNewVendorForm(false);
+        setNewVendor({
+          name: "",
+          email: "",
+          contactPerson: "",
+          address: "",
+          // gstNumber: "",
+        });
+
+        toast({
+          title: "Success",
+          description: "Vendor created successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.data?.message || "Failed to create vendor",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error creating vendor:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create vendor",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+
+    try {
+      const procurementData = {
+        requisitionId: parseInt(formData.requisitionId),
+        vendorId: parseInt(formData.vendorId),
+        expectedDelivery: formData.expectedDelivery,
+        notes: formData.notes,
+        items: procurementItems.map((item) => ({
+          requisitionItemId: item.id,
+          quantity: item.procurementQuantity,
+          rate: item.rate,
+          amount: item.amount,
+        })),
+        totalAmount: calculateTotal(),
+      };
+
+      const response = await api.post("/procurements", procurementData);
+
+      if (response.status && response.data) {
         toast({
           title: "Success",
           description: "Procurement created successfully",
         });
-        navigate(`/procurements`);
-      // } else {
-      //   toast({
-      //     title: "Error",
-      //     description: response.data?.message || "Failed to create procurement",
-      //     variant: "destructive",
-      //   });
-      // }
+
+        // Reset form or navigate
+        navigateBack();
+      } else {
+        toast({
+          title: "Error",
+          description: response.data?.message || "Failed to create procurement",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
+      console.error("Error creating procurement:", error);
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to create procurement",
+        description: "Failed to create procurement",
         variant: "destructive",
       });
     } finally {
-      setSubmitting(false);
+      setLoading(false);
+      setShowReviewModal(false);
     }
   };
 
-  const getTotalAmount = () => {
-    return procurement.items.reduce((sum, item) => sum + item.amount, 0);
+  const calculateTotal = () => {
+    return procurementItems.reduce((sum, item) => sum + item.amount, 0);
   };
 
-  if (loading) {
+  const VendorTooltip = ({ vendor }) => (
+    <div className="p-3 bg-gray-50 rounded-lg">
+      <p className="font-medium">{vendor.name}</p>
+      <p className="text-sm text-gray-600">{vendor.email}</p>
+      <p className="text-sm text-gray-600">{vendor.contactPerson}</p>
+      {vendor.address && (
+        <p className="text-sm text-gray-600">{vendor.address}</p>
+      )}
+      {/* {vendor.gstNumber && (
+        <p className="text-sm text-gray-600">GST: {vendor.gstNumber}</p>
+      )} */}
+    </div>
+  );
+
+  // Loading state
+  if (fetchingRequisition) {
     return (
-      <div className="flex justify-center items-center h-64">Loading...</div>
+      <div className="max-w-6xl p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading requisition details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state - if no requisition found
+  if (!requisition) {
+    return (
+      <div className="max-w-6xl p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-gray-600">Requisition not found</p>
+            <Button onClick={() => navigateBack()} className="mt-4">
+              Back to Requisitions
+            </Button>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-6xl p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/requisitions")}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Create Procurement for Requisition: {requisition?.requisitionNo}
-          </h1>
-        </div>
+        <h1 className="text-3xl font-bold">Create New Procurement</h1>
+        <Button variant="outline" onClick={() => navigateBack()}>
+          Back to Requisitions
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vendor Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="vendorName">Vendor Name *</Label>
-                  <Input
-                    id="vendorName"
-                    value={procurement.vendor.name}
-                    onChange={(e) => handleVendorChange('name', e.target.value)}
-                    placeholder="Enter vendor name"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="contactPerson">Contact Person *</Label>
-                  <Input
-                    id="contactPerson"
-                    value={procurement.vendor.contactPerson}
-                    onChange={(e) => handleVendorChange('contactPerson', e.target.value)}
-                    placeholder="Enter contact person name"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="vendorEmail">Email</Label>
-                  <Input
-                    id="vendorEmail"
-                    type="email"
-                    value={procurement.vendor.email}
-                    onChange={(e) => handleVendorChange('email', e.target.value)}
-                    placeholder="Enter vendor email"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="vendorPhone">Phone Number *</Label>
-                  <Input
-                    id="vendorPhone"
-                    value={procurement.vendor.phone}
-                    onChange={(e) => handleVendorChange('phone', e.target.value)}
-                    placeholder="Enter phone number"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="vendorAddress">Address</Label>
-                  <Input
-                    id="vendorAddress"
-                    value={procurement.vendor.address}
-                    onChange={(e) => handleVendorChange('address', e.target.value)}
-                    placeholder="Enter vendor address"
-                  />
-                </div>
+      {/* Requisition Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Requisition Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Requisition Number</Label>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="font-medium">
+                  {requisition.requisitionNo || requisition.number}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Procurement Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="expectedDeliveryDate">Expected Delivery Date *</Label>
-                  <Input
-                    id="expectedDeliveryDate"
-                    type="date"
-                    value={procurement.expectedDeliveryDate}
-                    onChange={handleDateChange}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Input
-                    id="notes"
-                    value={procurement.notes}
-                    onChange={handleNotesChange}
-                    placeholder="Add any additional notes here..."
-                  />
-                </div>
+            <div className="space-y-2">
+              <Label>Site</Label>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="font-medium">
+                  {requisition.requestingSite?.name || "NA"}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Sr. No</TableHead>
-                      <TableHead>Item</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Rate (₹)</TableHead>
-                      <TableHead>Amount (₹)</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {procurement.items.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>{item.quantity} {item.unitName}</TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={item.rate}
-                            onChange={(e) => handleRateChange(index, e.target.value)}
-                            className="w-24"
-                          />
-                        </TableCell>
-                        <TableCell>₹{item.amount.toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-right font-medium">
-                        Total:
-                      </TableCell>
-                      <TableCell className="font-bold">
-                        ₹{getTotalAmount().toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+            <div className="space-y-2">
+              <Label>Requested Date</Label>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="font-medium">
+                  {new Date(
+                    requisition.requestedAt || requisition.createdAt
+                  ).toLocaleDateString()}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <div className="flex justify-end">
-            <Button 
-              type="submit" 
-              disabled={submitting}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {submitting ? "Saving..." : "Save Procurement"}
-            </Button>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <Badge variant="outline">{requisition.status}</Badge>
+              </div>
+            </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Vendor Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Select Vendor
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <Label htmlFor="vendor">Existing Vendor</Label>
+                <Select
+                  value={formData.vendorId}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, vendorId: value }))
+                  }
+                  disabled={fetchingVendors}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        fetchingVendors
+                          ? "Loading vendors..."
+                          : "Select a vendor"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vendors.map((vendor) => (
+                      <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{vendor.name}</span>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Vendor Details</DialogTitle>
+                              </DialogHeader>
+                              <VendorTooltip vendor={vendor} />
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="pt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowNewVendorForm(true)}
+                  className="whitespace-nowrap"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Vendor
+                </Button>
+              </div>
+            </div>
+
+            {/* New Vendor Form */}
+            {showNewVendorForm && (
+              <Card className="border-dashed">
+                <CardHeader>
+                  <CardTitle className="text-lg">Add New Vendor</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div onSubmit={handleNewVendorSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="vendorName">Vendor Name *</Label>
+                        <Input
+                          id="vendorName"
+                          value={newVendor.name}
+                          onChange={(e) =>
+                            setNewVendor((prev) => ({
+                              ...prev,
+                              name: e.target.value,
+                            }))
+                          }
+                          required
+                          placeholder="Enter vendor name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="vendorEmail">Email *</Label>
+                        <Input
+                          id="vendorEmail"
+                          type="email"
+                          value={newVendor.email}
+                          onChange={(e) =>
+                            setNewVendor((prev) => ({
+                              ...prev,
+                              email: e.target.value,
+                            }))
+                          }
+                          required
+                          placeholder="Enter email address"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="vendorcontactPerson">Contact Person *</Label>
+                        <Input
+                          id="vendorcontactPerson"
+                          value={newVendor.contactPerson}
+                          onChange={(e) =>
+                            setNewVendor((prev) => ({
+                              ...prev,
+                              contactPerson: e.target.value,
+                            }))
+                          }
+                          required
+                          placeholder="Enter contactPerson number"
+                        />
+                      </div>
+                      {/* <div>
+                        <Label htmlFor="vendorGst">GST Number</Label>
+                        <Input
+                          id="vendorGst"
+                          value={newVendor.gstNumber}
+                          onChange={(e) =>
+                            setNewVendor((prev) => ({
+                              ...prev,
+                              gstNumber: e.target.value,
+                            }))
+                          }
+                          placeholder="Enter GST number"
+                        />
+                      </div> */}
+                    </div>
+                    <div>
+                      <Label htmlFor="vendorAddress">Address</Label>
+                      <Textarea
+                        id="vendorAddress"
+                        value={newVendor.address}
+                        onChange={(e) =>
+                          setNewVendor((prev) => ({
+                            ...prev,
+                            address: e.target.value,
+                          }))
+                        }
+                        placeholder="Enter vendor address"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleNewVendorSubmit}
+                        disabled={loading}
+                      >
+                        {loading ? "Creating..." : "Create Vendor"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowNewVendorForm(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Item Adjustment */}
+      {procurementItems.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Items & Pricing
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex items-center font-medium bg-gray-50 p-4 border-b">
+                  <div className="flex-1">Item</div>
+                  <div className="w-28">Part Number</div>
+                  <div className="w-20">Req Qty</div>
+                  <div className="w-24">Proc Qty</div>
+                  <div className="w-24">Rate</div>
+                  <div className="w-24">Amount</div>
+                </div>
+                {procurementItems.map((item) => (
+                  <div key={item.id} className="flex items-center p-4 border-b">
+                    <div className="flex-1 font-medium">{item.name}</div>
+                    <div className="w-28">{item.partNumber}</div>
+                    <div className="w-20">{item.quantity}</div>
+                    <div className="w-24">
+                      <Input
+                        type="number"
+                        value={item.procurementQuantity}
+                        onChange={(e) =>
+                          handleItemUpdate(
+                            item.id,
+                            "procurementQuantity",
+                            parseInt(e.target.value) || 0
+                          )
+                        }
+                        max={item.quantity}
+                        min={1}
+                        className="w-20"
+                      />
+                    </div>
+                    <div className="w-24">
+                      <Input
+                        type="number"
+                        value={item.rate}
+                        onChange={(e) =>
+                          handleItemUpdate(
+                            item.id,
+                            "rate",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                        min={0}
+                        step="0.01"
+                        className="w-24"
+                      />
+                    </div>
+                    <div className="w-24 font-medium">
+                      ₹{item.amount.toFixed(2)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <div className="text-right">
+                <p className="text-lg font-semibold">
+                  Total Amount: ₹{calculateTotal().toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Delivery & Additional Info */}
+      {procurementItems.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Delivery & Notes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="expectedDelivery">Expected Delivery Date</Label>
+                <Input
+                  id="expectedDelivery"
+                  type="date"
+                  value={formData.expectedDelivery}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      expectedDelivery: e.target.value,
+                    }))
+                  }
+                  min={new Date().toISOString().split("T")[0]}
+                />
+              </div>
+              <div>
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, notes: e.target.value }))
+                  }
+                  placeholder="Additional notes or requirements"
+                  rows={3}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Submit Button */}
+      {procurementItems.length > 0 && formData.vendorId && (
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => navigateBack()}>
+            Cancel
+          </Button>
+          <Dialog open={showReviewModal} onOpenChange={setShowReviewModal}>
+            <DialogTrigger asChild>
+              <Button>Review & Submit</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>Review Procurement Order</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="font-medium">Requisition:</p>
+                    <p>{requisition?.requisitionNo || requisition?.number}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Vendor:</p>
+                    <p>
+                      {
+                        vendors.find(
+                          (v) => v.id === parseInt(formData.vendorId)
+                        )?.name
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Expected Delivery:</p>
+                    <p>
+                      {formData.expectedDelivery
+                        ? new Date(
+                            formData.expectedDelivery
+                          ).toLocaleDateString()
+                        : "Not specified"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Total Amount:</p>
+                    <p className="font-bold">₹{calculateTotal().toFixed(2)}</p>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <p className="font-medium mb-2">Items:</p>
+                  <div className="rounded-md border">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="flex items-center font-medium bg-gray-50 p-4 border-b">
+                        <div className="flex-1">Item</div>
+                        <div className="w-20">Quantity</div>
+                        <div className="w-24">Rate</div>
+                        <div className="w-24">Amount</div>
+                      </div>
+                      {procurementItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center p-4 border-b"
+                        >
+                          <div className="flex-1">{item.name}</div>
+                          <div className="w-20">{item.procurementQuantity}</div>
+                          <div className="w-24">₹{item.rate.toFixed(2)}</div>
+                          <div className="w-24">₹{item.amount.toFixed(2)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowReviewModal(false)}
+                  >
+                    Back to Edit
+                  </Button>
+                  <Button onClick={handleSubmit} disabled={loading}>
+                    {loading ? "Creating..." : "Create Procurement"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
-      </form>
+      )}
     </div>
   );
 };

@@ -1,18 +1,16 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Plus, FileText, Filter, Download, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useState } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+  Plus,
+  Search,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Truck,
+  Package,
+  Clock,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -21,295 +19,247 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate, useParams } from "react-router";
 import api from "@/services/api/api-service";
 
-const useMockData = true;
+// Utility functions
+const getStatusColor = (status) => {
+  switch (status) {
+    case "Pending":
+      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    case "ordered":
+      return "bg-blue-100 text-blue-800 border-blue-200";
+    case "Delivered":
+      return "bg-green-100 text-green-800 border-green-200";
+    case "Partial":
+      return "bg-orange-100 text-orange-800 border-orange-200";
+    case "Cancelled":
+      return "bg-red-100 text-red-800 border-red-200";
+    default:
+      return "bg-gray-100 text-gray-800 border-gray-200";
+  }
+};
 
-const mockProcurements = [
-  {
-    id: "p1",
-    procurementNo: "PO-1001",
-    requisitionId: "r1",
-    requisition: { requisitionNo: "REQ-2025" },
-    vendorId: "v1",
-    createdAt: "2025-05-10T10:00:00Z",
-    expectedDeliveryDate: "2025-05-20T10:00:00Z",
-    status: "pending",
-    items: [
-      { id: "i1", amount: 5000 },
-      { id: "i2", amount: 1500 },
-    ],
-  },
-  {
-    id: "p2",
-    procurementNo: "PO-1002",
-    requisitionId: "r2",
-    requisition: { requisitionNo: "REQ-2026" },
-    vendorId: "v2",
-    createdAt: "2025-05-12T12:30:00Z",
-    expectedDeliveryDate: "2025-05-25T12:30:00Z",
-    status: "delivered",
-    items: [{ id: "i3", amount: 3000 }],
-  },
-  {
-    id: "p3",
-    procurementNo: "PO-1003",
-    requisitionId: "r3",
-    requisition: { requisitionNo: "REQ-2027" },
-    vendorId: "v1",
-    createdAt: "2025-05-14T08:45:00Z",
-    expectedDeliveryDate: "2025-05-28T08:45:00Z",
-    status: "partial",
-    items: [
-      { id: "i4", amount: 2000 },
-      { id: "i5", amount: 1000 },
-    ],
-  },
-];
+const getStatusIcon = (status) => {
+  switch (status) {
+    case "Pending":
+      return <Clock className="h-3 w-3" />;
+    case "ordered":
+      return <CheckCircle className="h-3 w-3" />;
+    case "Delivered":
+      return <Truck className="h-3 w-3" />;
+    case "Partial":
+      return <Package className="h-3 w-3" />;
+    case "Cancelled":
+      return <AlertCircle className="h-3 w-3" />;
+    default:
+      return <FileText className="h-3 w-3" />;
+  }
+};
 
-const mockVendors = [
-  { id: "v1", name: "Vendor One" },
-  { id: "v2", name: "Vendor Two" },
-];
+// Table Header Component
+const TableHeader = () => (
+  <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+    <div className="grid grid-cols-8 gap-4 text-sm font-medium text-gray-600">
+      <div>Procurement #</div>
+      <div>Requisition #</div>
+      <div>Vendor</div>
+      <div>Created Date</div>
+      <div>Expected Delivery</div>
+      <div>Status</div>
+      <div>Total Amount</div>
+      <div>Actions</div>
+    </div>
+  </div>
+);
 
-const ProcurementList = () => {
+// Table Row Component
+const TableRow = ({ procurement, navigate }) => (
+  <div className="border-b border-gray-200 px-6 py-4 hover:bg-gray-50 transition-colors">
+    <div className="grid grid-cols-8 gap-4 items-center">
+      <div className="font-medium text-gray-900">
+        {procurement.procurementNo}
+      </div>
+
+      <div className="text-gray-600">REQ-{procurement.requisitionId}</div>
+
+      <div className="text-gray-900">{procurement.Vendor.name}</div>
+
+      <div className="text-gray-600">
+        {new Date(procurement.createdAt).toLocaleDateString("en-GB")}
+      </div>
+
+      <div className="text-gray-600">
+        {new Date(procurement.expectedDelivery).toLocaleDateString("en-GB")}
+      </div>
+
+      <div>
+        <Badge
+          className={`${getStatusColor(
+            procurement.status
+          )} text-xs px-2 py-1 rounded-full border`}
+        >
+          {getStatusIcon(procurement.status)}
+          <span className="ml-1">{procurement.status}</span>
+        </Badge>
+      </div>
+
+      <div className="font-semibold text-gray-900">
+        ₹{parseFloat(procurement.totalAmount).toLocaleString()}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="px-3 py-1 text-xs"
+          onClick={() => navigate("/procurements/" + procurement.id)}
+        >
+          <FileText className="h-3 w-3 mr-1" />
+          Add Invoice
+        </Button>
+      </div>
+    </div>
+  </div>
+);
+
+// Filters Component
+const ProcurementFilters = ({
+  searchTerm,
+  setSearchTerm,
+  statusFilter,
+  setStatusFilter,
+}) => (
+  <Card className="mb-6">
+    <CardContent className="pt-6">
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search by PO number, requisition, or vendor..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        <div className="w-48">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+              <SelectItem value="ordered">Ordered</SelectItem>
+              <SelectItem value="Delivered">Delivered</SelectItem>
+              <SelectItem value="Partial">Partial</SelectItem>
+              <SelectItem value="Cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const ProcurementList = ({ onViewDetails }) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [procurements, setProcurements] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [vendors, setVendors] = useState([]);
-  const [selectedVendor, setSelectedVendor] = useState("");
+  const [error, setError] = useState(null);
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-
-      if (useMockData) {
-        // Use mock data
-        await new Promise((res) => setTimeout(res, 500)); // Simulate delay
-        setProcurements(mockProcurements);
-        setVendors(mockVendors);
-      } else {
-        // Actual API calls
-        const [procurementsRes, vendorsRes] = await Promise.all([
-          api.get("/procurements"),
-          api.get("/vendors"),
-        ]);
-        setProcurements(procurementsRes.data || []);
-        setVendors(vendorsRes.data || []);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to load procurements",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchData();
-}, [toast]);
-
-
-  const formatDate = (dateString) => {
-    try {
-      return new Date(dateString).toLocaleDateString();
-    } catch (error) {
-      return dateString || "-";
-    }
-  };
-
-  const getStatusBadge = (status) => {
-    switch (status?.toLowerCase()) {
-      case "pending":
-        return <Badge variant="outline">Pending</Badge>;
-      case "delivered":
-        return <Badge variant="success">Delivered</Badge>;
-      case "partial":
-        return <Badge variant="warning">Partial</Badge>;
-      case "cancelled":
-        return <Badge variant="destructive">Cancelled</Badge>;
-      default:
-        return <Badge variant="secondary">{status || "Unknown"}</Badge>;
-    }
-  };
-
-  const getVendorName = (vendorId) => {
-    const vendor = vendors.find((v) => v.id === vendorId);
-    return vendor ? vendor.name : "Unknown";
-  };
-
-  const filteredProcurements = procurements.filter((procurement) => {
-    // Apply search filter
-    const searchLower = searchTerm.toLowerCase();
-    const vendorName = getVendorName(procurement.vendorId);
-    const requisitionNo = procurement.requisition?.requisitionNo || "";
-
+  const filteredProcurements = procurements?.filter((procurement) => {
     const matchesSearch =
-      searchTerm === "" ||
-      vendorName.toLowerCase().includes(searchLower) ||
-      requisitionNo.toLowerCase().includes(searchLower) ||
-      procurement.procurementNo?.toLowerCase().includes(searchLower);
+      procurement.procurementNo
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      `REQ-${procurement.requisitionId}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      procurement.Vendor.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Apply status filter
     const matchesStatus =
-      filterStatus === "all" ||
-      procurement.status?.toLowerCase() === filterStatus.toLowerCase();
+      statusFilter === "all" || procurement.status === statusFilter;
 
-    // Apply vendor filter
-    const matchesVendor =
-      selectedVendor === "" || procurement.vendorId === selectedVendor;
-
-    return matchesSearch && matchesStatus && matchesVendor;
+    return matchesSearch && matchesStatus;
   });
 
-  const handleAddInvoice = (procurementId) => {
-    navigate(`/invoice/${procurementId}`);
-  };
+  useEffect(() => {
+    const fetchProcurements = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/procurements");
+        setProcurements(response.data); // Access the data array from the response
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch procurements:", err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchProcurements();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center py-8">Loading procurements...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-500">Error loading procurements: {error}</div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Procurements</h1>
-        <Button onClick={() => navigate("/requisitions")}>
-          <Plus className="mr-2 h-4 w-4" /> Create New Procurement
+        <h1 className="text-3xl font-bold text-gray-900">Procurement Orders</h1>
+        <Button
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => navigate("/procure/new")}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          New Procurement
         </Button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 items-end">
-        <div className="w-full sm:w-auto flex-1">
-          <Input
-            placeholder="Search by procurement #, vendor, or requisition #"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full"
-            icon={<Search className="h-4 w-4" />}
-          />
-        </div>
+      <ProcurementFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+      />
 
-        <div className="w-full sm:w-auto min-w-[150px]">
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger>
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="delivered">Delivered</SelectItem>
-              <SelectItem value="partial">Partial</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* <div className="w-full sm:w-auto min-w-[200px]">
-          <Select value={selectedVendor} onValueChange={setSelectedVendor}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Vendor" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={null}>All Vendors</SelectItem>
-              {vendors.map((vendor) => (
-                <SelectItem key={vendor.id} value={vendor.id}>
-                  {vendor.name}
-                </SelectItem>
+      {filteredProcurements.length > 0 ? (
+        <Card>
+          <div className="overflow-hidden">
+            <TableHeader />
+            <div className="divide-y divide-gray-200">
+              {filteredProcurements.map((procurement) => (
+                <TableRow
+                  key={procurement.id}
+                  procurement={procurement}
+                  navigate={navigate}
+                />
               ))}
-            </SelectContent>
-          </Select>
-        </div> */}
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center items-center h-64">Loading...</div>
-      ) : filteredProcurements.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 bg-muted/30 rounded-lg">
-          <p className="text-muted-foreground">No procurements found</p>
-          {procurements.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              Try adjusting your filters
-            </p>
-          )}
-        </div>
+            </div>
+          </div>
+        </Card>
       ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Procurement #</TableHead>
-                <TableHead>Requisition #</TableHead>
-                <TableHead>Vendor</TableHead>
-                <TableHead>Created Date</TableHead>
-                <TableHead>Expected Delivery</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Total Amount</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProcurements.map((procurement) => {
-                const totalAmount =
-                  procurement.items?.reduce(
-                    (sum, item) => sum + (item.amount || 0),
-                    0
-                  ) || 0;
-
-                return (
-                  <TableRow key={procurement.id}>
-                    <TableCell>
-                      <Button
-                        variant="link"
-                        onClick={() =>
-                          navigate(`/procurements/${procurement.id}`)
-                        }
-                      >
-                        {procurement.procurementNo}
-                      </Button>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="link"
-                        onClick={() =>
-                          navigate(`/requisitions/${procurement.requisitionId}`)
-                        }
-                      >
-                        {procurement.requisition?.requisitionNo || "-"}
-                      </Button>
-                    </TableCell>
-                    <TableCell>{getVendorName(procurement.vendorId)}</TableCell>
-                    <TableCell>{formatDate(procurement.createdAt)}</TableCell>
-                    <TableCell>
-                      {formatDate(procurement.expectedDeliveryDate)}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(procurement.status)}</TableCell>
-                    <TableCell>₹{totalAmount.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAddInvoice(procurement.id)}
-                        >
-                          <FileText className="h-4 w-4" />
-                          <span className="sr-only md:not-sr-only md:ml-2">
-                            Add Invoice
-                          </span>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        <Card>
+          <CardContent className="pt-6 text-center py-12">
+            <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-600">
+              No procurement orders found matching your criteria.
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
