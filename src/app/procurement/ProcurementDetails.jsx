@@ -29,7 +29,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "@/services/api/api-service";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { InvoiceForm } from "./InvoiceForm";
+import InvoiceForm from "./InvoiceForm";
 import { InvoicePaymentDialog } from "./InvoicePaymentDialog";
 
 const ProcurementDetails = () => {
@@ -39,60 +39,9 @@ const ProcurementDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
-  const mockInvoices = [
-    {
-      id: "inv_001",
-      invoiceNumber: "INV-2025-001",
-      procurementId: "proc_001",
-      procurementNumber: "PR-2025-001",
-      vendor: {
-        id: "ven_001",
-        name: "ABC Suppliers Pvt Ltd",
-        contactPerson: "Mr. Rajesh Kumar",
-        email: "accounts@abcsuppliers.com",
-        phone: "+91 9876543210",
-        address: "123 Industrial Area, Mumbai, Maharashtra 400001",
-        gstNumber: "22ABCDE1234F1Z5",
-      },
-      invoiceDate: "2025-01-15T00:00:00.000Z",
-      dueDate: "2025-02-15T00:00:00.000Z",
-      amount: 125000,
-      taxAmount: 18750,
-      totalAmount: 143750,
-      status: "UNPAID", // UNPAID, PARTIALLY_PAID, PAID
-      items: [
-        {
-          id: "item_001",
-          name: "Stainless Steel Pipes",
-          description: "304 Grade, 2-inch diameter",
-          quantity: 50,
-          unit: "meters",
-          rate: 2000,
-          amount: 100000,
-          taxRate: 15,
-          taxAmount: 15000,
-        },
-        {
-          id: "item_002",
-          name: "PVC Fittings",
-          description: "2-inch connectors",
-          quantity: 100,
-          unit: "pieces",
-          rate: 250,
-          amount: 25000,
-          taxRate: 15,
-          taxAmount: 3750,
-        },
-      ],
-      paymentTerms: "Net 30 days",
-      notes: "Please include invoice number in payment reference",
-      createdAt: "2025-01-10T09:30:00.000Z",
-      updatedAt: "2025-01-10T09:30:00.000Z",
-    },
-  ];
-
+  7;
   // Example of how to use in your component:
-  const [invoices, setInvoices] = useState(mockInvoices);
+  const [invoices, setInvoices] = useState([]);
 
   useEffect(() => {
     const fetchProcurement = async () => {
@@ -100,6 +49,12 @@ const ProcurementDetails = () => {
         setLoading(true);
         const response = await api.get(`/procurements/${id}`);
         setProcurement(response.data);
+        setInvoices(
+          response.data.invoices.map((invoice) => {
+            console.log(invoice);
+            return { ...invoice, vendorName: response.data?.Vendor?.name };
+          })
+        );
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch procurement:", err);
@@ -166,11 +121,7 @@ const ProcurementDetails = () => {
         formData.append("file", invoiceData.file);
       }
 
-      await api.post("/invoices", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await api.post("/invoices", invoiceData);
 
       setIsInvoiceDialogOpen(false);
       // Optionally refresh procurement data or show success message
@@ -366,7 +317,7 @@ const ProcurementDetails = () => {
                   >
                     <div className="col-span-5">
                       <p className="font-medium">
-                        {item.RequisitionItem.Item.name}
+                        {item.RequisitionItem.Item?.name}
                       </p>
                       <p className="text-sm text-gray-600">
                         {item.RequisitionItem.Item.shortName}
@@ -411,7 +362,7 @@ const ProcurementDetails = () => {
               <div className="space-y-3">
                 <div>
                   <p className="font-semibold text-lg">
-                    {procurement.Vendor.name}
+                    {procurement.Vendor?.name}
                   </p>
                   <p className="text-sm text-gray-600">
                     {procurement.Vendor.contactPerson}

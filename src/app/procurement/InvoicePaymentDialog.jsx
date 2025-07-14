@@ -81,7 +81,7 @@ export const InvoicePaymentDialog = ({ invoice, onPaymentCreated }) => {
               </div>
               <div>
                 <p className="text-muted-foreground">Vendor</p>
-                <p className="font-medium">{invoice.vendor.name}</p>
+                <p className="font-medium">{invoice.vendorName}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Invoice Date</p>

@@ -8,7 +8,7 @@ import { CalendarIcon, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 
-export const InvoiceForm = ({ procurement, onSave }) => {
+const InvoiceForm = ({ procurement, onSave }) => {
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [amount, setAmount] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(null);
@@ -23,7 +23,7 @@ export const InvoiceForm = ({ procurement, onSave }) => {
       amount: parseFloat(amount),
       invoiceDate,
       notes,
-      file
+      // files:file
     });
   };
 
@@ -121,3 +121,5 @@ export const InvoiceForm = ({ procurement, onSave }) => {
     </div>
   );
 };
+
+export default InvoiceForm;
