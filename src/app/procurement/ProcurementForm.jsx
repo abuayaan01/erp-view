@@ -1,31 +1,6 @@
-import React, { useState, useEffect } from "react";
-import {
-  Plus,
-  Search,
-  Eye,
-  Calendar,
-  DollarSign,
-  Package,
-  User,
-  FileText,
-  CheckCircle,
-  AlertCircle,
-  Trash2,
-  Edit,
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -33,9 +8,29 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import api from "@/services/api/api-service";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import api from "@/services/api/api-service";
+import {
+  AlertCircle,
+  Calendar,
+  Eye,
+  FileText,
+  Package,
+  Plus,
+  User
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 const ProcurementForm = () => {
   // Get requisition ID from URL params (you can pass this as a prop instead)
@@ -93,7 +88,6 @@ const ProcurementForm = () => {
 
       if (response.status && response.data) {
         setRequisition(response.data);
-        console.log(response.data.items);
 
         // Map requisition items to procurement items
         if (response.data.items) {
@@ -302,7 +296,7 @@ const ProcurementForm = () => {
   // Loading state
   if (fetchingRequisition) {
     return (
-      <div className="max-w-6xl p-6">
+      <div className=" p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -316,7 +310,7 @@ const ProcurementForm = () => {
   // Error state - if no requisition found
   if (!requisition) {
     return (
-      <div className="max-w-6xl p-6">
+      <div className=" p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -331,7 +325,7 @@ const ProcurementForm = () => {
   }
 
   return (
-    <div className="max-w-6xl p-6 space-y-6">
+    <div className="ax-w-6xl p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Create New Procurement</h1>
         <Button variant="outline" onClick={() => navigateBack()}>

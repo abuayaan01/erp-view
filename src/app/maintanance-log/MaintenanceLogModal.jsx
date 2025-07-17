@@ -32,6 +32,7 @@ import {
   Trash2,
   Upload,
   FileText,
+  ArrowLeft,
 } from "lucide-react";
 import MaintenanceLogList from "./MaintenanceLogList";
 import MaintenanceLogDetails from "./MaintenanceLogDetails";
@@ -185,9 +186,13 @@ const MaintenanceLogPage = () => {
   };
 
   return (
-    <div className="container mx-auto max-w-screen-xl">
-      <div className="sm:max-w-[1200px]">
+    <div className="container ">
+      <div className="sm:max-w-[1200px]s">
         <div>
+          <Button variant="ghost" size="sm" onClick={()=>window.history.back()}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to List
+          </Button>
           <div className="text-xl flex items-center font-bold gap-2">
             <Wrench className="h-5 w-5" />
             Maintenance Log
@@ -198,9 +203,11 @@ const MaintenanceLogPage = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="history">Maintenance History</TabsTrigger>
-            <TabsTrigger value="stats">Maintenance Stats</TabsTrigger>
+          <TabsList className="grid grid-cols-1 mb-4">
+            <TabsTrigger value="history" disabled>
+              Maintenance History
+            </TabsTrigger>
+            {/* <TabsTrigger value="stats">Maintenance Stats</TabsTrigger> */}
           </TabsList>
 
           <TabsContent value="history" className="space-y-4">

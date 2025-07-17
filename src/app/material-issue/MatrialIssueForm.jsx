@@ -36,6 +36,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { useSelector } from "react-redux";
 import api from "@/services/api/api-service";
 import { useUserRoleLevel } from "@/utils/roles";
+import { toast } from "@/hooks/use-toast";
 
 const MaterialIssueForm = () => {
   const roleLevel = useUserRoleLevel();
@@ -108,27 +109,43 @@ const MaterialIssueForm = () => {
       toSite: reqData.requestingSite.name,
     }));
 
-    // Auto-populate items from requisition
-    const mappedItems = reqData.items.map((reqItem, index) => ({
-      id: `req-${reqItem.id}-${Date.now()}-${index}`,
-      itemId: reqItem.itemId,
-      itemName: reqItem.Item.name,
-      itemGroup: "", // You'll need to fetch this from your inventory
-      quantity: reqItem.quantity,
-      unit: "", // You'll need to get this from inventory
-      balance: 0, // Will be updated when inventory is fetched
-      issueTo: "Other Site",
-      vehicleId: null,
-      vehicleNumber: "",
-      vehicleKm: "",
-      vehicleHours: "",
-      siteId: reqData.requestingSiteId,
-      siteName: reqData.requestingSite.name,
-      requisitionItemId: reqItem.id, // Keep reference to original requisition item
-    }));
-
-    setIssueItems(mappedItems);
+    // Store requisition data to be processed after inventory is loaded
+    setRequisitionData(reqData);
   };
+  useEffect(() => {
+    if (requisitionData && inventory.length > 0) {
+      // Auto-populate items from requisition with inventory validation
+      const mappedItems = requisitionData.items.map((reqItem, index) => {
+        // Find the inventory item for this requisition item
+        const inventoryItem = inventory.find(
+          (inv) => inv.Item.id === reqItem.itemId
+        );
+
+        return {
+          id: `req-${reqItem.id}-${Date.now()}-${index}`,
+          itemId: reqItem.itemId,
+          itemName: reqItem.Item.name,
+          itemGroup: inventoryItem?.Item.ItemGroup.name || "",
+          quantity: reqItem.quantity,
+          unit:
+            inventoryItem?.Item.Unit?.shortName || reqItem.Item.Unit?.shortName,
+          balance: inventoryItem?.quantity || 0, // Available inventory balance
+          requestedQuantity: reqItem.quantity, // Original requested quantity
+          issueTo: "Other Site",
+          vehicleId: null,
+          vehicleNumber: "",
+          vehicleKm: "",
+          vehicleHours: "",
+          siteId: requisitionData.requestingSiteId,
+          siteName: requisitionData.requestingSite.name,
+          requisitionItemId: reqItem.id,
+          hasInventory: !!inventoryItem, // Flag to check if item exists in inventory
+        };
+      });
+
+      setIssueItems(mappedItems);
+    }
+  }, [requisitionData, inventory]);
 
   useEffect(() => {
     setFormData({
@@ -234,7 +251,11 @@ const MaterialIssueForm = () => {
 
   const handleAddItem = () => {
     if (!selectedItem || !quantity || Number(quantity) <= 0) {
-      alert("Please select an item and enter a valid quantity");
+      toast({
+        title: "Validation Error",
+        description: "Please select an item and enter a valid quantity",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -247,15 +268,21 @@ const MaterialIssueForm = () => {
 
     // Check if quantity exceeds balance
     if (Number(quantity) > item.balance) {
-      alert(
-        `Quantity exceeds available balance of ${item.balance} ${item.unit}`
-      );
+      toast({
+        title: "Quantity Error",
+        description: `Quantity exceeds available balance of ${item.balance} ${item.unit}`,
+        variant: "destructive",
+      });
       return;
     }
 
     // Validate required fields based on issueTo
     if (issueTo === "vehicle" && !selectedVehicle) {
-      alert("Please select a vehicle");
+      toast({
+        title: "Selection Required",
+        description: "Please select a vehicle",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -264,9 +291,12 @@ const MaterialIssueForm = () => {
         (item) => item.itemId === Number(selectedItem)
       );
       if (existingItem) {
-        alert(
-          "Item already exists from requisition. Please modify the existing item instead."
-        );
+        toast({
+          title: "Duplicate Item",
+          description:
+            "Item already exists from requisition. Please modify the existing item instead.",
+          variant: "destructive",
+        });
         return;
       }
     }
@@ -309,17 +339,23 @@ const MaterialIssueForm = () => {
   // Add function to modify existing items
   const handleModifyItem = (itemId, newQuantity) => {
     if (newQuantity <= 0) {
-      alert("Quantity must be greater than 0");
+      toast({
+        title: "Invalid Quantity",
+        description: "Quantity must be greater than 0",
+        variant: "destructive",
+      });
       return;
     }
 
     const item = issueItems.find((i) => i.id === itemId);
-    const inventoryItem = items.find((i) => i.id === item.itemId);
 
-    if (newQuantity > inventoryItem.balance) {
-      alert(
-        `Quantity exceeds available balance of ${inventoryItem.balance} ${inventoryItem.unit}`
-      );
+    // Check against inventory balance
+    if (newQuantity > item.balance) {
+      toast({
+        title: "Quantity Error",
+        description: `Quantity exceeds available inventory balance of ${item.balance} ${item.unit}`,
+        variant: "destructive",
+      });
       return;
     }
 
@@ -334,17 +370,59 @@ const MaterialIssueForm = () => {
 
   const handleSave = async () => {
     if (issueItems.length === 0) {
-      alert("Please add at least one item");
+      toast({
+        title: "No Items",
+        description: "Please add at least one item",
+        variant: "destructive",
+      });
+
       return;
     }
 
+    if (reqId) {
+      const itemsWithoutInventory = issueItems.filter(
+        (item) => !item.hasInventory
+      );
+      if (itemsWithoutInventory.length > 0) {
+        toast({
+          title: "Items Not Available",
+          description: `Cannot issue items that are not available in inventory: ${itemsWithoutInventory
+            .map((i) => i.itemName)
+            .join(", ")}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const itemsExceedingInventory = issueItems.filter(
+        (item) => item.quantity > item.balance
+      );
+      if (itemsExceedingInventory.length > 0) {
+        toast({
+          title: "Quantity Exceeded",
+          description:
+            "Some items exceed available inventory. Please adjust quantities.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     if (!formData.issueLocation) {
-      alert("Please select an issue site");
+      toast({
+        title: "Site Required",
+        description: "Please select an issue site",
+        variant: "destructive",
+      });
       return;
     }
 
     if (issueType === "transfer" && !formData.toSite) {
-      alert("Please select a destination site for transfer");
+      toast({
+        title: "Destination Required",
+        description: "Please select a destination site for transfer",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -380,11 +458,18 @@ const MaterialIssueForm = () => {
       // Make the API call
       await api.post("/material-issues", requestBody);
 
-      alert("Material issue saved successfully!");
+      toast({
+        title: "Success",
+        description: "Material issue saved successfully!",
+        variant: "default", // or just omit variant for default success style
+      });
       navigate("/issues");
     } catch (error) {
-      console.error("Failed to save material issue:", error);
-      alert("Failed to save material issue. Please try again.");
+      toast({
+        title: "Save Failed",
+        description: "Failed to save material issue. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -392,7 +477,11 @@ const MaterialIssueForm = () => {
 
   const handlePrint = () => {
     if (issueItems.length === 0) {
-      alert("Please add at least one item");
+      toast({
+        title: "No Items",
+        description: "Please add at least one item",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -412,7 +501,7 @@ const MaterialIssueForm = () => {
   // }
 
   return (
-    <div className="container mx-auto py-6 max-w-6xl">
+    <div className="container py-6">
       {!showPdf ? (
         <>
           <div className="flex justify-between items-center mb-6">
@@ -736,6 +825,7 @@ const MaterialIssueForm = () => {
                       <TableHead>Item</TableHead>
                       <TableHead>Quantity</TableHead>
                       <TableHead>Unit</TableHead>
+                      {reqId && <TableHead>Inventory</TableHead>}
                       <TableHead>Issue To</TableHead>
                       <TableHead>Details</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -745,7 +835,7 @@ const MaterialIssueForm = () => {
                     {issueItems.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={7}
+                          colSpan={8}
                           className="text-center py-6 text-muted-foreground"
                         >
                           {reqId
@@ -755,30 +845,64 @@ const MaterialIssueForm = () => {
                       </TableRow>
                     ) : (
                       issueItems.map((item, index) => (
-                        <TableRow key={item.id}>
+                        <TableRow
+                          key={item.id}
+                          className={!item.hasInventory ? "bg-red-50" : ""}
+                        >
                           <TableCell>{index + 1}</TableCell>
-                          <TableCell>{item.itemName}</TableCell>
-                          {/* <TableCell>{item.quantity}</TableCell> */}
+                          <TableCell>
+                            <div>
+                              {item.itemName}
+                              {reqId && !item.hasInventory && (
+                                <div className="text-xs text-red-600 mt-1">
+                                  Not available in inventory
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             {reqId ? (
-                              <Input
-                                type="number"
-                                min="0.01"
-                                step="0.01"
-                                value={item.quantity}
-                                onChange={(e) =>
-                                  handleModifyItem(
-                                    item.id,
-                                    Number(e.target.value)
-                                  )
-                                }
-                                className="w-20"
-                              />
+                              <div className="flex flex-col">
+                                <Input
+                                  type="number"
+                                  min="0.01"
+                                  step="0.01"
+                                  value={item.quantity}
+                                  onChange={(e) =>
+                                    handleModifyItem(
+                                      item.id,
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                  className="w-20"
+                                  disabled={!item.hasInventory}
+                                />
+                                {reqId && (
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    Req: {item.requestedQuantity}
+                                  </div>
+                                )}
+                              </div>
                             ) : (
                               item.quantity
                             )}
                           </TableCell>
                           <TableCell>{item.unit}</TableCell>
+                          <TableCell>
+                            {reqId && (
+                              <div className="text-sm">
+                                <div
+                                  className={
+                                    item.hasInventory
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                  }
+                                >
+                                  Avail: {item.balance} {item.unit}
+                                </div>
+                              </div>
+                            )}
+                          </TableCell>
                           <TableCell>
                             {item.issueTo === "vehicle"
                               ? "Vehicle"

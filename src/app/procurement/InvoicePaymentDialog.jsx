@@ -5,29 +5,68 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/services/api/api-service";
 
 export const InvoicePaymentDialog = ({ invoice, onPaymentCreated }) => {
   const { toast } = useToast();
   const [paymentDate, setPaymentDate] = useState(new Date());
   const [amount, setAmount] = useState(invoice.amount.toString());
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [referenceNumber, setReferenceNumber] = useState("");
   const [remarks, setRemarks] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [paymentSlipUrl, setPaymentSlipUrl] = useState(null);
 
+  const paymentMethods = [
+    { value: "CASH", label: "Cash" },
+    { value: "CHEQUE", label: "Cheque" },
+    { value: "BANK_TRANSFER", label: "Bank Transfer" },
+    { value: "ONLINE_PAYMENT", label: "Online Payment" },
+    { value: "OTHER", label: "Other" },
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsGenerating(true);
-    
+
     try {
-      const response = await api.post("/payments", {
+      const requestBody = {
         invoiceId: invoice.id,
         paymentDate: paymentDate.toISOString(),
         amount: parseFloat(amount),
+        paymentMethod,
         remarks,
-      });
+      };
+
+      // Only include referenceNumber if it's not empty
+      if (referenceNumber.trim()) {
+        requestBody.referenceNumber = referenceNumber;
+      }
+
+      const response = await api.post(
+        `/invoices/${invoice.id}/payments`,
+        requestBody
+      );
 
       setPaymentSlipUrl(response.data.paymentSlipUrl);
       toast({
@@ -38,7 +77,8 @@ export const InvoicePaymentDialog = ({ invoice, onPaymentCreated }) => {
     } catch (error) {
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to generate payment slip",
+        description:
+          error.response?.data?.message || "Failed to generate payment slip",
         variant: "destructive",
       });
     } finally {
@@ -48,7 +88,7 @@ export const InvoicePaymentDialog = ({ invoice, onPaymentCreated }) => {
 
   const handleDownload = () => {
     if (paymentSlipUrl) {
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = paymentSlipUrl;
       link.download = `payment-slip-${invoice.invoiceNumber}.pdf`;
       document.body.appendChild(link);
@@ -65,12 +105,12 @@ export const InvoicePaymentDialog = ({ invoice, onPaymentCreated }) => {
           Generate Payment
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Generate Payment Slip</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           <div className="border rounded-lg p-4">
             <h3 className="font-medium mb-3">Invoice Details</h3>
@@ -135,6 +175,36 @@ export const InvoicePaymentDialog = ({ invoice, onPaymentCreated }) => {
             </div>
 
             <div>
+              <Label htmlFor="paymentMethod">Payment Method *</Label>
+              <Select
+                value={paymentMethod}
+                onValueChange={setPaymentMethod}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods.map((method) => (
+                    <SelectItem key={method.value} value={method.value}>
+                      {method.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="referenceNumber">Reference Number</Label>
+              <Input
+                id="referenceNumber"
+                value={referenceNumber}
+                onChange={(e) => setReferenceNumber(e.target.value)}
+                placeholder="Transaction ID, Cheque number, etc."
+              />
+            </div>
+
+            <div>
               <Label htmlFor="remarks">Remarks</Label>
               <Input
                 id="remarks"
@@ -157,7 +227,7 @@ export const InvoicePaymentDialog = ({ invoice, onPaymentCreated }) => {
               ) : (
                 <Button
                   type="submit"
-                  disabled={isGenerating}
+                  disabled={isGenerating || !paymentMethod}
                   className="gap-2"
                 >
                   {isGenerating ? "Generating..." : "Generate Payment Slip"}

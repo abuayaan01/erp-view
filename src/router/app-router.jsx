@@ -252,12 +252,10 @@ function AppRouter() {
         <Route path="/procure/:requisitionId" element={<ProcurementForm />} />
 
         {/* Invoices */}
-        <Route path="/invoice/:procurementId" element={<InvoiceForm />} />
-
-        {/* Payments */}
+        {/* <Route path="/invoice/:procurementId" element={<InvoiceForm />} />
         <Route path="/payments" element={<PaymentList />} />
         <Route path="/payment/:id" element={<PaymentSlipForm />} />
-        <Route path="/payment/invoice/:id" element={<PaymentSlipForm />} />
+        <Route path="/payment/invoice/:id" element={<PaymentSlipForm />} /> */}
 
         {/* Users Management */}
         <Route

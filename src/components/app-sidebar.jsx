@@ -177,12 +177,12 @@ const data = {
       icon: ShoppingCart,
       collapsible: false,
     },
-    {
-      title: "Payment Slip",
-      url: "/payments",
-      icon: Receipt,
-      collapsible: false,
-    },
+    // {
+    //   title: "Payment Slip",
+    //   url: "/payments",
+    //   icon: Receipt,
+    //   collapsible: false,
+    // },
     {
       title: "Parts & Units Setup",
       url: "#",

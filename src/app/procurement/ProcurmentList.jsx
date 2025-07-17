@@ -116,8 +116,7 @@ const TableRow = ({ procurement, navigate }) => (
           className="px-3 py-1 text-xs"
           onClick={() => navigate("/procurements/" + procurement.id)}
         >
-          <FileText className="h-3 w-3 mr-1" />
-          Add Invoice
+          view
         </Button>
       </div>
     </div>
@@ -165,7 +164,7 @@ const ProcurementFilters = ({
   </Card>
 );
 
-const ProcurementList = ({ onViewDetails }) => {
+const ProcurementList = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -222,7 +221,7 @@ const ProcurementList = ({ onViewDetails }) => {
         <h1 className="text-3xl font-bold text-gray-900">Procurement Orders</h1>
         <Button
           className="bg-blue-600 hover:bg-blue-700"
-          onClick={() => navigate("/procure/new")}
+          onClick={() => navigate("/requisitions")}
         >
           <Plus className="h-4 w-4 mr-2" />
           New Procurement
