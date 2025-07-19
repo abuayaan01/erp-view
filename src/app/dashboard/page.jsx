@@ -6,6 +6,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import {
   Activity,
   AlertCircle,
@@ -44,9 +46,7 @@ import {
   Wrench,
   XCircle,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-
-import api from "@/services/api/api-service";
+import { useState } from "react";
 
 export function MainDashboard() {
   const [timeframe, setTimeframe] = useState("month");
@@ -56,75 +56,22 @@ export function MainDashboard() {
     endDate: "2025-07-18",
   });
 
-  const [overview, setOverview] = useState({});
-  const [alerts, setAlerts] = useState([]);
-  const [machineStatus, setMachineStatus] = useState([]);
-  const [sitesSummary, setSitesSummary] = useState([]);
-  const [inventoryAlerts, setInventoryAlerts] = useState([]);
-  const [maintenanceDue, setMaintenanceDue] = useState([]);
-  const [procurementsPending, setProcurementsPending] = useState([]);
-  const [paymentsOutstanding, setPaymentsOutstanding] = useState([]);
-  const [expensesMonthly, setExpensesMonthly] = useState([]);
-  const [recentActivities, setRecentActivities] = useState({});
+  const { data, isLoading, isError, errors, refetchAll } =
+    useDashboardData(filters);
+  const {
+    overview,
+    alerts,
+    recentActivities,
+    machineStatus,
+    sitesSummary,
+    inventoryAlerts,
+    maintenanceDue,
+    procurementsPending,
+    paymentsOutstanding,
+    expensesMonthly,
+  } = data;
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchAll = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        params.append("siteId", filters.siteId);
-        params.append("dateRange[startDate]", filters.startDate);
-        params.append("dateRange[endDate]", filters.endDate);
-
-        const [
-          overviewRes,
-          alertsRes,
-          activitiesRes,
-          machineRes,
-          sitesRes,
-          invAlertsRes,
-          maintRes,
-          procRes,
-          payRes,
-          expRes,
-        ] = await Promise.all([
-          api.get(`/dashboard/overview?${params}`),
-          api.get(`/dashboard/alerts?${params}`),
-          api.get(`/dashboard/recent-activities?${params}`),
-          api.get(`/dashboard/machines/status?${params}`),
-          api.get(`/dashboard/sites/summary?${params}`),
-          api.get(`/dashboard/inventory/alerts?${params}`),
-          api.get(`/dashboard/maintenance/due?${params}`),
-          api.get(`/dashboard/procurement/pending?${params}`),
-          api.get(`/dashboard/payments/outstanding?${params}`),
-          api.get(`/dashboard/expenses/monthly?${params}`),
-        ]);
-
-        setOverview(overviewRes.data);
-        setAlerts(alertsRes.data.certificateExpiries || []);
-        setRecentActivities(activitiesRes.data || {});
-        setMachineStatus(machineRes.data || []);
-        setSitesSummary(sitesRes.data || []);
-        setInventoryAlerts(invAlertsRes.data || []);
-        setMaintenanceDue(maintRes.data || []);
-        setProcurementsPending(procRes.data || []);
-        setPaymentsOutstanding(payRes.data || []);
-        setExpensesMonthly(expRes.data || []);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load dashboard data. Try refreshing.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAll();
-  }, [filters]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center space-y-4">
@@ -142,7 +89,7 @@ export function MainDashboard() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Card className="w-full max-w-md border border-red-200">
@@ -153,7 +100,7 @@ export function MainDashboard() {
                 <h3 className="text-lg font-semibold text-gray-900">
                   Error Loading Dashboard
                 </h3>
-                <p className="text-gray-600 mt-1">{error}</p>
+                <p className="text-gray-600 mt-1">{errors}</p>
               </div>
               <Button
                 onClick={() => window.location.reload()}
@@ -241,16 +188,6 @@ export function MainDashboard() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto">
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Download className="w-4 h-4" />
-                  <span>Export</span>
-                </Button>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Filter className="w-4 h-4" />
-                  <span>Filter</span>
-                </Button>
-              </div>
               <Select value={timeframe} onValueChange={setTimeframe}>
                 <SelectTrigger className="w-full sm:w-40">
                   <SelectValue placeholder="Timeframe" />
@@ -357,48 +294,221 @@ export function MainDashboard() {
           </Card>
         </div>
 
-        {/* Critical Alerts */}
-        {alerts.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-            <div className="flex items-center bg-red-50 dark:bg-red-900/20 px-6 py-4 border-b border-red-100 dark:border-red-800">
-              <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Critical Alerts
-              </h2>
-              <Badge variant="destructive" className="ml-2">
-                {alerts.length}
-              </Badge>
+        <Card>
+          <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                <CardTitle className="text-lg font-semibold">
+                  Critical Alerts
+                </CardTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="destructive">
+                  {alerts?.certificateExpiries?.length || 0}
+                </Badge>
+                <Button variant="ghost" size="sm" className="text-primary">
+                  View All
+                </Button>
+              </div>
             </div>
-            <div className="divide-y divide-gray-100 dark:divide-gray-700">
-              {alerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5">
-                        <AlertTriangle className="w-5 h-5 text-red-500" />
+          </CardHeader>
+          <CardContent className="p-0">
+            {alerts?.certificateExpiries?.length > 0 ? (
+              <div className="divide-y divide-red-100 dark:divide-red-900/20">
+                {alerts.certificateExpiries.map((machine) => {
+                  // Calculate days until expiry for each certificate
+                  const now = new Date();
+                  const expiries = [
+                    {
+                      type: "Pollution Cert.",
+                      date: machine.pollutionCertificateExpiry,
+                      daysLeft: Math.floor(
+                        (new Date(machine.pollutionCertificateExpiry) - now) /
+                          (1000 * 60 * 60 * 24)
+                      ),
+                    },
+                    {
+                      type: "Fitness Cert.",
+                      date: machine.fitnessCertificateExpiry,
+                      daysLeft: Math.floor(
+                        (new Date(machine.fitnessCertificateExpiry) - now) /
+                          (1000 * 60 * 60 * 24)
+                      ),
+                    },
+                    {
+                      type: "Insurance",
+                      date: machine.insuranceExpiry,
+                      daysLeft: Math.floor(
+                        (new Date(machine.insuranceExpiry) - now) /
+                          (1000 * 60 * 60 * 24)
+                      ),
+                    },
+                    {
+                      type: "Permit",
+                      date: machine.permitExpiryDate,
+                      daysLeft: Math.floor(
+                        (new Date(machine.permitExpiryDate) - now) /
+                          (1000 * 60 * 60 * 24)
+                      ),
+                    },
+                    {
+                      type: "Vehicle Tax",
+                      date: machine.motorVehicleTaxDue,
+                      daysLeft: Math.floor(
+                        (new Date(machine.motorVehicleTaxDue) - now) /
+                          (1000 * 60 * 60 * 24)
+                      ),
+                    },
+                  ]
+                    .filter((e) => e.date)
+                    .sort((a, b) => a.daysLeft - b.daysLeft);
+
+                  const nearestExpiry = expiries[0];
+
+                  return (
+                    <div
+                      key={machine.id}
+                      className="p-4 hover:bg-red-50/50 dark:hover:bg-red-900/30 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div className="p-2 rounded-full bg-red-100 dark:bg-red-900/50 mt-0.5">
+                            <AlertTriangle className="w-4 h-4 text-red-500 dark:text-red-400" />
+                          </div>
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex items-baseline gap-2">
+                              <h4 className="font-medium text-gray-900 dark:text-white">
+                                {machine.machineName}
+                              </h4>
+                              <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
+                                {machine.registrationNumber || machine.erpCode}
+                              </span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                              <div className="flex items-center gap-1">
+                                <Building className="w-3 h-3 text-gray-400" />
+                                <span className="text-gray-500 dark:text-gray-400">
+                                  {machine.site?.name ||
+                                    `Site ${machine.siteId}`}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-gray-400" />
+                                <span
+                                  className={
+                                    nearestExpiry.daysLeft <= 7
+                                      ? "text-red-500 font-medium"
+                                      : "text-gray-500 dark:text-gray-400"
+                                  }
+                                >
+                                  {nearestExpiry.type} expires in{" "}
+                                  {nearestExpiry.daysLeft} days
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                              <Badge
+                                variant="outline"
+                                className="text-xs capitalize"
+                              >
+                                {machine.status}
+                              </Badge>
+                              {machine.model && (
+                                <Badge variant="outline" className="text-xs">
+                                  {machine.make} {machine.model}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="shrink-0 text-gray-500 hover:text-primary"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white">
-                          {alert.documentType} expires in {alert.daysLeft} days
-                        </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          {alert.machineName} • Expires:{" "}
-                          {formatDate(alert.expiryDate)}
-                        </p>
+
+                      {/* Additional expiry details */}
+                      <div className="mt-3 pl-11">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                          {expiries.map((cert) => (
+                            <div
+                              key={`${machine.id}-${cert.type}`}
+                              className="text-xs p-2 rounded border border-gray-200 dark:border-gray-700"
+                            >
+                              <div className="font-medium">{cert.type}</div>
+                              <div
+                                className={
+                                  cert.daysLeft <= 30
+                                    ? "text-red-500"
+                                    : "text-gray-500 dark:text-gray-400"
+                                }
+                              >
+                                {formatDate(cert.date)}
+                              </div>
+                              <div
+                                className={
+                                  cert.daysLeft <= 30
+                                    ? "text-red-500 font-medium"
+                                    : "text-gray-500 dark:text-gray-400"
+                                }
+                              >
+                                {cert.daysLeft > 0
+                                  ? `${cert.daysLeft}d left`
+                                  : "Expired"}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" className="text-primary">
-                      View
-                    </Button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                <CheckCircle className="w-12 h-12 text-green-500 opacity-50" />
+                <p className="mt-2">No critical alerts</p>
+              </div>
+            )}
+          </CardContent>
+
+          {/* Additional alert summaries */}
+          {(alerts?.pendingApprovals > 0 || alerts?.maintenanceOverdue > 0) && (
+            <CardFooter className="bg-gray-50 dark:bg-gray-800 border-t">
+              <div className="flex flex-wrap items-center gap-4">
+                {alerts.pendingApprovals > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Clipboard className="w-4 h-4 text-amber-500" />
+                    <span className="text-sm">
+                      <span className="font-medium">
+                        {alerts.pendingApprovals}
+                      </span>{" "}
+                      pending approvals
+                    </span>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+                )}
+                {alerts.maintenanceOverdue > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Wrench className="w-4 h-4 text-red-500" />
+                    <span className="text-sm">
+                      <span className="font-medium">
+                        {alerts.maintenanceOverdue}
+                      </span>{" "}
+                      overdue maintenance
+                    </span>
+                  </div>
+                )}
+              </div>
+            </CardFooter>
+          )}
+        </Card>
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -448,7 +558,9 @@ export function MainDashboard() {
                             </Badge>
                             <Progress
                               value={
-                                (parseInt(status.count) / overview.totalMachines) * 100
+                                (parseInt(status.count) /
+                                  overview.totalMachines) *
+                                100
                               }
                               className="w-32 h-2"
                               indicatorColor={
