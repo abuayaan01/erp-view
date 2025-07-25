@@ -1,7 +1,25 @@
 "use client";
 
+import { useState } from "react";
+import { format } from "date-fns";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+import { Tooltip } from "@/components/ui/tooltip";
+
 import {
   ArrowLeft,
   CheckCircle,
@@ -19,8 +37,10 @@ import {
   FileText,
   Shield,
   Hash,
+  Download,
+  Printer,
+  Edit,
 } from "lucide-react";
-import { format } from "date-fns";
 
 import {
   Card,
@@ -29,315 +49,297 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 
-const MaintenanceLogDetails = ({ log, onBack }) => {
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "completed":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1"
-          >
-            <CheckCircle className="h-3 w-3" /> Completed
-          </Badge>
-        );
-      case "in_progress":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1"
-          >
-            <Clock className="h-3 w-3" /> In Progress
-          </Badge>
-        );
-      case "scheduled":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-orange-50 text-orange-700 border-orange-200 flex items-center gap-1"
-          >
-            <AlertTriangle className="h-3 w-3" /> Scheduled
-          </Badge>
-        );
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
+export default function MaintenanceLogDetails({ log, onBack }) {
+  const [tab, setTab] = useState("overview");
+
+  const formatDate = (d) =>
+    format(new Date(d), "MMM d, yyyy 'at' h:mm a");
+
+  const statusBadge = {
+    completed: {
+      icon: <CheckCircle className="h-4 w-4" />,
+      label: "Completed",
+      className: "bg-green-50 text-green-700 border-green-200",
+    },
+    in_progress: {
+      icon: <Clock className="h-4 w-4" />,
+      label: "In Progress",
+      className: "bg-blue-50 text-blue-700 border-blue-200",
+    },
+    scheduled: {
+      icon: <AlertTriangle className="h-4 w-4" />,
+      label: "Scheduled",
+      className: "bg-orange-50 text-orange-700 border-orange-200",
+    },
+  }[log.status] || {
+    icon: null,
+    label: log.status,
+    className: "bg-gray-100",
   };
 
-  const getMaintenanceTypeBadge = (type) => {
-    switch (type) {
-      case "repair":
-        return <Badge variant="destructive">Repair</Badge>;
-      case "preventive":
-        return <Badge variant="default">Preventive</Badge>;
-      case "inspection":
-        return <Badge variant="secondary">Inspection</Badge>;
-      case "oil_change":
-        return <Badge variant="outline">Oil Change</Badge>;
-      case "parts_replacement":
-        return <Badge variant="warning">Parts Replacement</Badge>;
-      default:
-        return <Badge>{type}</Badge>;
-    }
-  };
-
-  const formatDate = (dateString) => {
-    try {
-      return format(new Date(dateString), "MMMM d, yyyy 'at' h:mm a");
-    } catch (error) {
-      return dateString;
-    }
-  };
+  const typeBadge = {
+    repair: ["destructive", "Repair"],
+    preventive: ["default", "Preventive"],
+    inspection: ["secondary", "Inspection"],
+    oil_change: ["outline", "Oil Change"],
+    parts_replacement: ["warning", "Parts Replacement"],
+  }[log.type] || ["default", log.type];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <Button variant="ghost" size="sm" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to List
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          Back
         </Button>
+        <h2 className="text-2xl font-semibold">{log.title}</h2>
+        {/* placeholder to balance flex */}
+        <div style={{ width: 48 }} />
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h3 className="text-xl font-semibold">{log.title}</h3>
-          <p className="text-sm text-muted-foreground mb-2">
-            Machine ID: {log.machineId}
-          </p>
-          <div className="flex items-center gap-2 mt-1">
-            {getMaintenanceTypeBadge(log.type)}
-            {getStatusBadge(log.status)}
+      {/* Summary Card */}
+      <Card className="mb-4 shadow-sm">
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground">Machine ID</p>
+            <p className="font-medium">{log.machineId}</p>
           </div>
-        </div>
-        <div className="text-right">
-          <div className="text-lg font-semibold">₹{log.cost}</div>
-          <div className="text-sm text-muted-foreground">Total Cost</div>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Calendar className="h-4 w-4" />
-            <span>Date</span>
+          <div>
+            <p className="text-sm text-muted-foreground">Type & Status</p>
+            <div className="flex items-center gap-2">
+              <Badge variant={typeBadge[0]}>{typeBadge[1]}</Badge>
+              <Badge
+                variant="outline"
+                className={`${statusBadge.className} flex items-center gap-1`}
+              >
+                {statusBadge.icon}
+                {statusBadge.label}
+              </Badge>
+            </div>
           </div>
-          <p>{formatDate(log.date)}</p>
-        </div>
-
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <User className="h-4 w-4" />
-            <span>Technician</span>
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Total Cost</p>
+            <p className="text-lg font-semibold">
+              ₹{log.cost.toLocaleString()}
+            </p>
           </div>
-          <p>{log.technician}</p>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Wrench className="h-4 w-4" />
-            <span>Hours at Service</span>
+      {/* Tabs */}
+      <Tabs value={tab} onValueChange={setTab} className="flex-1 overflow-auto">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="vendors">Vendor & Parts</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+        </TabsList>
+
+        {/* Overview */}
+        <TabsContent value="overview" className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <div className="flex items-center text-muted-foreground mb-1">
+                <Calendar className="h-4 w-4 mr-1" />
+                <span>Date</span>
+              </div>
+              <p>{formatDate(log.date)}</p>
+            </div>
+            <div>
+              <div className="flex items-center text-muted-foreground mb-1">
+                <User className="h-4 w-4 mr-1" />
+                <span>Technician</span>
+              </div>
+              <p>{log.technician}</p>
+            </div>
+            <div>
+              <div className="flex items-center text-muted-foreground mb-1">
+                <Wrench className="h-4 w-4 mr-1" />
+                <span>Hours at Service</span>
+              </div>
+              <p>{log.hoursAtService}</p>
+            </div>
           </div>
-          <p>{log.hoursAtService}</p>
-        </div>
 
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <IndianRupee className="h-4 w-4" />
-            <span>Cost</span>
+          <Separator />
+
+          <div className="mt-4">
+            <h3 className="text-lg font-medium mb-2">Description</h3>
+            <p className="text-muted-foreground">{log.description}</p>
           </div>
-          <p>₹{log.cost}</p>
-        </div>
-      </div>
+        </TabsContent>
 
-      <div className="space-y-2">
-        <h4 className="font-medium">Description</h4>
-        <p className="text-muted-foreground">{log.description}</p>
-      </div>
+        {/* Vendor & Parts */}
+        <TabsContent value="vendors" className="p-4 space-y-4">
+          {!log.vendorAndPartsDetails?.length && (
+            <p className="text-center text-muted-foreground">
+              No vendors or parts recorded.
+            </p>
+          )}
 
-      {log.parts && (
-        <div className="space-y-2">
-          <h4 className="font-medium flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Parts Used (Legacy)
-          </h4>
-          <p className="text-muted-foreground">{log.parts}</p>
-        </div>
-      )}
-
-      {/* Vendor and Parts Details */}
-      {log.vendorAndPartsDetails && log.vendorAndPartsDetails.length > 0 && (
-        <div className="space-y-4">
-          <h4 className="font-medium flex items-center gap-2">
-            <Building className="h-4 w-4" />
-            Vendor & Parts Details
-          </h4>
-
-          <div className="grid gap-4">
-            {log.vendorAndPartsDetails.map((vendor, vendorIndex) => (
-              <Card key={vendor.id} className="border-l-4 border-l-blue-500">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Building className="h-4 w-4" />
-                    {vendor.name}
-                  </CardTitle>
-                  <CardDescription>Vendor #{vendorIndex + 1}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Vendor Contact Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <User className="h-4 w-4" />
-                        <span>Contact Person</span>
-                      </div>
+          <Accordion type="single" collapsible>
+            {log.vendorAndPartsDetails?.map((vendor, i) => (
+              <AccordionItem key={vendor.id} value={`vendor-${vendor.id}`}>
+                <AccordionTrigger>
+                  <Building className="h-5 w-5 mr-2" />
+                  {vendor.name} (Vendor #{i + 1})
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Contact Person
+                      </p>
                       <p>{vendor.contactPerson}</p>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Mail className="h-4 w-4" />
-                        <span>Email</span>
-                      </div>
-                      <p>{vendor.email}</p>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Email
+                      </p>
+                      <p>
+                        <a
+                          href={`mailto:${vendor.email}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {vendor.email}
+                        </a>
+                      </p>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Phone className="h-4 w-4" />
-                        <span>Phone</span>
-                      </div>
-                      <p>{vendor.phone}</p>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Phone
+                      </p>
+                      <p>
+                        <a
+                          href={`tel:${vendor.phone}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {vendor.phone}
+                        </a>
+                      </p>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        <span>Address</span>
-                      </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Address
+                      </p>
                       <p>{vendor.address}</p>
                     </div>
                   </div>
 
-                  {/* Parts Details */}
-                  {vendor.parts && vendor.parts.length > 0 && (
+                  {vendor.parts?.length > 0 && (
                     <>
-                      <Separator />
+                      <Separator className="my-4" />
+                      <h4 className="font-medium mb-3">
+                        <Package className="h-5 w-5 mr-2 inline-block" />
+                        Parts Supplied ({vendor.parts.length})
+                      </h4>
                       <div className="space-y-3">
-                        <h5 className="font-medium flex items-center gap-2">
-                          <Package className="h-4 w-4" />
-                          Parts Supplied ({vendor.parts.length})
-                        </h5>
-
-                        <div className="grid gap-3">
-                          {vendor.parts.map((part, partIndex) => (
-                            <Card key={part.id} className="bg-muted/50">
-                              <CardContent className="p-4">
-                                <div className="flex justify-between items-start mb-3">
-                                  <h6 className="font-medium">{part.name}</h6>
-                                  <Badge variant="secondary">
-                                    Qty: {part.quantity}
-                                  </Badge>
+                        {vendor.parts.map((part) => (
+                          <Card key={part.id} className="bg-muted/50">
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-center mb-3">
+                                <h5 className="font-medium">{part.name}</h5>
+                                <Badge variant="secondary">
+                                  Qty: {part.quantity}
+                                </Badge>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <p className="text-muted-foreground mb-1">
+                                    <Hash className="h-4 w-4 inline-block mr-1" />
+                                    Part Number
+                                  </p>
+                                  <p>{part.partNumber}</p>
                                 </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                  <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-muted-foreground">
-                                      <Hash className="h-3 w-3" />
-                                      <span>Part Number</span>
-                                    </div>
-                                    <p>{part.partNumber}</p>
-                                  </div>
-
-                                  <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-muted-foreground">
-                                      <Shield className="h-3 w-3" />
-                                      <span>Warranty Period</span>
-                                    </div>
-                                    <p>{part.warrantyPeriod}</p>
-                                  </div>
+                                <div>
+                                  <p className="text-muted-foreground mb-1">
+                                    <Shield className="h-4 w-4 inline-block mr-1" />
+                                    Warranty Period
+                                  </p>
+                                  <p>{part.warrantyPeriod}</p>
                                 </div>
+                              </div>
 
-                                {/* File attachments */}
-                                <div className="mt-3 space-y-2">
-                                  {part.taxInvoiceFile && (
-                                    <div className="flex items-center justify-between p-2 bg-background rounded border">
-                                      <div className="flex items-center gap-2">
-                                        <FileText className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">
-                                          Tax Invoice
-                                        </span>
-                                      </div>
-                                      <Button variant="ghost" size="sm">
-                                        <FileText className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  )}
-
-                                  {part.warrantyCardFile && (
-                                    <div className="flex items-center justify-between p-2 bg-background rounded border">
-                                      <div className="flex items-center gap-2">
-                                        <Shield className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">
-                                          Warranty Card
-                                        </span>
-                                      </div>
-                                      <Button variant="ghost" size="sm">
-                                        <FileText className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  )}
-
-                                  {!part.taxInvoiceFile &&
-                                    !part.warrantyCardFile && (
-                                      <p className="text-sm text-muted-foreground italic">
-                                        No files attached
-                                      </p>
+                              <div className="mt-3 space-y-2">
+                                {(part.taxInvoiceFile || part.warrantyCardFile) ? (
+                                  <>
+                                    {part.taxInvoiceFile && (
+                                      <Tooltip content="Download Tax Invoice">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            window.open(part.taxInvoiceFile, "_blank")
+                                          }
+                                        >
+                                          <FileText className="h-4 w-4" />
+                                        </Button>
+                                      </Tooltip>
                                     )}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
+                                    {part.warrantyCardFile && (
+                                      <Tooltip content="Download Warranty Card">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            window.open(part.warrantyCardFile, "_blank")
+                                          }
+                                        >
+                                          <FileText className="h-4 w-4" />
+                                        </Button>
+                                      </Tooltip>
+                                    )}
+                                  </>
+                                ) : (
+                                  <p className="italic text-sm text-muted-foreground">
+                                    No files attached
+                                  </p>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
                     </>
                   )}
-                </CardContent>
-              </Card>
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
-        </div>
-      )}
+          </Accordion>
+        </TabsContent>
 
-      {/* Timestamps */}
-      <div className="space-y-4">
-        <h4 className="font-medium">Timeline</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>Created At</span>
+        {/* Timeline */}
+        <TabsContent value="timeline" className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">
+                Created At
+              </p>
+              <p>{formatDate(log.createdAt)}</p>
             </div>
-            <p>{formatDate(log.createdAt)}</p>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>Last Updated</span>
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">
+                Last Updated
+              </p>
+              <p>{formatDate(log.updatedAt)}</p>
             </div>
-            <p>{formatDate(log.updatedAt)}</p>
           </div>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
 
-      {/* <div className="flex justify-end gap-2">
-        <Button variant="outline">Download Report</Button>
-        <Button variant="outline">Print</Button>
-        <Button>Edit</Button>
+      {/* Sticky Actions Bar */}
+      {/* <div className="flex justify-end gap-2 p-3 border-t bg-white sticky bottom-0">
+        <Button variant="outline" size="sm">
+          <Download className="mr-1 h-4 w-4" /> Download
+        </Button>
+        <Button variant="outline" size="sm">
+          <Printer className="mr-1 h-4 w-4" /> Print
+        </Button>
+        <Button size="sm">
+          <Edit className="mr-1 h-4 w-4" /> Edit
+        </Button>
       </div> */}
     </div>
   );
-};
-
-export default MaintenanceLogDetails;
+}
