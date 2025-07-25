@@ -28,7 +28,7 @@ export default function UsersTable() {
   return (
     <div className="container mx-auto py-2 min-h-screen flex flex-col">
       {loading ? (
-        <div className="flex-1 flex justify-center items-center">
+        <div>
           <Spinner />
         </div>
       ) : (

@@ -208,7 +208,7 @@ export function MainDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {overview.totalMachines || 0}
+                {overview?.totalMachines || 0}
               </div>
               <div className="flex items-center mt-2">
                 <TrendingUp className="w-4 h-4 text-blue-500 mr-1" />
@@ -230,7 +230,7 @@ export function MainDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {overview.totalSites || 0}
+                {overview?.totalSites || 0}
               </div>
               <div className="flex items-center mt-2">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
@@ -252,7 +252,7 @@ export function MainDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {overview.lowStockItems || 0}
+                {overview?.lowStockItems || 0}
               </div>
               <div className="flex items-center mt-2">
                 <AlertTriangle className="w-4 h-4 text-orange-500 mr-1" />
@@ -274,7 +274,7 @@ export function MainDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {overview.pendingRequisitions || 0}
+                {overview?.pendingRequisitions || 0}
               </div>
               <div className="flex items-center mt-2">
                 <Clock className="w-4 h-4 text-purple-500 mr-1" />
@@ -647,9 +647,9 @@ export function MainDashboard() {
 
                   {/* Requisitions Tab */}
                   <TabsContent value="requisitions" className="mt-0">
-                    {recentActivities.recentRequisitions?.length > 0 ? (
+                    {recentActivities?.recentRequisitions?.length > 0 ? (
                       <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                        {recentActivities.recentRequisitions.map((req) => (
+                        {recentActivities?.recentRequisitions.map((req) => (
                           <div
                             key={req.id}
                             className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -737,9 +737,9 @@ export function MainDashboard() {
 
                   {/* Transfers Tab */}
                   <TabsContent value="transfers" className="mt-0">
-                    {recentActivities.recentTransfers?.length > 0 ? (
+                    {recentActivities?.recentTransfers?.length > 0 ? (
                       <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                        {recentActivities.recentTransfers.map((transfer) => (
+                        {recentActivities?.recentTransfers.map((transfer) => (
                           <div
                             key={transfer.id}
                             className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -835,9 +835,9 @@ export function MainDashboard() {
 
                   {/* Issues Tab */}
                   <TabsContent value="issues" className="mt-0">
-                    {recentActivities.recentIssues?.length > 0 ? (
+                    {recentActivities?.recentIssues?.length > 0 ? (
                       <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                        {recentActivities.recentIssues.map((issue) => (
+                        {recentActivities?.recentIssues.map((issue) => (
                           <div
                             key={issue.id}
                             className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -917,9 +917,9 @@ export function MainDashboard() {
 
                   {/* Maintenance Tab */}
                   <TabsContent value="maintenance" className="mt-0">
-                    {recentActivities.recentMaintenance?.length > 0 ? (
+                    {recentActivities?.recentMaintenance?.length > 0 ? (
                       <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                        {recentActivities.recentMaintenance.map((maint) => (
+                        {recentActivities?.recentMaintenance.map((maint) => (
                           <div
                             key={maint.id}
                             className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -1015,15 +1015,15 @@ export function MainDashboard() {
                     </CardTitle>
                   </div>
                   <Badge variant="outline" className="px-2 py-1 text-xs">
-                    {sitesSummary.length} sites
+                    {sitesSummary?.length} sites
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {sitesSummary.length > 0 ? (
+                {sitesSummary?.length > 0 ? (
                   <div className="max-h-[400px] overflow-y-auto">
                     <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                      {sitesSummary.map((site) => (
+                      {sitesSummary?.map((site) => (
                         <div
                           key={site.id}
                           className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -1117,14 +1117,14 @@ export function MainDashboard() {
                       Inventory Alerts
                     </CardTitle>
                   </div>
-                  <Badge variant="destructive">{inventoryAlerts.length}</Badge>
+                  <Badge variant="destructive">{inventoryAlerts?.length}</Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {inventoryAlerts.length > 0 ? (
+                {inventoryAlerts?.length > 0 ? (
                   <div className="max-h-[400px] overflow-y-auto">
                     <div className="divide-y divide-orange-100 dark:divide-orange-900/20">
-                      {inventoryAlerts.map((item) => (
+                      {inventoryAlerts?.map((item) => (
                         <div
                           key={item.itemId}
                           className="p-4 hover:bg-orange-50/50 dark:hover:bg-orange-900/30 transition-colors"
@@ -1179,13 +1179,13 @@ export function MainDashboard() {
                       Maintenance Due
                     </CardTitle>
                   </div>
-                  <Badge variant="destructive">{maintenanceDue.length}</Badge>
+                  <Badge variant="destructive">{maintenanceDue?.length}</Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                {maintenanceDue.length > 0 ? (
+                {maintenanceDue?.length > 0 ? (
                   <div className="space-y-3">
-                    {maintenanceDue.map((maint) => (
+                    {maintenanceDue?.map((maint) => (
                       <div
                         key={maint.machineId}
                         className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
@@ -1225,11 +1225,11 @@ export function MainDashboard() {
                     Pending Procurements
                   </CardTitle>
                 </div>
-                <Badge variant="secondary">{procurementsPending.length}</Badge>
+                <Badge variant="secondary">{procurementsPending?.length}</Badge>
               </div>
             </CardHeader>
             <CardContent>
-              {procurementsPending.length > 0 ? (
+              {procurementsPending?.length > 0 ? (
                 <div className="space-y-3">
                   {procurementsPending.map((proc) => (
                     <div
@@ -1270,12 +1270,12 @@ export function MainDashboard() {
                   </CardTitle>
                 </div>
                 <Badge variant="destructive">
-                  {paymentsOutstanding.length}
+                  {paymentsOutstanding?.length}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent>
-              {paymentsOutstanding.length > 0 ? (
+              {paymentsOutstanding?.length > 0 ? (
                 <div className="space-y-3">
                   {paymentsOutstanding.map((payment) => (
                     <div
@@ -1323,7 +1323,7 @@ export function MainDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              {expensesMonthly.length > 0 ? (
+              {expensesMonthly?.length > 0 ? (
                 <div className="space-y-3">
                   {JSON.stringify(expensesMonthly)}
                   {expensesMonthly.map((expense) => (

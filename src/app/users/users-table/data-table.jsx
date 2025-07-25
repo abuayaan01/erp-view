@@ -162,7 +162,7 @@ function AddUserDialog({ fetchUsersData }) {
   return (
     <Dialog open={openForm} onOpenChange={setOpenForm}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpenForm(true)} variant="outline">Add user</Button>
+        <Button onClick={() => setOpenForm(true)} className={"relative -top-14"} >Add User</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>

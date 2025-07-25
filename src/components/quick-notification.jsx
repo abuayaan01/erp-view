@@ -72,18 +72,18 @@ function NotificationItem({ notification, onMarkAsRead }) {
 
   return (
     <div
-      className={`flex items-start p-3 rounded-md hover:bg-gray-50 transition-colors ${
-        !notification.read ? "bg-blue-50" : ""
+      className={`flex items-start p-3 rounded-md transition-colors ${
+        !notification.read ? "bg-muted" : "border"
       }`}
     >
       <div className="flex-1">
         <div className="flex justify-between items-start">
           <h4 className="text-sm font-medium">{notification.title}</h4>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs">
             {formatDate(notification.createdAt)}
           </span>
         </div>
-        <p className="text-xs text-gray-600 mt-1">{notification.description}</p>
+        <p className="text-xs mt-1">{notification.description}</p>
         <div className="flex justify-between items-center mt-2">
           <Badge
             variant="outline"
