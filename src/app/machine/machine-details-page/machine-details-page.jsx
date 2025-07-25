@@ -18,11 +18,25 @@ import {
   Package,
   Settings,
   User,
+  Fuel,
+  Gauge,
+  Clock,
+  TrendingUp,
+  Eye,
+  Edit,
+  Plus,
+  Search,
+  Filter,
+  Download,
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import PlacehoolderImage from "@/assets/images/placeholder-image.webp";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import MaintenanceLogModal from "@/app/maintanance-log/MaintenanceLogModal";
+import { format } from "date-fns";
 // Helper function to format dates
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -118,7 +132,7 @@ export default function MachineryDetailPage() {
     },
   ];
 
-  if(!loading && !data){
+  if (!loading && !data) {
     throw new Error(`Machine id "${params.id}" not found.`);
   }
 
@@ -170,10 +184,11 @@ export default function MachineryDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-2">
               <Tabs defaultValue="details" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="details">Details</TabsTrigger>
                   <TabsTrigger value="documents">Documents</TabsTrigger>
                   <TabsTrigger value="location">Location</TabsTrigger>
+                  <TabsTrigger value="log-entries">Log Entries</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="details" className="space-y-6 pt-4">
@@ -466,6 +481,202 @@ export default function MachineryDetailPage() {
                           </div>
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="log-entries" className="pt-4">
+                  <Card>
+                    <CardContent>
+                      {data?.logbookEntries?.length === 0 ? (
+                        <div className="text-center py-12">
+                          <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                          <p className="text-gray-500 text-lg mb-2">
+                            No log entries yet
+                          </p>
+                          <p className="text-gray-400 text-sm mb-4">
+                            Log entries will appear here once they are recorded
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Table */}
+                          <div className="border rounded-lg overflow-hidden">
+                            <div className="overflow-x-auto">
+                              <table className="w-full">
+                                <thead className="bg-gray-50 border-b">
+                                  <tr>
+                                    <th className="text-left p-4 font-medium text-gray-900">
+                                      Entry
+                                    </th>
+                                    <th className="text-left p-4 font-medium text-gray-900">
+                                      Date
+                                    </th>
+                                    <th className="text-left p-4 font-medium text-gray-900">
+                                      Work Details
+                                    </th>
+                                    <th className="text-left p-4 font-medium text-gray-900">
+                                      KM Run
+                                    </th>
+                                    <th className="text-left p-4 font-medium text-gray-900">
+                                      Hours Run
+                                    </th>
+                                    <th className="text-left p-4 font-medium text-gray-900">
+                                      Diesel Used
+                                    </th>
+                                    <th className="text-left p-4 font-medium text-gray-900">
+                                      Efficiency
+                                    </th>
+                                    <th className="text-left p-4 font-medium text-gray-900">
+                                      Location
+                                    </th>
+                                    <th className="text-right p-4 font-medium text-gray-900">
+                                      Actions
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                  {data?.logbookEntries?.map((entry) => {
+                                    const dieselUsed =
+                                      entry.dieselOpeningBalance +
+                                      entry.dieselIssue -
+                                      entry.dieselClosingBalance;
+
+                                    return (
+                                      <tr
+                                        key={entry.id}
+                                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                        onClick={() => handleRowClick(entry.id)}
+                                      >
+                                        <td className="p-4">
+                                          <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                              <FileText className="h-4 w-4 text-blue-600" />
+                                            </div>
+                                            <div>
+                                              <p className="font-medium text-gray-900">
+                                                {entry.name}
+                                              </p>
+                                              <p className="text-sm text-gray-500">
+                                                ID #{entry.id}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </td>
+
+                                        <td className="p-4">
+                                          <div>
+                                            <p className="font-medium text-gray-900">
+                                              {format(
+                                                new Date(entry.date),
+                                                "dd MMM yyyy"
+                                              )}
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                              {format(
+                                                new Date(entry.createdAt),
+                                                "HH:mm"
+                                              )}
+                                            </p>
+                                          </div>
+                                        </td>
+
+                                        <td className="p-4">
+                                          <p
+                                            className="text-gray-900 max-w-xs truncate"
+                                            title={entry.workingDetails}
+                                          >
+                                            {entry.workingDetails}
+                                          </p>
+                                        </td>
+
+                                        <td className="p-4">
+                                          <div className="text-center">
+                                            <p className="font-semibold text-green-600">
+                                              {entry.totalRunKM?.toLocaleString()}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              KM
+                                            </p>
+                                          </div>
+                                        </td>
+
+                                        <td className="p-4">
+                                          <div className="text-center">
+                                            <p className="font-semibold text-purple-600">
+                                              {entry.totalRunHrsMeter}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              Hours
+                                            </p>
+                                          </div>
+                                        </td>
+
+                                        <td className="p-4">
+                                          <div className="text-center">
+                                            <p className="font-semibold text-orange-600">
+                                              {dieselUsed}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              Liters
+                                            </p>
+                                          </div>
+                                        </td>
+
+                                        <td className="p-4">
+                                          <div className="text-center">
+                                            <p className="text-sm text-gray-900">
+                                              {entry.dieselAvgKM} KM/L
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                              {entry.dieselAvgHrsMeter} Hrs/L
+                                            </p>
+                                          </div>
+                                        </td>
+
+                                        <td className="p-4">
+                                          <div className="max-w-xs">
+                                            <p
+                                              className="text-sm text-gray-900 truncate"
+                                              title={entry.location}
+                                            >
+                                              {entry.location}
+                                            </p>
+                                            <div className="flex items-center gap-1 mt-1">
+                                              <MapPin className="h-3 w-3 text-gray-400" />
+                                              <p className="text-xs text-gray-500">
+                                                Site #{entry.siteId}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </td>
+
+                                        <td className="p-4">
+                                          <div className="flex items-center justify-end gap-2">
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={(e) => {
+                                                // e.stopPropagation();
+                                                navigate(
+                                                  "/logbook/" + entry.id
+                                                );
+                                              }}
+                                              className="hover:bg-blue-50"
+                                            >
+                                              <Eye className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>

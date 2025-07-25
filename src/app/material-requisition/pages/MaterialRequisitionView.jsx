@@ -1,33 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
-import {
-  ShoppingCart,
-  X,
-  Clock,
-  ArrowLeft,
-  Printer,
-  CheckCircle,
-  Package,
-  DoorClosed,
-  ShieldCloseIcon,
-  User,
-  Calendar,
-  MapPin,
-  AlertTriangle,
-  FileText,
-  Truck,
-  XCircle,
-  Building,
-  Phone,
-  Mail,
-  DollarSign,
-  TrendingUp,
-  Eye,
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -36,15 +19,39 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { PDFViewer } from "@react-pdf/renderer";
-import MaterialRequisitionPDF from "./MaterialRequisitionPDF";
-import { useSelector } from "react-redux";
 import api from "@/services/api/api-service";
 import { getIdByRole, useUserRoleLevel } from "@/utils/roles";
+import { Label } from "@radix-ui/react-dropdown-menu";
+import { PDFViewer } from "@react-pdf/renderer";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Building,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Eye,
+  FileText,
+  Mail,
+  MapPin,
+  Package,
+  Phone,
+  Printer,
+  ShieldCloseIcon,
+  ShoppingCart,
+  TrendingUp,
+  Truck,
+  User,
+  X,
+  XCircle,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import MaterialRequisitionPDF from "./MaterialRequisitionPDF";
 
 const MaterialRequisitionView = () => {
   const { id } = useParams();
@@ -67,6 +74,9 @@ const MaterialRequisitionView = () => {
   const storedUnits = useSelector((state) => state.units) || [];
   const userRoleLevel = useUserRoleLevel();
   const [approvingIssue, setApprovingIssue] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionRemarks, setRejectionRemarks] = useState("");
+  const [isRejecting, setIsRejecting] = useState(false);
 
   const shouldPrint =
     new URLSearchParams(location.search).get("print") === "true";
@@ -101,9 +111,10 @@ const MaterialRequisitionView = () => {
     };
 
     fetchRequisition();
-  }, [id, navigate, toast, storedItemGroups, storedUnits]);
+  }, [id]);
 
   useEffect(() => {
+    console.log(requisition);
     if (shouldPrint && requisition) {
       setShowPdf(true);
     }
@@ -445,7 +456,7 @@ const MaterialRequisitionView = () => {
     const isAdmin = userRoleLevel.role === "admin";
 
     if (isPending && isProjectManager) {
-      const isSameSite = currentUser.site.id == requisition.requestingSite.id;
+      const isSameSite = currentUser.site.id == requisition?.requestingSite.id;
       if (isSameSite) {
         return (
           <Button
@@ -502,8 +513,15 @@ const MaterialRequisitionView = () => {
   const getIssueButton = () => {
     const isApprovedByHo = requisition.status.toLowerCase() === "approvedbyho";
     const isAdmin = userRoleLevel.role === "admin";
+    if (
+      requisition.siteRejections.findIndex(
+        (rejectedSite) => rejectedSite.siteId == userRoleLevel.siteId
+      ) != -1
+    ) {
+      return null;
+    }
     if (isApprovedByHo && !isAdmin) {
-      const isSameSite = currentUser.site.id == requisition.requestingSite.id;
+      const isSameSite = currentUser.site.id == requisition?.requestingSite.id;
       if (!isSameSite) {
         return (
           <Button
@@ -577,6 +595,155 @@ const MaterialRequisitionView = () => {
     return null;
   };
 
+  const getRejectButton = () => {
+    // Only show for sites and when requisition is in appropriate status
+    const isAdmin = userRoleLevel.role == "admin";
+    if (isAdmin) {
+      return null;
+    }
+    if (
+      requisition.siteRejections.findIndex(
+        (rejectedSite) => rejectedSite.siteId == userRoleLevel.siteId
+      ) != -1
+    ) {
+      return null;
+    }
+    return (
+      <Button
+        onClick={() => setShowRejectModal(true)}
+        variant="outline"
+        className="border-red-500 text-red-600 hover:bg-red-50"
+      >
+        <XCircle className="mr-2 h-4 w-4" />
+        Reject Request
+      </Button>
+    );
+  };
+
+  const handleRejectRequisition = async () => {
+    if (!rejectionRemarks.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide rejection remarks",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsRejecting(true);
+      const response = await api.post(
+        `/requisitions/${requisition.id}/site-reject`,
+        {
+          rejectionReason: rejectionRemarks,
+        }
+      );
+
+      if (response.status) {
+        toast({
+          title: "Success",
+          description: "Requisition rejected successfully.",
+        });
+
+        setShowRejectModal(false);
+        setRejectionRemarks("");
+
+        // Refresh the requisition data
+        const updatedResponse = await api.get(
+          `/requisitions/${requisition.id}`
+        );
+        if (updatedResponse.status && updatedResponse.data) {
+          setRequisition(updatedResponse.data);
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: response.data?.message || "Failed to reject requisition",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to reject requisition",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRejecting(false);
+    }
+  };
+
+  const RejectModal = () => (
+    <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <XCircle className="h-5 w-5 text-red-600" />
+            Reject Material Requisition
+          </DialogTitle>
+          <DialogDescription>
+            Please provide a reason for rejecting this material requisition.
+            This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="rejection-remarks">
+              Rejection Remarks <span className="text-red-500">*</span>
+            </Label>
+            <Textarea
+              id="rejection-remarks"
+              placeholder="Please explain why you are rejecting this requisition..."
+              value={rejectionRemarks}
+              onChange={(e) => setRejectionRemarks(e.target.value)}
+              rows={4}
+              className="resize-none"
+            />
+          </div>
+
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-sm text-yellow-800">
+              <strong>Note:</strong> Once rejected, this requisition will need
+              to be resubmitted for approval.
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setShowRejectModal(false);
+              setRejectionRemarks("");
+            }}
+            disabled={isRejecting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleRejectRequisition}
+            disabled={isRejecting || !rejectionRemarks.trim()}
+          >
+            {isRejecting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                Rejecting...
+              </>
+            ) : (
+              <>
+                <XCircle className="mr-2 h-4 w-4" />
+                Reject Requisition
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -613,7 +780,7 @@ const MaterialRequisitionView = () => {
               </Button>
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-                  {requisition.requisitionNo}
+                  {requisition?.requisitionNo}
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
                   Material Requisition Details
@@ -625,6 +792,7 @@ const MaterialRequisitionView = () => {
               {getProcurementButton()}
               {getIssueButton()}
               {getClosureButton()}
+              {getRejectButton()} {/* Add this line */}
               <Button onClick={handlePrint} variant="outline">
                 <Printer className="mr-2 h-4 w-4" />
                 Print
@@ -639,7 +807,7 @@ const MaterialRequisitionView = () => {
                 <span className="text-sm font-medium text-gray-700">
                   Status:
                 </span>
-                {getStatusBadge(requisition.status)}
+                {getStatusBadge(requisition?.status)}
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-700">
@@ -650,7 +818,7 @@ const MaterialRequisitionView = () => {
             </div>
             <div className="text-sm text-gray-500">
               <Calendar className="inline h-4 w-4 mr-1" />
-              Created: {formatDate(requisition.requestedAt)}
+              Created: {formatDate(requisition?.requestedAt)}
             </div>
           </div>
 
@@ -660,11 +828,12 @@ const MaterialRequisitionView = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="items">Items</TabsTrigger>
               <TabsTrigger value="procurements">Procurements</TabsTrigger>
               <TabsTrigger value="issues">Issues</TabsTrigger>
+              <TabsTrigger value="site-rejection">Issue Rejections</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
@@ -683,7 +852,7 @@ const MaterialRequisitionView = () => {
                       <div>
                         <p className="text-sm text-gray-600">Requisition No</p>
                         <p className="font-medium">
-                          {requisition.requisitionNo}
+                          {requisition?.requisitionNo}
                         </p>
                       </div>
                       <div>
@@ -721,7 +890,7 @@ const MaterialRequisitionView = () => {
                       <p className="text-sm text-gray-600">Requesting Site</p>
                       <p className="font-medium flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-gray-400" />
-                        {requisition.requestingSite?.name || "N/A"}
+                        {requisition?.requestingSite?.name || "N/A"}
                       </p>
                     </div>
                   </CardContent>
@@ -830,7 +999,7 @@ const MaterialRequisitionView = () => {
                                 <h3 className="font-semibold">
                                   {procurement.procurementNo}
                                 </h3>
-                                {getProcurementStatusBadge(procurement.status)}
+                                {getProcurementStatusBadge(procurement?.status)}
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
@@ -952,7 +1121,7 @@ const MaterialRequisitionView = () => {
                                 <h3 className="font-semibold">
                                   {issue.issueNumber}
                                 </h3>
-                                {getIssueStatusBadge(issue.status)}
+                                {getIssueStatusBadge(issue?.status)}
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
@@ -992,7 +1161,7 @@ const MaterialRequisitionView = () => {
                               </div>
                             </div>
                             <div className="flex gap-2 ml-4">
-                              {issue.status.toLowerCase() === "pending" &&
+                              {issue?.status.toLowerCase() === "pending" &&
                                 userRoleLevel.role === "admin" && (
                                   <>
                                     <Button
@@ -1114,6 +1283,119 @@ const MaterialRequisitionView = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/*Site Rejection Tab */}
+            <TabsContent value="site-rejection">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <XCircle className="h-5 w-5" />
+                    Site Rejections ({requisition.siteRejections?.length || 0})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {requisition.siteRejections &&
+                  requisition.siteRejections.length > 0 ? (
+                    <div className="space-y-4">
+                      {requisition.siteRejections.map((rejection, index) => (
+                        <div
+                          key={rejection.id}
+                          className="border rounded-lg p-4 bg-red-50 border-red-200"
+                        >
+                          <div className="flex justify-between items-start mb-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h3 className="font-semibold text-red-800">
+                                  Rejection #{rejection.id}
+                                </h3>
+                                <Badge
+                                  variant="destructive"
+                                  className="bg-red-100 text-red-800"
+                                >
+                                  Rejected
+                                </Badge>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                  <p className="text-sm text-gray-600">
+                                    Rejected By
+                                  </p>
+                                  <p className="font-medium">
+                                    {rejection.rejectedBy?.name || "N/A"}
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    {rejection.rejectedBy?.email || ""}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-600">
+                                    Rejected At
+                                  </p>
+                                  <p className="font-medium">
+                                    {new Date(
+                                      rejection.rejectedAt
+                                    ).toLocaleDateString()}
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    {new Date(
+                                      rejection.rejectedAt
+                                    ).toLocaleTimeString()}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-600">
+                                    Site ID
+                                  </p>
+                                  <p className="font-medium">
+                                    {rejection.siteId}
+                                  </p>
+                                  {rejection.site?.name && (
+                                    <p className="text-sm text-gray-500">
+                                      {rejection.site.name}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Rejection Reason */}
+                          <div className="mt-4 p-3 bg-white rounded border border-red-200">
+                            <h4 className="font-medium text-sm mb-2 text-red-800">
+                              Rejection Reason
+                            </h4>
+                            <p className="text-sm text-gray-700">
+                              {rejection.rejectionReason}
+                            </p>
+                          </div>
+
+                          {/* Additional Information */}
+                          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-gray-500">
+                            <div>
+                              <span className="font-medium">Created:</span>{" "}
+                              {new Date(rejection.createdAt).toLocaleString()}
+                            </div>
+                            <div>
+                              <span className="font-medium">Updated:</span>{" "}
+                              {new Date(rejection.updatedAt).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <XCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">No site rejections found</p>
+                      <p className="text-sm text-gray-400">
+                        Site rejections will appear here when sites reject this
+                        requisition
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </>
       ) : (
@@ -1132,14 +1414,14 @@ const MaterialRequisitionView = () => {
           <div className="w-full h-screen border rounded-lg overflow-hidden">
             <PDFViewer width="100%" height="100%">
               <MaterialRequisitionPDF
-                requisition={requisition}
-                itemGroups={itemGroups}
-                units={units}
+                formData={requisition}
+                items={requisition.items}
               />
             </PDFViewer>
           </div>
         </div>
       )}
+      <RejectModal />
     </div>
   );
 };
