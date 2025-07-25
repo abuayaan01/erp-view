@@ -111,8 +111,9 @@ function AppRouter() {
         {/* Site Management End*/}
 
         {/* Category Management*/}
+        
         <Route
-          path="/add-machine-category"
+          path="/machine-category/add"
           element={
             <ProtectedRoute
               element={<AddMachineCategory />}
@@ -125,7 +126,7 @@ function AppRouter() {
           }
         />
         <Route
-          path="/update-machine-category"
+          path="/machine-category/update"
           element={
             <ProtectedRoute
               element={<AddMachineCategory />}
@@ -138,7 +139,7 @@ function AppRouter() {
           }
         />
         <Route
-          path="/list-machine-category"
+          path="/machine-category"
           element={<MachineCategoryPage />}
         />
         {/* Category Management End*/}

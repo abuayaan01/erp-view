@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import TableSkeleton from "@/components/ui/table-skeleton";
+import { useNavigate } from "react-router";
 
 export function DataTable({ columns, data, loading }) {
   const [sorting, setSorting] = React.useState([]);
@@ -28,6 +29,8 @@ export function DataTable({ columns, data, loading }) {
     pageIndex: 0,
     pageSize: 15,
   });
+
+  const navigate = useNavigate();
 
   const table = useReactTable({
     data,
@@ -45,6 +48,10 @@ export function DataTable({ columns, data, loading }) {
     },
     onPaginationChange: setPagination,
   });
+
+  const getAddMachineCategoryButton = () => {
+    return <Button onClick={() => {navigate('/machine-category/add')}}>Add Machine Category</Button>;
+  };
 
   return (
     <div>

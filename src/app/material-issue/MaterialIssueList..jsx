@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/select";
 import { format, parseISO } from "date-fns";
 import api from "@/services/api/api-service";
+import { Spinner } from "@/components/ui/loader";
 
 const MaterialIssueList = () => {
   const [issues, setIssues] = useState([]);
@@ -180,9 +181,7 @@ const MaterialIssueList = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        Loading material issues...
-      </div>
+      <Spinner />
     );
   }
 

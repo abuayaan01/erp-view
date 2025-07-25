@@ -93,10 +93,10 @@ const data = {
     },
     {
       title: "Machine Category",
-      url: "#",
+      url: "/machine-category",
       icon: SquareTerminal,
       isActive: false,
-      collapsible: true,
+      collapsible: false,
       items: [
         {
           title: "Add",

@@ -1,5 +1,14 @@
 import React from "react";
 
+export function Spinner() {
+  return (
+    <div className="flex justify-center items-center flex-col h-64">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <p className="mt-4 italic font-thin text-xs">Loading...</p>
+    </div>
+  );
+}
+
 function Loader({ size }) {
   let scale;
 

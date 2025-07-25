@@ -41,6 +41,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InvoiceForm from "./InvoiceForm";
 import { InvoicePaymentDialog } from "./InvoicePaymentDialog";
+import { Spinner } from "@/components/ui/loader";
 
 const ProcurementDetails = () => {
   const { id } = useParams();
@@ -152,27 +153,27 @@ const ProcurementDetails = () => {
   };
 
   const calculateTotalPayments = (invoice) => {
-    return invoice.payments?.reduce((sum, payment) => sum + parseFloat(payment.amount), 0) || 0;
+    return (
+      invoice.payments?.reduce(
+        (sum, payment) => sum + parseFloat(payment.amount),
+        0
+      ) || 0
+    );
   };
 
   const getInvoiceStatus = (invoice) => {
     const totalPayments = calculateTotalPayments(invoice);
     const invoiceAmount = parseFloat(invoice.amount);
-    
-    if (totalPayments === 0) return { status: "Unpaid", color: "bg-red-100 text-red-800" };
-    if (totalPayments >= invoiceAmount) return { status: "Paid", color: "bg-green-100 text-green-800" };
+
+    if (totalPayments === 0)
+      return { status: "Unpaid", color: "bg-red-100 text-red-800" };
+    if (totalPayments >= invoiceAmount)
+      return { status: "Paid", color: "bg-green-100 text-green-800" };
     return { status: "Partial", color: "bg-orange-100 text-orange-800" };
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="text-gray-600">Loading procurement details...</p>
-        </div>
-      </div>
-    );
+    return <Spinner />;
   }
 
   if (error) {
@@ -181,8 +182,8 @@ const ProcurementDetails = () => {
         <div className="text-center">
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <p className="text-red-600 text-lg font-semibold">Error: {error}</p>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => navigate("/procurements")}
             className="mt-4"
           >
@@ -200,8 +201,8 @@ const ProcurementDetails = () => {
         <div className="text-center">
           <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Procurement not found</p>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => navigate("/procurements")}
             className="mt-4"
           >
@@ -214,42 +215,53 @@ const ProcurementDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="rounded-lg shadow-sm mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/procurements")}
-                className="hover:bg-gray-100"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to List
-              </Button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{procurement.procurementNo}</h1>
+                <h1 className="text-3xl font-bold ">
+                  <Button
+                    variant="outline"
+                    // size="sm"
+                    onClick={() => navigate("/procurements")}
+                    className="mr-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  {procurement.procurementNo}
+                </h1>
                 <p className="text-sm text-gray-600 mt-1">
-                  Created on {format(new Date(procurement.createdAt), "dd MMM yyyy")}
+                  Created on{" "}
+                  {format(new Date(procurement.createdAt), "dd MMM yyyy")}
                 </p>
               </div>
-              <Badge className={`${getStatusColor(procurement.status)} px-3 py-1 border`}>
+              <Badge
+                className={`${getStatusColor(
+                  procurement.status
+                )} px-3 py-1 border`}
+              >
                 {getStatusIcon(procurement.status)}
                 <span className="ml-1 capitalize">{procurement.status}</span>
               </Badge>
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="outline" className="hover:bg-gray-100">
+              <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />
                 Download PDF
               </Button>
-              
-              <Dialog open={isInvoiceDialogOpen} onOpenChange={setIsInvoiceDialogOpen}>
+
+              <Dialog
+                open={isInvoiceDialogOpen}
+                onOpenChange={setIsInvoiceDialogOpen}
+              >
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="hover:bg-blue-50 hover:text-blue-600">
+                  <Button
+                    variant="outline"
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Invoice
                   </Button>
@@ -264,19 +276,23 @@ const ProcurementDetails = () => {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="hover:bg-gray-100">
+                  <Button variant="outline">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {procurement.status === "Pending" && (
-                    <DropdownMenuItem onClick={() => handleStatusUpdate("ordered")}>
+                    <DropdownMenuItem
+                      onClick={() => handleStatusUpdate("ordered")}
+                    >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Approve Order
                     </DropdownMenuItem>
                   )}
                   {procurement.status === "ordered" && (
-                    <DropdownMenuItem onClick={() => handleStatusUpdate("Delivered")}>
+                    <DropdownMenuItem
+                      onClick={() => handleStatusUpdate("Delivered")}
+                    >
                       <Truck className="h-4 w-4 mr-2" />
                       Mark as Delivered
                     </DropdownMenuItem>
@@ -295,8 +311,12 @@ const ProcurementDetails = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-white rounded-lg shadow-sm border">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
+          <TabsList className="grid w-full grid-cols-3 rounded-lg shadow-sm border">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
               Overview
@@ -321,9 +341,14 @@ const ProcurementDetails = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-blue-600">Total Amount</p>
+                          <p className="text-sm font-medium text-blue-600">
+                            Total Amount
+                          </p>
                           <p className="text-2xl font-bold text-blue-900">
-                            ₹{parseFloat(procurement.totalAmount).toLocaleString()}
+                            ₹
+                            {parseFloat(
+                              procurement.totalAmount
+                            ).toLocaleString()}
                           </p>
                         </div>
                         <DollarSign className="h-8 w-8 text-blue-500" />
@@ -335,7 +360,9 @@ const ProcurementDetails = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-green-600">Items</p>
+                          <p className="text-sm font-medium text-green-600">
+                            Items
+                          </p>
                           <p className="text-2xl font-bold text-green-900">
                             {procurement.ProcurementItems.length}
                           </p>
@@ -349,7 +376,9 @@ const ProcurementDetails = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-purple-600">Invoices</p>
+                          <p className="text-sm font-medium text-purple-600">
+                            Invoices
+                          </p>
                           <p className="text-2xl font-bold text-purple-900">
                             {invoices.length}
                           </p>
@@ -372,34 +401,64 @@ const ProcurementDetails = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div>
-                          <p className="text-sm font-medium text-gray-600 mb-1">Procurement No.</p>
-                          <p className="text-lg font-semibold">{procurement.procurementNo}</p>
+                          <p className="text-sm font-medium text-gray-600 mb-1">
+                            Procurement No.
+                          </p>
+                          <p className="text-lg font-semibold">
+                            {procurement.procurementNo}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-600 mb-1">Requisition No.</p>
-                          <p className="text-lg font-semibold">REQ-{procurement.requisitionId}</p>
+                          <p className="text-sm font-medium text-gray-600 mb-1">
+                            Requisition No.
+                          </p>
+                          <p className="text-lg font-semibold">
+                            REQ-{procurement.requisitionId}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-600 mb-1">Created Date</p>
+                          <p className="text-sm font-medium text-gray-600 mb-1">
+                            Created Date
+                          </p>
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-gray-500" />
-                            <p>{format(new Date(procurement.createdAt), "dd MMM yyyy")}</p>
+                            <p>
+                              {format(
+                                new Date(procurement.createdAt),
+                                "dd MMM yyyy"
+                              )}
+                            </p>
                           </div>
                         </div>
                       </div>
                       <div className="space-y-4">
                         <div>
-                          <p className="text-sm font-medium text-gray-600 mb-1">Expected Delivery</p>
+                          <p className="text-sm font-medium text-gray-600 mb-1">
+                            Expected Delivery
+                          </p>
                           <div className="flex items-center gap-2">
                             <Truck className="h-4 w-4 text-gray-500" />
-                            <p>{format(new Date(procurement.expectedDelivery), "dd MMM yyyy")}</p>
+                            <p>
+                              {format(
+                                new Date(procurement.expectedDelivery),
+                                "dd MMM yyyy"
+                              )}
+                            </p>
                           </div>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-600 mb-1">Status</p>
-                          <Badge className={`${getStatusColor(procurement.status)} px-3 py-1 border`}>
+                          <p className="text-sm font-medium text-gray-600 mb-1">
+                            Status
+                          </p>
+                          <Badge
+                            className={`${getStatusColor(
+                              procurement.status
+                            )} px-3 py-1 border`}
+                          >
                             {getStatusIcon(procurement.status)}
-                            <span className="ml-1 capitalize">{procurement.status}</span>
+                            <span className="ml-1 capitalize">
+                              {procurement.status}
+                            </span>
                           </Badge>
                         </div>
                       </div>
@@ -407,9 +466,11 @@ const ProcurementDetails = () => {
 
                     {procurement.notes && (
                       <div className="mt-6">
-                        <p className="text-sm font-medium text-gray-600 mb-2">Notes</p>
-                        <div className="bg-gray-50 rounded-lg p-4 border">
-                          <p className="text-gray-700">{procurement.notes}</p>
+                        <p className="text-sm font-medium mb-2">
+                          Notes
+                        </p>
+                        <div className=" rounded-lg p-4 border">
+                          <p className="">{procurement.notes}</p>
                         </div>
                       </div>
                     )}
@@ -430,7 +491,7 @@ const ProcurementDetails = () => {
                   <CardContent>
                     <div className="space-y-4">
                       <div>
-                        <p className="font-semibold text-lg text-gray-900">
+                        <p className="font-semibold text-lg ">
                           {procurement.Vendor?.name}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
@@ -442,15 +503,21 @@ const ProcurementDetails = () => {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm">
                           <Mail className="h-4 w-4 text-gray-500" />
-                          <span className="text-gray-700">{procurement.Vendor.email}</span>
+                          <span className="text-gray-700">
+                            {procurement.Vendor.email}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Phone className="h-4 w-4 text-gray-500" />
-                          <span className="text-gray-700">{procurement.Vendor.phone}</span>
+                          <span className="text-gray-700">
+                            {procurement.Vendor.phone}
+                          </span>
                         </div>
                         <div className="flex items-start gap-2 text-sm">
                           <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
-                          <span className="text-gray-700">{procurement.Vendor.address}</span>
+                          <span className="text-gray-700">
+                            {procurement.Vendor.address}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -474,7 +541,10 @@ const ProcurementDetails = () => {
                         <div>
                           <p className="font-medium">Created</p>
                           <p className="text-sm text-gray-600">
-                            {format(new Date(procurement.createdAt), "dd MMM yyyy")}
+                            {format(
+                              new Date(procurement.createdAt),
+                              "dd MMM yyyy"
+                            )}
                           </p>
                         </div>
                       </div>
@@ -487,7 +557,10 @@ const ProcurementDetails = () => {
                           <div>
                             <p className="font-medium">Approved</p>
                             <p className="text-sm text-gray-600">
-                              {format(new Date(procurement.updatedAt), "dd MMM yyyy")}
+                              {format(
+                                new Date(procurement.updatedAt),
+                                "dd MMM yyyy"
+                              )}
                             </p>
                           </div>
                         </div>
@@ -501,7 +574,10 @@ const ProcurementDetails = () => {
                           <div>
                             <p className="font-medium">Delivered</p>
                             <p className="text-sm text-gray-600">
-                              {format(new Date(procurement.updatedAt), "dd MMM yyyy")}
+                              {format(
+                                new Date(procurement.updatedAt),
+                                "dd MMM yyyy"
+                              )}
                             </p>
                           </div>
                         </div>
@@ -524,8 +600,8 @@ const ProcurementDetails = () => {
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
-                  <div className="min-w-full bg-white rounded-lg border">
-                    <div className="grid grid-cols-12 bg-gray-50 p-4 border-b font-medium text-sm">
+                  <div className="min-w-full rounded-lg border">
+                    <div className="grid grid-cols-12 p-4 border-b font-medium text-sm">
                       <div className="col-span-5">Item</div>
                       <div className="col-span-2 text-center">Quantity</div>
                       <div className="col-span-2 text-center">Rate</div>
@@ -534,12 +610,10 @@ const ProcurementDetails = () => {
                     {procurement.ProcurementItems.map((item, index) => (
                       <div
                         key={item.id}
-                        className={`grid grid-cols-12 p-4 border-b last:border-b-0 hover:bg-gray-50 ${
-                          index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                        }`}
+                        className={`grid grid-cols-12 p-4 border-b last:border-b-0 bg-muted`}
                       >
                         <div className="col-span-5">
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium ">
                             {item.RequisitionItem.Item?.name}
                           </p>
                           <p className="text-sm text-gray-600 mt-1">
@@ -548,11 +622,14 @@ const ProcurementDetails = () => {
                         </div>
                         <div className="col-span-2 text-center">
                           <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
-                            {item.quantity} {item.RequisitionItem.Item.Unit.shortName}
+                            {item.quantity}{" "}
+                            {item.RequisitionItem.Item.Unit.shortName}
                           </span>
                         </div>
                         <div className="col-span-2 text-center">
-                          <span className="font-medium">₹{parseFloat(item.rate).toFixed(2)}</span>
+                          <span className="font-medium">
+                            ₹{parseFloat(item.rate).toFixed(2)}
+                          </span>
                         </div>
                         <div className="col-span-3 text-right">
                           <span className="font-semibold text-green-600">
@@ -565,9 +642,10 @@ const ProcurementDetails = () => {
                 </div>
 
                 <div className="mt-6 flex justify-end">
-                  <div className="bg-gray-50 rounded-lg p-4 min-w-[200px]">
-                    <p className="text-xl font-bold text-gray-900">
-                      Total: ₹{parseFloat(procurement.totalAmount).toLocaleString()}
+                  <div className="rounded-lg p-4 min-w-[200px]">
+                    <p className="text-xl font-bold ">
+                      Total: ₹
+                      {parseFloat(procurement.totalAmount).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -584,9 +662,12 @@ const ProcurementDetails = () => {
                     <Receipt className="h-5 w-5" />
                     Invoices ({invoices.length})
                   </CardTitle>
-                  <Dialog open={isInvoiceDialogOpen} onOpenChange={setIsInvoiceDialogOpen}>
+                  <Dialog
+                    open={isInvoiceDialogOpen}
+                    onOpenChange={setIsInvoiceDialogOpen}
+                  >
                     <DialogTrigger asChild>
-                      <Button className="bg-blue-600 hover:bg-blue-700">
+                      <Button>
                         <Plus className="h-4 w-4 mr-2" />
                         Add Invoice
                       </Button>
@@ -603,14 +684,19 @@ const ProcurementDetails = () => {
               <CardContent>
                 {invoices.length === 0 ? (
                   <div className="text-center py-12">
-                    <Receipt className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500 text-lg mb-2">No invoices yet</p>
+                    <Receipt className="h-16 w-16 mx-auto mb-4" />
+                    <p className="text-lg mb-2">
+                      No invoices yet
+                    </p>
                     <p className="text-gray-400 text-sm mb-4">
                       Add your first invoice to start tracking payments
                     </p>
-                    <Dialog open={isInvoiceDialogOpen} onOpenChange={setIsInvoiceDialogOpen}>
+                    <Dialog
+                      open={isInvoiceDialogOpen}
+                      onOpenChange={setIsInvoiceDialogOpen}
+                    >
                       <DialogTrigger asChild>
-                        <Button className="bg-blue-600 hover:bg-blue-700">
+                        <Button>
                           <Plus className="h-4 w-4 mr-2" />
                           Add Invoice
                         </Button>
@@ -628,28 +714,36 @@ const ProcurementDetails = () => {
                     {invoices.map((invoice) => {
                       const invoiceStatus = getInvoiceStatus(invoice);
                       const totalPayments = calculateTotalPayments(invoice);
-                      const remainingAmount = parseFloat(invoice.amount) - totalPayments;
+                      const remainingAmount =
+                        parseFloat(invoice.amount) - totalPayments;
 
                       return (
                         <div
                           key={invoice.id}
-                          className="border rounded-lg p-6 bg-white hover:shadow-md transition-shadow"
+                          className="border rounded-lg p-6 hover:shadow-md transition-shadow"
                         >
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <h3 className="text-lg font-semibold text-gray-900">
+                                <h3 className="text-lg font-semibold ">
                                   {invoice.invoiceNumber}
                                 </h3>
-                                <Badge className={`${invoiceStatus.color} px-2 py-1`}>
+                                <Badge
+                                  className={`${invoiceStatus.color} px-2 py-1`}
+                                >
                                   {invoiceStatus.status}
                                 </Badge>
                               </div>
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                 <div>
-                                  <p className="text-gray-600">Invoice Amount</p>
+                                  <p className="text-gray-600">
+                                    Invoice Amount
+                                  </p>
                                   <p className="font-semibold text-lg">
-                                    ₹{parseFloat(invoice.amount).toLocaleString("en-IN")}
+                                    ₹
+                                    {parseFloat(invoice.amount).toLocaleString(
+                                      "en-IN"
+                                    )}
                                   </p>
                                 </div>
                                 <div>
@@ -666,7 +760,9 @@ const ProcurementDetails = () => {
                                 </div>
                                 <div>
                                   <p className="text-gray-600">Vendor</p>
-                                  <p className="font-semibold">{invoice.vendorName}</p>
+                                  <p className="font-semibold">
+                                    {invoice.vendorName}
+                                  </p>
                                 </div>
                               </div>
                             </div>
@@ -691,23 +787,34 @@ const ProcurementDetails = () => {
                                 {invoice.payments.map((payment) => (
                                   <div
                                     key={payment.id}
-                                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                                    className="flex items-center justify-between p-3 rounded-lg"
                                   >
                                     <div className="flex items-center gap-3">
                                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                         <CreditCard className="h-4 w-4 text-blue-600" />
                                       </div>
                                       <div>
-                                        <p className="font-medium text-gray-900">
-                                          ₹{parseFloat(payment.amount).toLocaleString("en-IN")}
+                                        <p className="font-medium ">
+                                          ₹
+                                          {parseFloat(
+                                            payment.amount
+                                          ).toLocaleString("en-IN")}
                                         </p>
                                         <p className="text-sm text-gray-600">
-                                          {payment.paymentMethod} • {format(new Date(payment.createdAt), "dd MMM yyyy")}
+                                          {payment.paymentMethod} •{" "}
+                                          {format(
+                                            new Date(payment.createdAt),
+                                            "dd MMM yyyy"
+                                          )}
                                         </p>
                                       </div>
                                     </div>
                                     {payment.slipUrl && (
-                                      <Button variant="outline" size="sm" asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        asChild
+                                      >
                                         <a
                                           href={payment.slipUrl}
                                           target="_blank"

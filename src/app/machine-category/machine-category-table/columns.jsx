@@ -89,7 +89,7 @@ export const columns = [
         }
       };
       const handleEdit = () => {
-        navigate('/update-machine-category', { state: { myData: row.original } });
+        navigate('/machine-category/update', { state: { myData: row.original } });
       };
 
       return (

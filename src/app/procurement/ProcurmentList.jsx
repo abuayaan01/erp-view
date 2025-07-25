@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useParams } from "react-router";
 import api from "@/services/api/api-service";
+import { Spinner } from "@/components/ui/loader";
 
 // Utility functions
 const getStatusColor = (status) => {
@@ -60,8 +61,8 @@ const getStatusIcon = (status) => {
 
 // Table Header Component
 const TableHeader = () => (
-  <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
-    <div className="grid grid-cols-8 gap-4 text-sm font-medium text-gray-600">
+  <div className="bg-muted border-b rounded-t-xl px-6 py-4">
+    <div className="grid grid-cols-8 gap-4 text-sm font-medium">
       <div>Procurement #</div>
       <div>Requisition #</div>
       <div>Vendor</div>
@@ -76,21 +77,21 @@ const TableHeader = () => (
 
 // Table Row Component
 const TableRow = ({ procurement, navigate }) => (
-  <div className="border-b border-gray-200 px-6 py-4 hover:bg-gray-50 transition-colors">
-    <div className="grid grid-cols-8 gap-4 items-center">
-      <div className="font-medium text-gray-900">
+  <div className="border-b border-gray-200 px-6 py-4 transition-colors">
+    <div className="grid grid-cols-8 gap-4 items-center text-sm">
+      <div className="">
         {procurement.procurementNo}
       </div>
 
-      <div className="text-gray-600">REQ-{procurement.requisitionId}</div>
+      <div className="">REQ-{procurement.requisitionId}</div>
 
-      <div className="text-gray-900">{procurement.Vendor.name}</div>
+      <div className="">{procurement.Vendor.name}</div>
 
-      <div className="text-gray-600">
+      <div className="">
         {new Date(procurement.createdAt).toLocaleDateString("en-GB")}
       </div>
 
-      <div className="text-gray-600">
+      <div className="">
         {new Date(procurement.expectedDelivery).toLocaleDateString("en-GB")}
       </div>
 
@@ -105,7 +106,7 @@ const TableRow = ({ procurement, navigate }) => (
         </Badge>
       </div>
 
-      <div className="font-semibold text-gray-900">
+      <div className="font-semibold ">
         ₹{parseFloat(procurement.totalAmount).toLocaleString()}
       </div>
 
@@ -206,7 +207,7 @@ const ProcurementList = () => {
   }, []);
 
   if (loading) {
-    return <div className="text-center py-8">Loading procurements...</div>;
+    return <Spinner />
   }
 
   if (error) {
@@ -218,9 +219,9 @@ const ProcurementList = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Procurement Orders</h1>
+        <h1 className="text-3xl font-bold">Procurement Orders</h1>
         <Button
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-primary"
           onClick={() => navigate("/requisitions")}
         >
           <Plus className="h-4 w-4 mr-2" />

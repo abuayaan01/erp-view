@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CheckCircle, Clock, AlertTriangle, Search, FileText } from "lucide-react"
 import { format } from "date-fns"
 import api from "@/services/api/api-service"
+import { Spinner } from "@/components/ui/loader"
 
 const MaintenanceLogList = ({ machineId, onViewLog }) => {
   const [logs, setLogs] = useState([])
@@ -97,7 +98,7 @@ const MaintenanceLogList = ({ machineId, onViewLog }) => {
   })
 
   if (loading) {
-    return <div className="flex justify-center items-center h-40">Loading maintenance logs...</div>
+    return <Spinner />
   }
 
   return (

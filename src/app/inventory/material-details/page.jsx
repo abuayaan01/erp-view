@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import api from "@/services/api/api-service";
+import { Spinner } from "@/components/ui/loader";
 
 const MaterialDetails = () => {
   const { id } = useParams();
@@ -211,7 +212,7 @@ const MaterialDetails = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">Loading...</div>
+      <Spinner />
     );
   }
 
@@ -226,7 +227,7 @@ const MaterialDetails = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/inventory")}>
+        <Button variant="outline" size="icon" onClick={() => navigate("/inventory")}>
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>

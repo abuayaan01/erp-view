@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/loader";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -47,6 +48,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 
 export function MainDashboard() {
   const [timeframe, setTimeframe] = useState("month");
@@ -55,6 +57,8 @@ export function MainDashboard() {
     startDate: "2025-06-01",
     endDate: "2025-07-18",
   });
+
+  const navigate = useNavigate();
 
   const { data, isLoading, isError, errors, refetchAll } =
     useDashboardData(filters);
@@ -73,19 +77,7 @@ export function MainDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center space-y-4">
-          <RefreshCw className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-lg font-medium text-gray-600">
-            Loading dashboard...
-          </span>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-7xl">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32 rounded-xl" />
-            ))}
-          </div>
-        </div>
-      </div>
+      <Spinner />
     );
   }
 
@@ -174,10 +166,10 @@ export function MainDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+        <div>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
@@ -295,7 +287,7 @@ export function MainDashboard() {
         </div>
 
         <Card>
-          <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b">
+          <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-800 rounded-t-lg border-b">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -429,6 +421,7 @@ export function MainDashboard() {
                           variant="ghost"
                           size="sm"
                           className="shrink-0 text-gray-500 hover:text-primary"
+                          onClick={() => {navigate(`/machine/${machine.id}`)}}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -481,8 +474,8 @@ export function MainDashboard() {
 
           {/* Additional alert summaries */}
           {(alerts?.pendingApprovals > 0 || alerts?.maintenanceOverdue > 0) && (
-            <CardFooter className="bg-gray-50 dark:bg-gray-800 border-t">
-              <div className="flex flex-wrap items-center gap-4">
+            <CardFooter className="bg-gray-50 dark:bg-gray-800 border-t rounded-b-lg">
+              <div className="flex flex-wrap items-center mt-4 gap-4">
                 {alerts.pendingApprovals > 0 && (
                   <div className="flex items-center gap-2">
                     <Clipboard className="w-4 h-4 text-amber-500" />
@@ -630,7 +623,7 @@ export function MainDashboard() {
 
             {/* Recent Activities */}
             <Card>
-              <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b">
+              <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-800 rounded-t-lg border-b">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Activity className="w-5 h-5 text-gray-500" />
@@ -643,7 +636,7 @@ export function MainDashboard() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-2">
                 <Tabs defaultValue="requisitions">
                   <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="requisitions">Requisitions</TabsTrigger>
@@ -1013,7 +1006,7 @@ export function MainDashboard() {
           <div className="space-y-4">
             {/* Sites Summary Card with Proper Data Mapping */}
             <Card>
-              <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b">
+              <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-800 rounded-t-lg border-b">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Building className="w-5 h-5 text-gray-500" />
@@ -1116,7 +1109,7 @@ export function MainDashboard() {
 
             {/* Inventory Alerts - Scrollable Version */}
             <Card>
-              <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b">
+              <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-800 rounded-t-lg border-b">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Package className="w-5 h-5 text-gray-500" />
