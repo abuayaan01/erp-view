@@ -44,6 +44,7 @@ import {
 import api from "@/services/api/api-service";
 import TableSkeleton from "@/components/ui/table-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/loader";
 
 const MaterialRequisitionList = () => {
   const [requisitions, setRequisitions] = useState([]);
@@ -386,6 +387,12 @@ const MaterialRequisitionList = () => {
       }
     }
   };
+
+  if (loading) {
+    return (
+      <Spinner />
+    );
+  }
 
   if (error) {
     return (

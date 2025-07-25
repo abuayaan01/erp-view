@@ -5,7 +5,6 @@ import UsersTable from "../users-table/page";
 function ManageUsers() {
   return (
     <div>
-      <Text>Users Management</Text>
       <div>
         <UsersTable />
       </div>

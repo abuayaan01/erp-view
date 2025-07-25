@@ -15,6 +15,7 @@ import { pdf, PDFViewer } from "@react-pdf/renderer";
 import LogbookPDF from "./logbook-pdf";
 import api from "@/services/api/api-service";
 import { useNavigate, useParams } from "react-router";
+import { Spinner } from "../ui/loader";
 
 export function LogbookDetails() {
   const [showPdf, setShowPdf] = useState(false);
@@ -28,10 +29,10 @@ export function LogbookDetails() {
   useEffect(() => {
     const fetchLogbookEntry = async () => {
       try {
+        setLoading(true);
         const res = await api.get(`logbook/${params.id}`);
         const data = res.data;
 
-        console.log(data);
         const mappedEntry = {
           id: data.id,
           date: data.date,
@@ -65,6 +66,13 @@ export function LogbookDetails() {
     fetchLogbookEntry();
   }, []);
 
+
+  if (loading) {
+    return (
+      <Spinner />
+    );
+  }
+
   if (!entry) return null;
 
   const dieselUsed =
@@ -93,7 +101,6 @@ export function LogbookDetails() {
         <div className="flex items-center justify-between">
           <Button
             variant="outline"
-            size="sm"
             onClick={handleBack}
             className="flex items-center gap-2"
           >
@@ -103,7 +110,6 @@ export function LogbookDetails() {
           <Button
             loading={pdfloading}
             variant="outline"
-            size="sm"
             onClick={handleGeneratePdf}
             className="flex items-center gap-2"
           >
@@ -262,6 +268,7 @@ function LogbookDetailsWrapper() {
   useEffect(() => {
     const fetchLogbookEntry = async () => {
       try {
+        setLoading(true);
         const res = await api.get(`logbook/${params.id}`);
         const data = res.data;
         const mappedEntry = {

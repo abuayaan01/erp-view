@@ -188,21 +188,35 @@ const MaintenanceLogPage = () => {
   return (
     <div className="container ">
       <div className="sm:max-w-[1200px]s">
-        <div>
-          <Button variant="ghost" size="sm" onClick={()=>window.history.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to List
-          </Button>
-          <div className="text-xl flex items-center font-bold gap-2">
-            <Wrench className="h-5 w-5" />
-            Maintenance Log
+        <div className="flex justify-between">
+          <div>
+            <div className="text-3xl flex items-center font-bold gap-2">
+              Maintenance Log
+              <Wrench className="h-5 w-5" />
+            </div>
+            <div>
+              {machineName} (ID: {machineId})
+            </div>
           </div>
           <div>
-            {machineName} (ID: {machineId})
+            <div>
+              <Button
+                className={"border my-2"}
+                variant="ghost"
+                onClick={() => window.history.back()}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to details
+              </Button>
+            </div>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full mt-4"
+        >
           <TabsList className="grid grid-cols-1 mb-4">
             <TabsTrigger value="history" disabled>
               Maintenance History

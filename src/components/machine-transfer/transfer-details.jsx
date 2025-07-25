@@ -324,14 +324,14 @@ export default function MachineTransferDetail({
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-2">
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={() => navigate("/machine-transfer")}
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Button>
-          <h1 className="text-2xl font-bold">{transfer.name}</h1>
+          <h1 className="text-3xl font-bold">{transfer.name}</h1>
           <p className="text-muted-foreground">
             {getStatusBadge(transfer.status)}
           </p>

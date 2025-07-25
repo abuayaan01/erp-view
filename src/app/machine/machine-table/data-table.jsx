@@ -109,14 +109,14 @@ export function DataTable({ columns, data, loading }) {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div>
+        {/* <div>
           <Link to={`/machine/add`}>
             <Button>
               <Plus className="mr-2 mb-1 h-4 w-4" />
               <span>Add Machine</span>
             </Button>
           </Link>
-        </div>
+        </div> */}
       </div>
       <div className="max-w-[95vw] lg:w-[80vw] overflow-x-auto rounded-md border">
         <div>

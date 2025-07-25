@@ -68,7 +68,7 @@ export function DataTable({ columns, data, loading }) {
           }
           className="max-w-sm"
         />
-        <AddSiteDialog />
+        {/* <AddSiteDialog /> */}
       </div>
       <div className="max-w-[95vw] lg:w-[80vw] overflow-x-auto rounded-md border">
         <div>
@@ -160,7 +160,7 @@ export function DataTable({ columns, data, loading }) {
   );
 }
 
-function AddSiteDialog() {
+export function AddSiteDialog() {
   const [openForm, setOpenForm] = React.useState(false);
   const closeForm = () => {
     setOpenForm(false);
@@ -168,7 +168,7 @@ function AddSiteDialog() {
   return (
     <Dialog open={openForm} onOpenChange={setOpenForm}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpenForm(true)} variant="outline">
+        <Button onClick={() => setOpenForm(true)}>
           Add Site
         </Button>
       </DialogTrigger>

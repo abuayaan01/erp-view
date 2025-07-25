@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import api from "@/services/api/api-service";
 import { toast } from "@/hooks/use-toast";
 import TableSkeleton from "@/components/ui/table-skeleton";
+import { Spinner } from "@/components/ui/loader";
 
 const InventoryList = () => {
   const [inventory, setInventory] = useState([]);
@@ -143,6 +144,12 @@ const InventoryList = () => {
     setItemsPerPage(Number(value));
     setCurrentPage(1); // Reset to first page when changing items per page
   };
+
+  if (loading) {
+    return (
+      <Spinner />
+    );
+  }
 
   return (
     <div className="space-y-6">

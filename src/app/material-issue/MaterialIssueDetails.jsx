@@ -31,6 +31,7 @@ import api from "@/services/api/api-service";
 import { toast } from "@/hooks/use-toast";
 import { useSelector } from "react-redux";
 import { getIdByRole, ROLES } from "@/utils/roles";
+import { Spinner } from "@/components/ui/loader";
 
 const MaterialIssueDetails = () => {
   const { id } = useParams();
@@ -280,7 +281,7 @@ const MaterialIssueDetails = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">Loading...</div>
+      <Spinner />
     );
   }
 
@@ -326,7 +327,7 @@ const MaterialIssueDetails = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
                 onClick={() => navigate("/issues")}
               >

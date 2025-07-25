@@ -18,6 +18,7 @@ import { useSelector } from "react-redux";
 import { ROLES } from "@/utils/roles";
 import api from "@/services/api/api-service";
 import TableSkeleton from "@/components/ui/table-skeleton";
+import { Spinner } from "@/components/ui/loader";
 
 export function LogbookPage() {
   const [logEntries, setLogEntries] = useState([]);
@@ -173,6 +174,12 @@ export function LogbookPage() {
 
     return true;
   });
+
+  if (tableLoader) {
+    return (
+      <Spinner />
+    );
+  }
 
   return (
     <div className="container mx-auto space-y-6">

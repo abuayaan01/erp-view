@@ -44,6 +44,7 @@ import InvoiceForm from "./InvoiceForm";
 import { InvoicePaymentDialog } from "./InvoicePaymentDialog";
 import { pdf } from "@react-pdf/renderer";
 import ProcurementOrderPDF from "./ProcurementOrderPDF";
+import { Spinner } from "@/components/ui/loader";
 
 const ProcurementDetails = () => {
   const { id } = useParams();
@@ -204,14 +205,7 @@ const ProcurementDetails = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="text-gray-600">Loading procurement details...</p>
-        </div>
-      </div>
-    );
+    return <Spinner />;
   }
 
   if (error) {
@@ -253,21 +247,12 @@ const ProcurementDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="rounded-lg shadow-sm mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/procurements")}
-                className="hover:bg-gray-100"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to List
-              </Button>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
                   {procurement.procurementNo}
@@ -320,7 +305,7 @@ const ProcurementDetails = () => {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="hover:bg-gray-100">
+                  <Button variant="outline">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -535,7 +520,7 @@ const ProcurementDetails = () => {
                   <CardContent>
                     <div className="space-y-4">
                       <div>
-                        <p className="font-semibold text-lg text-gray-900">
+                        <p className="font-semibold text-lg ">
                           {procurement.Vendor?.name}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
@@ -644,8 +629,8 @@ const ProcurementDetails = () => {
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
-                  <div className="min-w-full bg-white rounded-lg border">
-                    <div className="grid grid-cols-12 bg-gray-50 p-4 border-b font-medium text-sm">
+                  <div className="min-w-full rounded-lg border">
+                    <div className="grid grid-cols-12 p-4 border-b font-medium text-sm">
                       <div className="col-span-5">Item</div>
                       <div className="col-span-2 text-center">Quantity</div>
                       <div className="col-span-2 text-center">Rate</div>
@@ -659,7 +644,7 @@ const ProcurementDetails = () => {
                         }`}
                       >
                         <div className="col-span-5">
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium ">
                             {item.RequisitionItem.Item?.name}
                           </p>
                           <p className="text-sm text-gray-600 mt-1">
@@ -725,7 +710,7 @@ const ProcurementDetails = () => {
                       onOpenChange={setIsInvoiceDialogOpen}
                     >
                       <DialogTrigger asChild>
-                        <Button className="bg-blue-600 hover:bg-blue-700">
+                        <Button>
                           <Plus className="h-4 w-4 mr-2" />
                           Add Invoice
                         </Button>
@@ -751,7 +736,7 @@ const ProcurementDetails = () => {
                       return (
                         <div
                           key={invoice.id}
-                          className="border rounded-lg p-6 bg-white hover:shadow-md transition-shadow"
+                          className="border rounded-lg p-6 hover:shadow-md transition-shadow"
                         >
                           {/* Header Section */}
                           <div className="flex items-start justify-between mb-6">

@@ -34,7 +34,7 @@ import {
   PlusCircle,
 } from "lucide-react";
 import api from "@/services/api/api-service";
-import Loader from "../ui/loader";
+import Loader, { Spinner } from "../ui/loader";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router";
 import {
@@ -209,6 +209,12 @@ export function TransferHistory() {
 
     fetchHistory();
   }, []);
+
+  if (loading) {
+    return (
+      <Spinner />
+    );
+  }
 
   return (
     <div className="space-y-4">

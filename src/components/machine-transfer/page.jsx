@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import MachineTransferDetail from "./transfer-details";
 import api from "@/services/api/api-service";
+import { Spinner } from "../ui/loader";
 
 // Example API response
 
@@ -32,9 +33,7 @@ export default function TransferDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        Loading transfer details...
-      </div>
+      <Spinner />
     );
   }
 
@@ -47,7 +46,7 @@ export default function TransferDetailPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto">
       <MachineTransferDetail
         transferData={transferData}
         fetchTransferData={fetchTransferData}

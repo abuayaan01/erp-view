@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Loader from "@/components/ui/loader";
+import Loader, { Spinner } from "@/components/ui/loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import api from "@/services/api/api-service";
 import {
@@ -137,14 +137,12 @@ export default function MachineryDetailPage() {
   }
 
   return (
-    <div className="container mx-auto py-2 min-h-screen flex flex-col">
+    <div className="container mx-auto min-h-screen flex flex-col">
       {loading ? (
-        <div className="flex-1 flex justify-center items-center">
-          <Loader />
-        </div>
+        <Spinner/>
       ) : (
-        <div className="container  py-2 px-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div className="container">
+          <div className="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold tracking-tight">
@@ -169,7 +167,6 @@ export default function MachineryDetailPage() {
                 Edit
               </Button> */}
               <Button
-                size="sm"
                 onClick={() => {
                   navigate(`/machine/${data.id}/logs`, {
                     state: { machineName: data?.machineName },

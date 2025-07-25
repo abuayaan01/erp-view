@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import Loader from "@/components/ui/loader"
+import Loader, { Spinner } from "@/components/ui/loader"
 import { Separator } from "@/components/ui/separator"
 import api from "@/services/api/api-service"
 import { MapPin, Settings, Package } from "lucide-react"
@@ -33,9 +33,7 @@ export default function SiteDetailPage() {
   return (
     <div className="container mx-auto py-2 min-h-screen flex flex-col">
       {loading ? (
-        <div className="flex-1 flex justify-center items-center">
-          <Loader />
-        </div>
+        <Spinner />
       ) :
         (<div className="container py-4 px-4 max-w-5xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">

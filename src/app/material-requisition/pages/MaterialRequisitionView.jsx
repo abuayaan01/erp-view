@@ -52,6 +52,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import MaterialRequisitionPDF from "./MaterialRequisitionPDF";
+import { Spinner } from "@/components/ui/loader";
 
 const MaterialRequisitionView = () => {
   const { id } = useParams();
@@ -745,11 +746,7 @@ const MaterialRequisitionView = () => {
   );
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <Spinner />;
   }
 
   if (!requisition) {
@@ -770,14 +767,6 @@ const MaterialRequisitionView = () => {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/requisitions")}
-                className="hover:bg-gray-100"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-gray-900">
                   {requisition?.requisitionNo}
@@ -801,16 +790,16 @@ const MaterialRequisitionView = () => {
           </div>
 
           {/* Status and Priority Banner */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium">
                   Status:
                 </span>
                 {getStatusBadge(requisition?.status)}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium">
                   Priority:
                 </span>
                 {getPriorityBadge(requisition.requestPriority)}
