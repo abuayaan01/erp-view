@@ -127,13 +127,16 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontWeight: "bold",
-  }
+  },
 });
 
 const MaterialRequisitionPDF = ({ formData, items }) => {
   // Calculate total quantity
-  const totalQuantity = items.reduce((sum, item) => sum + Number(item.quantity), 0);
-  
+  const totalQuantity = items?.reduce(
+    (sum, item) => sum + Number(item.quantity),
+    0
+  );
+
   // Format date safely
   const formatDateSafe = (dateString) => {
     try {
@@ -160,15 +163,23 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>M/s B. P. C INFRAPROJECTS PVT LTD</Text>
-            <Text style={styles.companyAddress}>Galaxia Mall, Unit - 12, 2nd Floor, Piska More, Ratu Road</Text>
+            <Text style={styles.companyName}>
+              M/s B. P. C INFRAPROJECTS PVT LTD
+            </Text>
+            <Text style={styles.companyAddress}>
+              Galaxia Mall, Unit - 12, 2nd Floor, Piska More, Ratu Road
+            </Text>
             <Text style={styles.companyAddress}>Ranchi - 834005</Text>
           </View>
           <View style={styles.locationInfo}>
-            <Text style={{ fontWeight: "bold" }}>{formData.requestingSite?.name || "N/A"}</Text>
-            <Text>SITE CODE: {formData.requestingSite?.code || "N/A"}</Text>
-            <Text>CONTACT: {formData.requestingSite?.mobileNumber || "N/A"}</Text>
-            <Text>{formData.requestingSite?.address || "N/A"}</Text>
+            <Text style={{ fontWeight: "bold" }}>
+              {formData?.requestingSite?.name || "N/A"}
+            </Text>
+            <Text>SITE CODE: {formData?.requestingSite?.code || "N/A"}</Text>
+            <Text>
+              CONTACT: {formData?.requestingSite?.mobileNumber || "N/A"}
+            </Text>
+            <Text>{formData?.requestingSite?.address || "N/A"}</Text>
           </View>
         </View>
 
@@ -180,31 +191,35 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
           <View style={styles.projectLeft}>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Site Name:</Text>
-              <Text style={styles.detailValue}>{formData.requestingSite?.name || "N/A"}</Text>
+              <Text style={styles.detailValue}>
+                {formData?.requestingSite?.name || "N/A"}
+              </Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Requisition No.:</Text>
-              <Text style={styles.detailValue}>{formData.requisitionNo}</Text>
+              <Text style={styles.detailValue}>{formData?.requisitionNo}</Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Status:</Text>
-              <Text style={styles.detailValue}>{formData.status}</Text>
+              <Text style={styles.detailValue}>{formData?.status}</Text>
             </View>
           </View>
           <View style={styles.projectRight}>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Location:</Text>
-              <Text style={styles.detailValue}>{formData.requestingSite?.address || "N/A"}</Text>
+              <Text style={styles.detailValue}>
+                {formData?.requestingSite?.address || "N/A"}
+              </Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Request Date:</Text>
               <Text style={styles.detailValue}>
-                {formatDateSafe(formData.requestedAt)} {formData.time || ""}
+                {formatDateSafe(formData?.requestedAt)} {formData?.time || ""}
               </Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Charge Type:</Text>
-              <Text style={styles.detailValue}>{formData.chargeType}</Text>
+              <Text style={styles.detailValue}>{formData?.chargeType}</Text>
             </View>
           </View>
         </View>
@@ -247,7 +262,14 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
 
           {/* Table Body */}
           {items.map((item, index) => (
-            <View style={index === items.length - 1 ? styles.tableRowLast : styles.tableRow} key={index}>
+            <View
+              style={
+                index === items.length - 1
+                  ? styles.tableRowLast
+                  : styles.tableRow
+              }
+              key={index}
+            >
               <View style={[styles.tableCol, { width: "5%" }]}>
                 <Text>{index + 1}</Text>
               </View>
@@ -259,7 +281,9 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
               </View>
               <View style={[styles.tableColLeft, { width: "24%" }]}>
                 <Text>{item.Item?.name || "-"}</Text>
-                <Text style={styles.statusText}>[SANCTION: {getSanctionStatus(formData.status)}]</Text>
+                <Text style={styles.statusText}>
+                  [SANCTION: {getSanctionStatus(formData?.status)}]
+                </Text>
               </View>
               <View style={[styles.tableCol, { width: "8%" }]}>
                 <Text>{item.Item?.hsnCode || "-"}</Text>
@@ -277,16 +301,18 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
                 <Text>{getGroupName(item.Item?.itemGroupId)}</Text>
               </View>
               <View style={[styles.tableColLast, { width: "13%" }]}>
-                <Text>Site: {formData.requestingSite?.name || "-"}</Text>
-                <Text>Priority: {formData.requestPriority}</Text>
-                <Text>Due Date: {formatDateSafe(formData.dueDate)}</Text>
+                <Text>Site: {formData?.requestingSite?.name || "-"}</Text>
+                <Text>Priority: {formData?.requestPriority}</Text>
+                <Text>Due Date: {formatDateSafe(formData?.dueDate)}</Text>
               </View>
             </View>
           ))}
 
           {/* Total Row */}
           <View style={styles.totalRow}>
-            <View style={[styles.tableCol, { width: "47%", textAlign: "right" }]}>
+            <View
+              style={[styles.tableCol, { width: "47%", textAlign: "right" }]}
+            >
               <Text>Total</Text>
             </View>
             <View style={[styles.tableCol, { width: "8%" }]}>
@@ -314,11 +340,11 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
         <View style={styles.footer}>
           <View style={styles.signature}>
             <Text>Requisitioner</Text>
-            <Text>{formData.preparedBy?.name || "N/A"}</Text>
+            <Text>{formData?.preparedBy?.name || "N/A"}</Text>
           </View>
           <View style={styles.signature}>
             <Text>Approved By</Text>
-            <Text>{formData.approvedBy?.name || "N/A"}</Text>
+            <Text>{formData?.approvedBy?.name || "N/A"}</Text>
           </View>
           <View style={styles.signature}>
             <Text>Issuer</Text>
@@ -330,7 +356,7 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
           </View>
           <View style={styles.signature}>
             <Text>Receiver</Text>
-            <Text>{formData.receivedBy?.name || "N/A"}</Text>
+            <Text>{formData?.receivedBy?.name || "N/A"}</Text>
           </View>
         </View>
       </Page>
@@ -341,7 +367,7 @@ const MaterialRequisitionPDF = ({ formData, items }) => {
 // Helper functions to get unit and group information
 const getUnitName = (unitId) => {
   if (!unitId) return "-";
-  
+
   // In a real implementation, this would look up the unit in the Redux store
   // Since we don't have access to the complete Redux store here, we'll just return a placeholder
   // In the actual component, this should be replaced with proper unit lookup
@@ -352,15 +378,15 @@ const getUnitName = (unitId) => {
     4: "BAG",
     5: "MTR",
     6: "SET",
-    7: "PKT"
+    7: "PKT",
   };
-  
+
   return unitMap[unitId] || "Unit";
 };
 
 const getGroupName = (groupId) => {
   if (!groupId) return "-";
-  
+
   // In a real implementation, this would look up the group in the Redux store
   // Since we don't have access to the complete Redux store here, we'll just return a placeholder
   // In the actual component, this should be replaced with proper group lookup
@@ -372,9 +398,9 @@ const getGroupName = (groupId) => {
     5: "Measuring",
     6: "Paint",
     7: "Plumbing",
-    8: "Hardware"
+    8: "Hardware",
   };
-  
+
   return groupMap[groupId] || "Group";
 };
 

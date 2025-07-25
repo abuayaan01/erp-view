@@ -28,17 +28,12 @@ import ItemForm from "@/app/material-requisition/pages/ItemForm";
 import ItemGroupForm from "@/app/material-requisition/pages/ItemGroupForm";
 import ItemGroupList from "@/app/material-requisition/pages/ItemGroupList";
 import ItemList from "@/app/material-requisition/pages/ItemList";
-import MaterialRequisitionApproval from "@/app/material-requisition/pages/MaterialRequisitionApproval";
 import MaterialRequisitionForm from "@/app/material-requisition/pages/MaterialRequisitionForm";
-import MaterialRequisitionForward from "@/app/material-requisition/pages/MaterialRequisitionForward";
 import MaterialRequisitionList from "@/app/material-requisition/pages/MaterialRequisitionList";
-import MaterialRequisitionRespond from "@/app/material-requisition/pages/MaterialRequisitionRespond";
-import MaterialRequisitionReview from "@/app/material-requisition/pages/MaterialRequisitionReview";
 import MaterialRequisitionView from "@/app/material-requisition/pages/MaterialRequisitionView";
 import UnitForm from "@/app/material-requisition/pages/UnitForm";
 import UnitList from "@/app/material-requisition/pages/UnitList";
 import MaterialIssue from "@/app/material/MaterialIssue";
-import MaterialReceive from "@/app/material/MaterialReceive";
 import SiteDetailPage from "@/app/sites/site-detail-page/site-detail-page";
 import { LogbookDetails } from "@/components/logbook/logbook-details";
 import { LogbookForm } from "@/components/logbook/logbook-form";
@@ -215,24 +210,7 @@ function AppRouter() {
         <Route path="/requisitions" element={<MaterialRequisitionList />} />
         <Route path="/requisitions/new" element={<MaterialRequisitionForm />} />
         <Route path="/requisitions/:id" element={<MaterialRequisitionView />} />
-        <Route
-          path="/requisitions/approve/:id"
-          element={<MaterialRequisitionApproval />}
-        />
-        <Route
-          path="/requisitions/forward/:id"
-          element={<MaterialRequisitionForward />}
-        />
         <Route path="/requisitions/issue/:id" element={<MaterialIssue />} />
-        <Route path="/requisitions/receive/:id" element={<MaterialReceive />} />
-        <Route
-          path="/requisitions/review/:id"
-          element={<MaterialRequisitionReview />}
-        />
-        <Route
-          path="/requisitions/respond/:id"
-          element={<MaterialRequisitionRespond />}
-        />
         {/* Material Requisition End*/}
 
         {/* Inventory */}

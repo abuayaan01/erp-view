@@ -23,6 +23,7 @@ import {
   DollarSign,
   User,
   Activity,
+  Paperclip,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +42,8 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InvoiceForm from "./InvoiceForm";
 import { InvoicePaymentDialog } from "./InvoicePaymentDialog";
+import { pdf } from "@react-pdf/renderer";
+import ProcurementOrderPDF from "./ProcurementOrderPDF";
 import { Spinner } from "@/components/ui/loader";
 
 const ProcurementDetails = () => {
@@ -52,6 +55,7 @@ const ProcurementDetails = () => {
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const handlePaymentCreated = (payment) => {
     setInvoices((prevInvoices) =>
@@ -61,6 +65,34 @@ const ProcurementDetails = () => {
           : invoice
       )
     );
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      const blob = await pdf(
+        <ProcurementOrderPDF data={procurement} />
+      ).toBlob();
+
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Procurement_Order_${procurement.procurementNo}.pdf`;
+
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      // Handle error (show toast notification, etc.)
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   useEffect(() => {
@@ -222,15 +254,7 @@ const ProcurementDetails = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div>
-                <h1 className="text-3xl font-bold ">
-                  <Button
-                    variant="outline"
-                    // size="sm"
-                    onClick={() => navigate("/procurements")}
-                    className="mr-2"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
+                <h1 className="text-3xl font-bold text-gray-900">
                   {procurement.procurementNo}
                 </h1>
                 <p className="text-sm text-gray-600 mt-1">
@@ -249,11 +273,15 @@ const ProcurementDetails = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="outline">
+              <Button
+                variant="outline"
+                className="hover:bg-gray-100"
+                onClick={handleDownloadPDF}
+                disabled={isGeneratingPdf}
+              >
                 <Download className="h-4 w-4 mr-2" />
-                Download PDF
+                {isGeneratingPdf ? "Generating..." : "Download PDF"}
               </Button>
-
               <Dialog
                 open={isInvoiceDialogOpen}
                 onOpenChange={setIsInvoiceDialogOpen}
@@ -261,6 +289,7 @@ const ProcurementDetails = () => {
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
+                    className="hover:bg-blue-50 hover:text-blue-600"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Invoice
@@ -316,7 +345,7 @@ const ProcurementDetails = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-3 rounded-lg shadow-sm border">
+          <TabsList className="grid w-full grid-cols-3 bg-white rounded-lg shadow-sm border">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
               Overview
@@ -466,11 +495,11 @@ const ProcurementDetails = () => {
 
                     {procurement.notes && (
                       <div className="mt-6">
-                        <p className="text-sm font-medium mb-2">
+                        <p className="text-sm font-medium text-gray-600 mb-2">
                           Notes
                         </p>
-                        <div className=" rounded-lg p-4 border">
-                          <p className="">{procurement.notes}</p>
+                        <div className="bg-gray-50 rounded-lg p-4 border">
+                          <p className="text-gray-700">{procurement.notes}</p>
                         </div>
                       </div>
                     )}
@@ -610,7 +639,9 @@ const ProcurementDetails = () => {
                     {procurement.ProcurementItems.map((item, index) => (
                       <div
                         key={item.id}
-                        className={`grid grid-cols-12 p-4 border-b last:border-b-0 bg-muted`}
+                        className={`grid grid-cols-12 p-4 border-b last:border-b-0 hover:bg-gray-50 ${
+                          index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                        }`}
                       >
                         <div className="col-span-5">
                           <p className="font-medium ">
@@ -642,8 +673,8 @@ const ProcurementDetails = () => {
                 </div>
 
                 <div className="mt-6 flex justify-end">
-                  <div className="rounded-lg p-4 min-w-[200px]">
-                    <p className="text-xl font-bold ">
+                  <div className="bg-gray-50 rounded-lg p-4 min-w-[200px]">
+                    <p className="text-xl font-bold text-gray-900">
                       Total: ₹
                       {parseFloat(procurement.totalAmount).toLocaleString()}
                     </p>
@@ -662,30 +693,13 @@ const ProcurementDetails = () => {
                     <Receipt className="h-5 w-5" />
                     Invoices ({invoices.length})
                   </CardTitle>
-                  <Dialog
-                    open={isInvoiceDialogOpen}
-                    onOpenChange={setIsInvoiceDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Invoice
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px]">
-                      <InvoiceForm
-                        procurement={procurement}
-                        onSave={handleInvoiceSubmit}
-                      />
-                    </DialogContent>
-                  </Dialog>
                 </div>
               </CardHeader>
               <CardContent>
                 {invoices.length === 0 ? (
                   <div className="text-center py-12">
-                    <Receipt className="h-16 w-16 mx-auto mb-4" />
-                    <p className="text-lg mb-2">
+                    <Receipt className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 text-lg mb-2">
                       No invoices yet
                     </p>
                     <p className="text-gray-400 text-sm mb-4">
@@ -710,124 +724,318 @@ const ProcurementDetails = () => {
                     </Dialog>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {invoices.map((invoice) => {
                       const invoiceStatus = getInvoiceStatus(invoice);
                       const totalPayments = calculateTotalPayments(invoice);
                       const remainingAmount =
                         parseFloat(invoice.amount) - totalPayments;
+                      const paymentProgress =
+                        (totalPayments / parseFloat(invoice.amount)) * 100;
 
                       return (
                         <div
                           key={invoice.id}
                           className="border rounded-lg p-6 hover:shadow-md transition-shadow"
                         >
-                          <div className="flex items-start justify-between mb-4">
+                          {/* Header Section */}
+                          <div className="flex items-start justify-between mb-6">
                             <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <h3 className="text-lg font-semibold ">
-                                  {invoice.invoiceNumber}
+                              <div className="flex items-center gap-3 mb-3">
+                                <Receipt className="h-6 w-6 text-blue-600" />
+                                <h3 className="text-xl font-semibold text-gray-900">
+                                  Invoice #{invoice.invoiceNumber}
                                 </h3>
                                 <Badge
-                                  className={`${invoiceStatus.color} px-2 py-1`}
+                                  className={`${invoiceStatus.color} px-3 py-1`}
                                 >
                                   {invoiceStatus.status}
                                 </Badge>
                               </div>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+
+                              {/* Invoice Metadata */}
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4">
                                 <div>
-                                  <p className="text-gray-600">
-                                    Invoice Amount
+                                  <p className="text-gray-600 mb-1">
+                                    Invoice Date
                                   </p>
-                                  <p className="font-semibold text-lg">
-                                    ₹
-                                    {parseFloat(invoice.amount).toLocaleString(
-                                      "en-IN"
+                                  <p className="font-medium">
+                                    {format(
+                                      new Date(invoice.invoiceDate),
+                                      "dd MMM yyyy"
                                     )}
                                   </p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-600">Paid Amount</p>
-                                  <p className="font-semibold text-lg text-green-600">
-                                    ₹{totalPayments.toLocaleString("en-IN")}
+                                  <p className="text-gray-600 mb-1">Created</p>
+                                  <p className="font-medium">
+                                    {format(
+                                      new Date(invoice.createdAt),
+                                      "dd MMM yyyy"
+                                    )}
                                   </p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-600">Remaining</p>
-                                  <p className="font-semibold text-lg text-red-600">
-                                    ₹{remainingAmount.toLocaleString("en-IN")}
+                                  <p className="text-gray-600 mb-1">
+                                    Last Updated
                                   </p>
-                                </div>
-                                <div>
-                                  <p className="text-gray-600">Vendor</p>
-                                  <p className="font-semibold">
-                                    {invoice.vendorName}
+                                  <p className="font-medium">
+                                    {format(
+                                      new Date(invoice.updatedAt),
+                                      "dd MMM yyyy"
+                                    )}
                                   </p>
                                 </div>
                               </div>
+
+                              {/* Notes Section */}
+                              {invoice.notes && (
+                                <div className="mb-4">
+                                  <p className="text-gray-600 text-sm mb-1">
+                                    Notes
+                                  </p>
+                                  <p className="text-gray-800 bg-gray-50 p-2 rounded text-sm">
+                                    {invoice.notes}
+                                  </p>
+                                </div>
+                              )}
                             </div>
-                            <div className="flex items-center gap-2">
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-2 ml-4">
                               <InvoicePaymentDialog
                                 invoice={invoice}
                                 onPaymentCreated={handlePaymentCreated}
                               />
-                              <Button variant="outline" size="sm">
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
                             </div>
                           </div>
 
-                          {invoice.payments && invoice.payments.length > 0 && (
-                            <div className="border-t pt-4">
-                              <h4 className="text-sm font-medium text-gray-700 mb-3">
-                                Payment History ({invoice.payments.length})
-                              </h4>
-                              <div className="space-y-2">
-                                {invoice.payments.map((payment) => (
+                          {/* Financial Summary */}
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div className="bg-blue-50 p-4 rounded-lg">
+                              <p className="text-blue-600 text-sm font-medium mb-1">
+                                Invoice Amount
+                              </p>
+                              <p className="text-2xl font-bold text-blue-700">
+                                ₹
+                                {parseFloat(invoice.amount).toLocaleString(
+                                  "en-IN"
+                                )}
+                              </p>
+                            </div>
+                            <div className="bg-green-50 p-4 rounded-lg">
+                              <p className="text-green-600 text-sm font-medium mb-1">
+                                Paid Amount
+                              </p>
+                              <p className="text-2xl font-bold text-green-700">
+                                ₹{totalPayments.toLocaleString("en-IN")}
+                              </p>
+                            </div>
+                            <div className="bg-red-50 p-4 rounded-lg">
+                              <p className="text-red-600 text-sm font-medium mb-1">
+                                Outstanding
+                              </p>
+                              <p className="text-2xl font-bold text-red-700">
+                                ₹{remainingAmount.toLocaleString("en-IN")}
+                              </p>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                              <p className="text-gray-600 text-sm font-medium mb-1">
+                                Progress
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-gray-200 rounded-full h-2">
                                   <div
-                                    key={payment.id}
-                                    className="flex items-center justify-between p-3 rounded-lg"
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <CreditCard className="h-4 w-4 text-blue-600" />
-                                      </div>
-                                      <div>
-                                        <p className="font-medium ">
-                                          ₹
-                                          {parseFloat(
-                                            payment.amount
-                                          ).toLocaleString("en-IN")}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                          {payment.paymentMethod} •{" "}
-                                          {format(
-                                            new Date(payment.createdAt),
-                                            "dd MMM yyyy"
+                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                    style={{
+                                      width: `${Math.min(
+                                        paymentProgress,
+                                        100
+                                      )}%`,
+                                    }}
+                                  />
+                                </div>
+                                <span className="text-sm font-medium">
+                                  {Math.round(paymentProgress)}%
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* File Attachments */}
+                          {invoice.files && (
+                            <div className="mb-6">
+                              <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                                <Paperclip className="h-4 w-4" />
+                                Attachments
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {invoice.files
+                                  ?.split(",")
+                                  .map((file, index) => (
+                                    <Button
+                                      key={index}
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-blue-600 hover:text-blue-700"
+                                      // asChild
+                                    >
+                                      <a
+                                        href={file.trim()}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1"
+                                      >
+                                        <FileText className="h-4 w-4" />
+                                        File {index + 1}
+                                      </a>
+                                    </Button>
+                                  ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Payment History */}
+                          {invoice.payments && invoice.payments.length > 0 && (
+                            <div className="border-t pt-6">
+                              <div className="flex items-center justify-between mb-4">
+                                <h4 className="text-lg font-medium text-gray-800 flex items-center gap-2">
+                                  <CreditCard className="h-5 w-5 text-gray-600" />
+                                  Payment History
+                                  <Badge variant="secondary" className="ml-2">
+                                    {invoice.payments.length} payment
+                                    {invoice.payments.length !== 1 ? "s" : ""}
+                                  </Badge>
+                                </h4>
+                              </div>
+
+                              <div className="space-y-3">
+                                {invoice.payments
+                                  .sort(
+                                    (a, b) =>
+                                      new Date(b.paymentDate) -
+                                      new Date(a.paymentDate)
+                                  )
+                                  .map((payment) => (
+                                    <div
+                                      key={payment.id}
+                                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border"
+                                    >
+                                      <div className="flex items-center gap-4">
+                                        <div
+                                          className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                            payment.status === "COMPLETED"
+                                              ? "bg-green-100"
+                                              : "bg-orange-100"
+                                          }`}
+                                        >
+                                          <CreditCard
+                                            className={`h-5 w-5 ${
+                                              payment.status === "COMPLETED"
+                                                ? "text-green-600"
+                                                : "text-orange-600"
+                                            }`}
+                                          />
+                                        </div>
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-3 mb-1">
+                                            <p className="font-semibold text-lg text-gray-900">
+                                              ₹
+                                              {parseFloat(
+                                                payment.amount
+                                              ).toLocaleString("en-IN")}
+                                            </p>
+                                            <Badge
+                                              variant={
+                                                payment.status === "COMPLETED"
+                                                  ? "success"
+                                                  : "warning"
+                                              }
+                                            >
+                                              {payment.status}
+                                            </Badge>
+                                          </div>
+                                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                                            <div>
+                                              <span className="font-medium">
+                                                Method:
+                                              </span>{" "}
+                                              {payment.paymentMethod}
+                                            </div>
+                                            <div>
+                                              <span className="font-medium">
+                                                Date:
+                                              </span>{" "}
+                                              {format(
+                                                new Date(payment.paymentDate),
+                                                "dd MMM yyyy"
+                                              )}
+                                            </div>
+                                            <div>
+                                              <span className="font-medium">
+                                                Reference:
+                                              </span>{" "}
+                                              {payment.referenceNumber}
+                                            </div>
+                                            <div>
+                                              <span className="font-medium">
+                                                Created:
+                                              </span>{" "}
+                                              {format(
+                                                new Date(payment.createdAt),
+                                                "dd MMM yyyy"
+                                              )}
+                                            </div>
+                                          </div>
+                                          {payment.remarks && (
+                                            <p className="text-sm text-gray-600 mt-2 italic">
+                                              "{payment.remarks}"
+                                            </p>
                                           )}
-                                        </p>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center gap-2">
+                                        {payment.slipUrl && (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            // asChild
+                                          >
+                                            <a
+                                              href={payment.slipUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="flex items-center gap-1"
+                                            >
+                                              <Download className="h-4 w-4" />
+                                              Receipt
+                                            </a>
+                                          </Button>
+                                        )}
+                                        {/* <Button variant="ghost" size="sm">
+                                          <MoreVertical className="h-4 w-4" />
+                                        </Button> */}
                                       </div>
                                     </div>
-                                    {payment.slipUrl && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        asChild
-                                      >
-                                        <a
-                                          href={payment.slipUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-1"
-                                        >
-                                          <Download className="h-4 w-4" />
-                                          Receipt
-                                        </a>
-                                      </Button>
-                                    )}
-                                  </div>
-                                ))}
+                                  ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Empty Payment State */}
+                          {(!invoice.payments ||
+                            invoice.payments.length === 0) && (
+                            <div className="border-t pt-6">
+                              <div className="text-center py-8 bg-gray-50 rounded-lg">
+                                <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                                <p className="text-gray-500 mb-2">
+                                  No payments recorded
+                                </p>
+                                <p className="text-gray-400 text-sm">
+                                  Add a payment to track progress on this
+                                  invoice
+                                </p>
                               </div>
                             </div>
                           )}
