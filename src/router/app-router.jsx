@@ -53,6 +53,8 @@ import TransferDetailPage from "@/components/machine-transfer/page";
 import MaintenanceLogPage from "@/app/maintanance-log/MaintenanceLogModal";
 import AddInventoryItems from "@/app/inventory/add-items/page";
 import ProcurementDetails from "@/app/procurement/ProcurementDetails";
+import Notification from "@/app/notifications/page";
+import ProfilePage from "@/app/profile/page";
 
 function AppRouter() {
   const dispatch = useDispatch();
@@ -106,7 +108,7 @@ function AppRouter() {
         {/* Site Management End*/}
 
         {/* Category Management*/}
-        
+
         <Route
           path="/machine-category/add"
           element={
@@ -133,10 +135,7 @@ function AppRouter() {
             />
           }
         />
-        <Route
-          path="/machine-category"
-          element={<MachineCategoryPage />}
-        />
+        <Route path="/machine-category" element={<MachineCategoryPage />} />
         {/* Category Management End*/}
 
         {/* Machines Management */}
@@ -235,6 +234,10 @@ function AppRouter() {
         <Route path="/payments" element={<PaymentList />} />
         <Route path="/payment/:id" element={<PaymentSlipForm />} />
         <Route path="/payment/invoice/:id" element={<PaymentSlipForm />} /> */}
+
+        {/* Notifications & Account*/}
+        <Route path="/notifications" element={<Notification />} />
+        <Route path="/profile" element={<ProfilePage />} />
 
         {/* Users Management */}
         <Route
