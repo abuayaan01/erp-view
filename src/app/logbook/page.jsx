@@ -10,10 +10,18 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSelector } from "react-redux";
 import { ROLES } from "@/utils/roles";
 import api from "@/services/api/api-service";
@@ -32,6 +40,9 @@ export function LogbookPage() {
     siteName: "",
     assetCode: "",
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const fetchLogEntries = async () => {
     try {
@@ -175,10 +186,23 @@ export function LogbookPage() {
     return true;
   });
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentEntries = filteredEntries.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
   if (tableLoader) {
-    return (
-      <Spinner />
-    );
+    return <Spinner />;
   }
 
   return (
@@ -233,13 +257,109 @@ export function LogbookPage() {
                 </div>
               ) : (
                 <LogbookTable
-                  entries={filteredEntries}
+                  entries={currentEntries}
                   tableLoader={tableLoader}
                   onEdit={handleEditEntry}
                   onDelete={handleDeleteEntry}
                 />
               )}
             </CardContent>
+            {/* Pagination */}
+            {filteredEntries?.length > 0 && (
+              <CardFooter className="flex flex-col sm:flex-row items-center justify-between border-t px-6 py-4">
+                <div className="text-sm text-muted-foreground mb-4 sm:mb-0">
+                  Showing {indexOfFirstItem + 1} to{" "}
+                  {Math.min(indexOfLastItem, filteredEntries.length)} of{" "}
+                  {filteredEntries.length} log entries
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="hidden sm:flex items-center space-x-2 mt-4 sm:mt-0">
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={(value) => {
+                        setItemsPerPage(Number(value));
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-24">
+                        <SelectValue placeholder={itemsPerPage} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter((pageNum) => {
+                          return (
+                            pageNum === 1 ||
+                            pageNum === totalPages ||
+                            (pageNum >= currentPage - 1 &&
+                              pageNum <= currentPage + 1)
+                          );
+                        })
+                        .map((pageNum, index, array) => {
+                          const showEllipsisBefore =
+                            index > 0 && pageNum > array[index - 1] + 1;
+                          const showEllipsisAfter =
+                            index < array.length - 1 &&
+                            pageNum < array[index + 1] - 1;
+
+                          return (
+                            <div key={pageNum} className="flex items-center">
+                              {showEllipsisBefore && (
+                                <span className="px-2 text-muted-foreground">
+                                  ...
+                                </span>
+                              )}
+                              <Button
+                                variant={
+                                  currentPage === pageNum
+                                    ? "default"
+                                    : "outline"
+                                }
+                                size="sm"
+                                className="w-8 h-8"
+                                onClick={() => handlePageChange(pageNum)}
+                              >
+                                {pageNum}
+                              </Button>
+                              {showEllipsisAfter && (
+                                <span className="px-2 text-muted-foreground">
+                                  ...
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardFooter>
+            )}
           </Card>
         </TabsContent>
 

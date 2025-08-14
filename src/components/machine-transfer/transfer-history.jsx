@@ -32,6 +32,8 @@ import {
   BookDown,
   MoreHorizontal,
   PlusCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import api from "@/services/api/api-service";
 import Loader, { Spinner } from "../ui/loader";
@@ -44,6 +46,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import TableSkeleton from "../ui/table-skeleton";
+import { CardFooter } from "../ui/card";
 
 // Update the mock data to include the new transfer types
 // Replace the historyTransfers array with this updated one
@@ -86,6 +89,8 @@ export function TransferHistory() {
   const [typeFilter, setTypeFilter] = useState("All Types");
   const [selectedTransfer, setSelectedTransfer] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const navigate = useNavigate();
 
   // Update the filteredTransfers function to include type filtering
@@ -210,10 +215,22 @@ export function TransferHistory() {
     fetchHistory();
   }, []);
 
+  const goToPage = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentTransfers = filteredTransfers.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(filteredTransfers.length / itemsPerPage);
+
   if (loading) {
-    return (
-      <Spinner />
-    );
+    return <Spinner />;
   }
 
   return (
@@ -319,7 +336,7 @@ export function TransferHistory() {
             {/* Update the table body to display the transfer type and handle different types */}
             <TableBody>
               {transfers.length > 0 ? (
-                filteredTransfers.map((transfer) => (
+                currentTransfers.map((transfer) => (
                   <TableRow
                     onDoubleClick={() => navigate(`./${transfer.id}`)}
                     className="text-sm text-center cursor-pointer"
@@ -396,6 +413,100 @@ export function TransferHistory() {
               )}
             </TableBody>
           </table>
+          {filteredTransfers?.length > 0 && (
+            <CardFooter className="flex flex-col sm:flex-row items-center justify-between border-t px-6 py-4">
+              <div className="text-sm text-muted-foreground mb-4 sm:mb-0">
+                Showing {indexOfFirstItem + 1} to{" "}
+                {Math.min(indexOfLastItem, filteredTransfers.length)} of{" "}
+                {filteredTransfers.length} entries
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="hidden sm:flex items-center space-x-2 mt-4 sm:mt-0">
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(value) => {
+                      setItemsPerPage(Number(value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-24">
+                      <SelectValue placeholder={itemsPerPage} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((pageNum) => {
+                        return (
+                          pageNum === 1 ||
+                          pageNum === totalPages ||
+                          (pageNum >= currentPage - 1 &&
+                            pageNum <= currentPage + 1)
+                        );
+                      })
+                      .map((pageNum, index, array) => {
+                        const showEllipsisBefore =
+                          index > 0 && pageNum > array[index - 1] + 1;
+                        const showEllipsisAfter =
+                          index < array.length - 1 &&
+                          pageNum < array[index + 1] - 1;
+
+                        return (
+                          <div key={pageNum} className="flex items-center">
+                            {showEllipsisBefore && (
+                              <span className="px-2 text-muted-foreground">
+                                ...
+                              </span>
+                            )}
+                            <Button
+                              variant={
+                                currentPage === pageNum ? "default" : "outline"
+                              }
+                              size="sm"
+                              className="w-8 h-8"
+                              onClick={() => goToPage(pageNum)}
+                            >
+                              {pageNum}
+                            </Button>
+                            {showEllipsisAfter && (
+                              <span className="px-2 text-muted-foreground">
+                                ...
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardFooter>
+          )}
         </div>
       )}
     </div>

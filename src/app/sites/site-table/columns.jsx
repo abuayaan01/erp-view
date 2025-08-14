@@ -67,7 +67,15 @@ export const columns = [
   },
   {
     id: "actions",
-    header: "Actions",
+    header: ({ column }) => {
+      return (
+        <span
+          className={"text-sm flex cursor-pointer"}
+        >
+          Action
+        </span>
+      );
+    },
     cell: ({ row }) => {
       const dispatch = useDispatch();
       const navigate = useNavigate()
