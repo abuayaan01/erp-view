@@ -52,6 +52,7 @@ import { useNavigate } from "react-router";
 
 export function MainDashboard() {
   const [timeframe, setTimeframe] = useState("month");
+  const [activeTab, setActiveTab] = useState("requisitions");
   const [filters] = useState({
     siteId: 1,
     startDate: "2025-06-01",
@@ -76,9 +77,7 @@ export function MainDashboard() {
   } = data;
 
   if (isLoading) {
-    return (
-      <Spinner />
-    );
+    return <Spinner />;
   }
 
   if (isError) {
@@ -421,7 +420,9 @@ export function MainDashboard() {
                           variant="ghost"
                           size="sm"
                           className="shrink-0 text-gray-500 hover:text-primary"
-                          onClick={() => {navigate(`/machine/${machine.id}`)}}
+                          onClick={() => {
+                            navigate(`/machine/${machine.id}`);
+                          }}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -517,7 +518,12 @@ export function MainDashboard() {
                       Machine Status Overview
                     </CardTitle>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-primary">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-primary"
+                    onClick={() => navigate("/machine")}
+                  >
                     View All
                   </Button>
                 </div>
@@ -631,13 +637,32 @@ export function MainDashboard() {
                       Recent Activities
                     </CardTitle>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-primary">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-primary"
+                    onClick={() => {
+                      if (activeTab === "requisitions") {
+                        navigate("/requisitions");
+                      } else if (activeTab === "transfers") {
+                        navigate("/machine-transfer");
+                      } else if (activeTab === "issues") {
+                        navigate("/issues");
+                      } else if (activeTab === "maintenance") {
+                        navigate("/machine");
+                      }
+                    }}
+                  >
                     View All
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="p-2">
-                <Tabs defaultValue="requisitions">
+                <Tabs
+                  defaultValue="requisitions"
+                  value={activeTab}
+                  onValueChange={(value) => setActiveTab(value)}
+                >
                   <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="requisitions">Requisitions</TabsTrigger>
                     <TabsTrigger value="transfers">Transfers</TabsTrigger>
@@ -720,6 +745,9 @@ export function MainDashboard() {
                                 variant="ghost"
                                 size="sm"
                                 className="shrink-0 text-gray-500 hover:text-primary"
+                                onClick={() =>
+                                  navigate(`/requisitions/${req.id}`)
+                                }
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
@@ -818,6 +846,9 @@ export function MainDashboard() {
                                 variant="ghost"
                                 size="sm"
                                 className="shrink-0 text-gray-500 hover:text-primary"
+                                onClick={() =>
+                                  navigate(`/machine-transfer/${transfer.id}`)
+                                }
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
@@ -900,6 +931,7 @@ export function MainDashboard() {
                                 variant="ghost"
                                 size="sm"
                                 className="shrink-0 text-gray-500 hover:text-primary"
+                                onClick={() => navigate(`/issues/${issue.id}`)}
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
@@ -983,6 +1015,7 @@ export function MainDashboard() {
                                 variant="ghost"
                                 size="sm"
                                 className="shrink-0 text-gray-500 hover:text-primary"
+                                onClick={() => console.log(maint)}
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
@@ -1090,6 +1123,7 @@ export function MainDashboard() {
                               variant="ghost"
                               size="sm"
                               className="shrink-0 text-gray-500 hover:text-primary"
+                              onClick={() => navigate(`sites/${site.id}`)}
                             >
                               <Eye className="w-4 h-4" />
                             </Button>

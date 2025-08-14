@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useUserRoleLevel } from "@/utils/roles";
+import { ROLES, useUserRoleLevel } from "@/utils/roles";
 import { useSelector } from "react-redux";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/services/api/api-service";
@@ -100,7 +100,7 @@ export default function InventoryItemForm() {
                     {/* Site Selection */}
                     <div className="space-y-2">
                         <Label htmlFor="site">Site *</Label>
-                        <Select value={selectedSite} onValueChange={setSelectedSite}>
+                        <Select disabled={useUserRoleLevel().role == "site"} value={selectedSite} onValueChange={setSelectedSite}>
                             <SelectTrigger id="site">
                                 <SelectValue placeholder="Select site" />
                             </SelectTrigger>
