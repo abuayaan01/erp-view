@@ -12,6 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import api from "@/services/api/api-service";
+import { useNavigate } from "react-router";
+
+
 
 // API service functions
 const apiService = {
@@ -66,8 +69,29 @@ function NotificationItem({ notification, onMarkAsRead }) {
     });
   };
 
+  const navigate = useNavigate();
+
   const handleMarkAsRead = async () => {
     onMarkAsRead(notification.id);
+  };
+
+  const openDetails = () => {
+    const { eventType, referenceId } = notification;
+  
+    const routeMap = {
+      LowStock: `/inventory/${referenceId}`,
+      DocumentExpiry: `/machine/${referenceId}?tab=documents`,
+      MachineTransfer: `/machine-transfer/${referenceId}`,
+      MaterialIssue: `/issues/${referenceId}`
+    };
+  
+    const route = routeMap[eventType];
+  
+    if (route) {
+      navigate(route);
+    } else {
+      console.warn("No details available");
+    }
   };
 
   return (
@@ -78,7 +102,7 @@ function NotificationItem({ notification, onMarkAsRead }) {
     >
       <div className="flex-1">
         <div className="flex justify-between items-start">
-          <h4 className="text-sm font-medium">{notification.title}</h4>
+          <h4 className="text-sm text-blue-600 cursor-pointer underline font-medium" onClick={openDetails}>{notification.title}</h4>
           <span className="text-xs">
             {formatDate(notification.createdAt)}
           </span>

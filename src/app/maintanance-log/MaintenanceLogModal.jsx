@@ -33,6 +33,7 @@ import {
   Upload,
   FileText,
   ArrowLeft,
+  PlusCircle,
 } from "lucide-react";
 import MaintenanceLogList from "./MaintenanceLogList";
 import MaintenanceLogDetails from "./MaintenanceLogDetails";
@@ -229,7 +230,7 @@ const MaintenanceLogPage = () => {
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium">Maintenance Records</h3>
                 <Button onClick={() => setShowAddForm(true)}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Record
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Record
                 </Button>
               </div>
             )}
@@ -616,7 +617,7 @@ function VendorManager({ vendors = [], onVendorsChange, className = "" }) {
             onClick={addVendor}
             className="flex items-center gap-2"
           >
-            <Plus className="h-4 w-4" />
+            <PlusCircle className="h-4 w-4" />
             Add Vendor
           </Button>
         </CardHeader>
@@ -718,7 +719,7 @@ function VendorManager({ vendors = [], onVendorsChange, className = "" }) {
                         size="sm"
                         onClick={() => addPart(vendor.id)}
                       >
-                        <Plus className="h-4 w-4 mr-2" />
+                        <PlusCircle className="h-4 w-4 mr-2" />
                         Add Part
                       </Button>
                     </div>

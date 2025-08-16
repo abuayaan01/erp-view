@@ -242,16 +242,17 @@ export default function EditUserForm({ userData, fetchUsersData, close }) {
               render={({ field }) => (
                 <FormItem className="flex flex-col mt-2">
                   <FormLabel>Site</FormLabel>
-                  <Popover open={popoverOpen} onOpenChange={setPopoverOpen} modal={true}>
-                    <PopoverTrigger asChild>
+                  <Popover
+                    open={popoverOpen}
+                    onOpenChange={setPopoverOpen}
+                    modal={true}
+                  >
+                    <PopoverTrigger className="p-2" asChild>
                       <FormControl>
                         <Button
                           variant="outline"
                           role="combobox"
-                          className={cn(
-                            "justify-between text-wrap",
-                            !field.value && "text-muted-foreground "
-                          )}
+                          className={"justify-between text-left text-wrap py-6"}
                         >
                           {field.value
                             ? sites.find((site) => site.name === field.value)
@@ -261,7 +262,7 @@ export default function EditUserForm({ userData, fetchUsersData, close }) {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[250px] p-0">
+                    <PopoverContent className="w-[300px] p-0">
                       <Command>
                         <CommandInput
                           placeholder="Search sites..."

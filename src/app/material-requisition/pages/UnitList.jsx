@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Trash2, ChevronRight, ChevronLeft } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronRight, ChevronLeft, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -115,7 +115,7 @@ const UnitList = () => {
         <h1 className="text-3xl font-bold tracking-tight">Measurement Units</h1>
         <Button>
           <Link to="/units/new" className="flex">
-            <Plus className="mr-2 h-4 w-4" /> Add Unit
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Unit
           </Link>
         </Button>
       </div>

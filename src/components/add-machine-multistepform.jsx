@@ -529,7 +529,7 @@ const AddMachineMultiStepForm = () => {
         description: "Machine created successfully",
       });
       dispatch(fetchMachines());
-      navigate("/list-machine");
+      navigate("/machine");
     } catch (error) {
       toast({
         variant: "destructive",

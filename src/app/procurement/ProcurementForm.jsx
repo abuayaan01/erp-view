@@ -28,6 +28,7 @@ import {
   FileText,
   Package,
   Plus,
+  PlusCircle,
   User
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -442,7 +443,7 @@ const ProcurementForm = () => {
                   onClick={() => setShowNewVendorForm(true)}
                   className="whitespace-nowrap"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <PlusCircle className="h-4 w-4 mr-2" />
                   New Vendor
                 </Button>
               </div>

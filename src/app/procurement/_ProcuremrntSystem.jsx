@@ -22,7 +22,8 @@ import {
   Phone,
   Mail,
   MapPin,
-  FileBarChart
+  FileBarChart,
+  PlusCircle
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -187,7 +188,7 @@ const ProcurementSystem = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Procurement Orders</h1>
         <Button onClick={() => setCurrentView('form')}>
-          <Plus className="h-4 w-4 mr-2" />
+          <PlusCircle className="h-4 w-4 mr-2" />
           New Procurement
         </Button>
       </div>

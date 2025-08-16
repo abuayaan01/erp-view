@@ -253,7 +253,7 @@ export default function AddUserForm({ fetchUsersData, close }) {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[200px]s justify-between w-full",
+                            "py-6 justify-between text-left text-wrap w-full",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -265,7 +265,7 @@ export default function AddUserForm({ fetchUsersData, close }) {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0 pointer-events-auto">
+                    <PopoverContent className="w-[300px] p-0 pointer-events-auto">
                       <Command>
                         <CommandInput
                           placeholder="Search sites..."

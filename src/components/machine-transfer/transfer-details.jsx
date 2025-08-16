@@ -45,7 +45,7 @@ import {
 import { useSelector } from "react-redux";
 import { useUserRoleLevel } from "@/utils/roles";
 import TransferChallanPDF from "./transfer-challan-pdf";
-import { pdf } from "@react-pdf/renderer";
+import { pdf, PDFViewer } from "@react-pdf/renderer";
 import { Checkbox } from "../ui/checkbox";
 import api from "@/services/api/api-service";
 
@@ -231,12 +231,20 @@ export default function MachineTransferDetail({
       );
 
       // Append files
-      dispatchfiles &&
-        dispatchfiles.forEach((file, index) => {
-          formData.append("files", file); // Use "files[]" if backend expects array format
+      if (Array.isArray(dispatchfiles) && dispatchfiles.length > 0) {
+        dispatchfiles.forEach((file) => {
+          // Ensure it's a File/Blob
+          if (file && (file instanceof File || file instanceof Blob)) {
+            // Adjust key if backend expects files[]
+            formData.append("files", file, file.name || "upload.bin");
+          }
         });
-
-      await api.put(`/transfer/${transfer.id}/dispatch`, formData);
+      }
+      await api.put(`/transfer/${transfer.id}/dispatch`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       fetchTransferData();
 
@@ -315,7 +323,7 @@ export default function MachineTransferDetail({
     } catch (error) {
       console.error("Failed to generate PDF", error);
     } finally {
-      console.log("sa");
+      console.log("Challan generated");
     }
   };
 
@@ -650,6 +658,10 @@ export default function MachineTransferDetail({
           </Button>
         </div>
       </div>
+
+      {/* <PDFViewer width="100%" height="600">
+        <TransferChallanPDF transfer={transfer} />
+      </PDFViewer> */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Basic Information */}

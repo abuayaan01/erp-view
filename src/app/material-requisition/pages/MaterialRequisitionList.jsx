@@ -13,6 +13,7 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  PlusCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -408,7 +409,7 @@ const MaterialRequisitionList = () => {
         </h1>
         <Button>
           <Link to="/requisitions/new" className="flex items-center">
-            <Plus className="mr-2 h-4 w-4" /> Create Requisition
+            <PlusCircle className="mr-2 h-4 w-4" /> Create Requisition
           </Link>
         </Button>
       </div>

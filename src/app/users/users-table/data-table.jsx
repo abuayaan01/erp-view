@@ -28,6 +28,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import AddUserForm from "@/components/add-user-form";
+import { PlusCircle } from "lucide-react";
 
 export function DataTable({ fetchUsersData, columns, data }) {
   const [sorting, setSorting] = React.useState([]);
@@ -162,7 +163,7 @@ function AddUserDialog({ fetchUsersData }) {
   return (
     <Dialog open={openForm} onOpenChange={setOpenForm}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpenForm(true)} className={"relative -top-14"} >Add User</Button>
+        <Button onClick={() => setOpenForm(true)} className={"relative -top-14"} ><PlusCircle className="mr-2"/> Add User</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>

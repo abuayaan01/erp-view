@@ -24,6 +24,7 @@ import {
   User,
   Activity,
   Paperclip,
+  PlusCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -291,7 +292,7 @@ const ProcurementDetails = () => {
                     variant="outline"
                     className="hover:bg-blue-50 hover:text-blue-600"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <PlusCircle className="h-4 w-4 mr-2" />
                     Add Invoice
                   </Button>
                 </DialogTrigger>
@@ -711,7 +712,7 @@ const ProcurementDetails = () => {
                     >
                       <DialogTrigger asChild>
                         <Button>
-                          <Plus className="h-4 w-4 mr-2" />
+                          <PlusCircle className="h-4 w-4 mr-2" />
                           Add Invoice
                         </Button>
                       </DialogTrigger>

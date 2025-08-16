@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Save, Printer } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Printer, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -761,7 +761,7 @@ const MaterialRequisitionForm = () => {
                       onClick={addItem}
                       disabled={!selectedItem || !itemQuantity}
                     >
-                      <Plus className="mr-2 h-4 w-4" /> Add Item
+                      <PlusCircle className="mr-2 h-4 w-4" /> Add Item
                     </Button>
                   </div>
 

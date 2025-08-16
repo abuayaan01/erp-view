@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -131,7 +131,7 @@ const ItemList = () => {
         <h1 className="text-3xl font-bold tracking-tight">Items</h1>
         <Button>
           <Link to="/items/new" className="flex">
-            <Plus className="mr-2 h-4 w-4" /> Add Item
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Item
           </Link>
         </Button>
       </div>

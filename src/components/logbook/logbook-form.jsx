@@ -24,6 +24,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Card } from "@/components/ui/card";
+import { Fuel, Clock, MapPin } from "lucide-react";
 import api from "@/services/api/api-service";
 
 export function LogbookForm({ onSubmit, initialData, onCancel }) {
@@ -54,6 +56,7 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
     sites: false,
     machines: false,
   });
+  const [machineSelected, setMachineSelected] = useState(false);
 
   const [requestLoader, setRequestLoader] = useState(false);
 
@@ -149,6 +152,7 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
         location: selectedMachine.site.address,
       });
     }
+    setMachineSelected(true);
     setMachineOpen(false);
   };
 
@@ -241,8 +245,44 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
   const dieselAvg =
     dieselUsed > 0 && kmRun > 0 ? (kmRun / dieselUsed).toFixed(2) : "N/A";
 
+  function MachineMetricsBar() {
+    return (
+      <Card className="w-full bg-muted dark:bg-transparent px-4 py-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm border rounded-lg">
+        {/* Machine Info */}
+        <div>
+          <h2 className="font-semibold">JCB 3DX</h2>
+          <p className="text-xs text-muted-foreground">
+            ERP Code: ERP-0067 • Reg. No: JH-01CS-6398
+          </p>
+        </div>
+
+        {/* Metrics */}
+        <div className="flex flex-wrap gap-4">
+          <div className="flex items-center gap-2 text-sm">
+            <Fuel className="w-4 h-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Total Diesel Issued:</span>
+            <span className="font-semibold">0 L</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Total Run Hours:</span>
+            <span className="font-semibold">0 h</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm">
+            <MapPin className="w-4 h-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Total Distance:</span>
+            <span className="font-semibold">0 km</span>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {machineSelected && <MachineMetricsBar />}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Date Field */}
         <div className="space-y-2">

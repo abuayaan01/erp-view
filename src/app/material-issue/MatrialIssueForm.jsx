@@ -29,7 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Printer, Save, Plus, Trash2 } from "lucide-react";
+import { Printer, Save, Plus, Trash2, PlusCircle } from "lucide-react";
 import MaterialIssuePDF from "./MaterialIssuePDF";
 import { PDFViewer } from "@react-pdf/renderer";
 import { useNavigate, useSearchParams } from "react-router";
@@ -811,7 +811,7 @@ const MaterialIssueForm = () => {
                         (issueTo === "Other Site" && issueType !== "transfer")
                       }
                     >
-                      <Plus className="mr-2 h-4 w-4" /> Add Item
+                      <PlusCircle className="mr-2 h-4 w-4" /> Add Item
                     </Button>
                   </div>
                 </div>

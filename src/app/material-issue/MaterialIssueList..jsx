@@ -9,6 +9,7 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  PlusCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -197,7 +198,7 @@ const MaterialIssueList = () => {
         <h1 className="text-3xl font-bold tracking-tight">Material Issues</h1>
         <Button>
           <Link to="/issues/new" className="flex items-center">
-            <Plus className="mr-2 h-4 w-4" /> Create Issue
+            <PlusCircle className="mr-2 h-4 w-4" /> Create Issue
           </Link>
         </Button>
       </div>

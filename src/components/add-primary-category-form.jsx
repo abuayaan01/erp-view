@@ -36,7 +36,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchMachineCategories } from "@/features/machine-category/machine-category-slice";
 import api from "@/services/api/api-service";
 import { useLocation, useNavigate } from "react-router";
-import { Plus } from "lucide-react";
+import { Plus, PlusCircle } from "lucide-react";
 import { fetchPrimaryCategories } from "@/features/primary-category/primary-category-slice";
 
 // Validation schema using zod
@@ -285,7 +285,7 @@ export default function AddPrimaryCategoryForm() {
                         size="icon"
                         onClick={() => setIsPrimaryCategoryDialogOpen(true)}
                       >
-                        <Plus className="h-4 w-4" />
+                        <PlusCircle className="h-4 w-4" />
                       </Button>
                     </div>
                     <FormMessage>

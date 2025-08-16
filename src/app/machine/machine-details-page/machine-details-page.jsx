@@ -36,6 +36,7 @@ import PlacehoolderImage from "@/assets/images/placeholder-image.webp";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import MaintenanceLogModal from "@/app/maintanance-log/MaintenanceLogModal";
+import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 // Helper function to format dates
 const formatDate = (dateString) => {
@@ -74,6 +75,9 @@ export default function MachineryDetailPage() {
   const params = useParams();
   const navigate = useNavigate();
   // const { data } = siteData
+
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get("tab") || "details";
 
   useEffect(() => {
     fetchMachineDetails(params.id);
@@ -139,7 +143,7 @@ export default function MachineryDetailPage() {
   return (
     <div className="container mx-auto min-h-screen flex flex-col">
       {loading ? (
-        <Spinner/>
+        <Spinner />
       ) : (
         <div className="container">
           <div className="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
@@ -180,7 +184,7 @@ export default function MachineryDetailPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-2">
-              <Tabs defaultValue="details" className="w-full">
+              <Tabs defaultValue={tab} className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="details">Details</TabsTrigger>
                   <TabsTrigger value="documents">Documents</TabsTrigger>

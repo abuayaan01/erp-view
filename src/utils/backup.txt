@@ -330,7 +330,7 @@ export default function InventoryItemForm() {
 
                     <div className="flex justify-end">
                         {/* <Button type="button" onClick={addItem} disabled={!selectedItem || !itemQuantity}>
-                            <Plus className="mr-2 h-4 w-4" /> Add Item
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Item
                         </Button> */}
                         <Button className={"ml-2"} onClick={addItemToInventory}>
                             Add to Inventory

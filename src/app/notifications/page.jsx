@@ -15,6 +15,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import api from "@/services/api/api-service";
 import { Spinner } from "@/components/ui/loader";
+import { useNavigate } from "react-router";
 
 // API service functions (reusing your existing logic)
 const apiService = {
@@ -81,6 +82,27 @@ function NotificationCard({ notification, onMarkAsRead }) {
     onMarkAsRead(notification.id);
   };
 
+  const navigate = useNavigate();
+
+  const openDetails = () => {
+    const { eventType, referenceId } = notification;
+
+    const routeMap = {
+      LowStock: `/inventory/${referenceId}`,
+      DocumentExpiry: `/machine/${referenceId}?tab=documents`,
+      MachineTransfer: `/machine-transfer/${referenceId}`,
+      MaterialIssue: `/issues/${referenceId}`,
+    };
+
+    const route = routeMap[eventType];
+
+    if (route) {
+      navigate(route);
+    } else {
+      console.warn("No details available");
+    }
+  };
+
   return (
     <Card
       className={`transition-all duration-200 hover:shadow-md ${
@@ -91,7 +113,10 @@ function NotificationCard({ notification, onMarkAsRead }) {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-start justify-between">
-              <h3 className="font-semibold text-lg leading-tight">
+              <h3
+                className="font-semibold cursor-pointer text-blue-600 underline text-lg leading-tight"
+                onClick={openDetails}
+              >
                 {notification.title}
               </h3>
               <div className="flex items-center gap-2 ml-4">
@@ -241,7 +266,7 @@ export default function NotificationsPage() {
           <div className="flex items-center gap-3">
             <div>
               <h1 className="text-3xl font-bold">
-                Notifications 
+                Notifications
                 <Bell className="inline mx-2 h-6 w-6 text-primary" />
               </h1>
               <p className="text-muted-foreground">

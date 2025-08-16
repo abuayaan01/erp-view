@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
 
 export function DataTable({ columns, data, loading }) {
   const [sorting, setSorting] = React.useState([]);
@@ -261,7 +261,7 @@ export function AddSiteDialog() {
   return (
     <Dialog open={openForm} onOpenChange={setOpenForm}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpenForm(true)}>Add Site</Button>
+        <Button onClick={() => setOpenForm(true)}><PlusCircle className="mr-2 h-4 w-4" /> Add Site</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>

@@ -8,6 +8,7 @@ import {
   Truck,
   Package,
   Clock,
+  PlusCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -224,7 +225,7 @@ const ProcurementList = () => {
           className="bg-primary"
           onClick={() => navigate("/requisitions")}
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <PlusCircle className="h-4 w-4 mr-2" />
           New Procurement
         </Button>
       </div>
