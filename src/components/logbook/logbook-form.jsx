@@ -57,6 +57,7 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
     machines: false,
   });
   const [machineSelected, setMachineSelected] = useState(false);
+  const [selectedMachine, setSelectedMachine] = useState();
 
   const [requestLoader, setRequestLoader] = useState(false);
 
@@ -69,7 +70,7 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
     const fetchMachines = async () => {
       try {
         setLoading((prev) => ({ ...prev, machines: true }));
-        const response = await api.get("/machinery");
+        const response = await api.get("/logbook/site/machines");
         setMachines(response.data);
       } catch (error) {
         console.error("Error fetching machines:", error);
@@ -147,11 +148,12 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
         registrationNumber: selectedMachine.registrationNumber,
         machineNumber: selectedMachine.machineNumber,
         assetCode: selectedMachine.erpCode,
-        siteName: selectedMachine.site.name,
-        siteId: selectedMachine.site.id,
-        location: selectedMachine.site.address,
+        siteName: selectedMachine.siteName,
+        siteId: selectedMachine.siteId,
+        location: selectedMachine.siteLocation,
       });
     }
+    setSelectedMachine(selectedMachine);
     setMachineSelected(true);
     setMachineOpen(false);
   };
@@ -250,9 +252,9 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
       <Card className="w-full bg-muted dark:bg-transparent px-4 py-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm border rounded-lg">
         {/* Machine Info */}
         <div>
-          <h2 className="font-semibold">JCB 3DX</h2>
+          <h2 className="font-semibold">{selectedMachine?.machineName}</h2>
           <p className="text-xs text-muted-foreground">
-            ERP Code: ERP-0067 • Reg. No: JH-01CS-6398
+            ERP Code: {selectedMachine?.erpCode} {selectedMachine?.registrationNumber && `• Reg. No: ${selectedMachine.registrationNumber}`}
           </p>
         </div>
 
@@ -261,19 +263,19 @@ export function LogbookForm({ onSubmit, initialData, onCancel }) {
           <div className="flex items-center gap-2 text-sm">
             <Fuel className="w-4 h-4 text-muted-foreground" />
             <span className="text-muted-foreground">Total Diesel Issued:</span>
-            <span className="font-semibold">0 L</span>
+            <span className="font-semibold">{selectedMachine?.sumDieselIssue} L</span>
           </div>
 
           <div className="flex items-center gap-2 text-sm">
             <Clock className="w-4 h-4 text-muted-foreground" />
             <span className="text-muted-foreground">Total Run Hours:</span>
-            <span className="font-semibold">0 h</span>
+            <span className="font-semibold">{selectedMachine?.sumTotalRunHrsMeter} h</span>
           </div>
 
           <div className="flex items-center gap-2 text-sm">
             <MapPin className="w-4 h-4 text-muted-foreground" />
             <span className="text-muted-foreground">Total Distance:</span>
-            <span className="font-semibold">0 km</span>
+            <span className="font-semibold">{selectedMachine?.sumTotalRunKM} km</span>
           </div>
         </div>
       </Card>
