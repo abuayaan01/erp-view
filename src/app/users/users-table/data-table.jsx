@@ -28,12 +28,24 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import AddUserForm from "@/components/add-user-form";
-import { PlusCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
+
+import { CardFooter } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function DataTable({ fetchUsersData, columns, data }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const enhancedColumns = React.useMemo(() => {
     return columns.map((column) => {
@@ -52,7 +64,7 @@ export function DataTable({ fetchUsersData, columns, data }) {
 
   const table = useReactTable({
     data,
-    columns : enhancedColumns,
+    columns: enhancedColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -63,11 +75,22 @@ export function DataTable({ fetchUsersData, columns, data }) {
       sorting,
       columnFilters,
       pagination: {
-        ...pagination
-      }
+        ...pagination,
+      },
     },
     onPaginationChange: setPagination,
   });
+
+  // Pagination states
+  const totalItems = table.getFilteredRowModel().rows.length;
+  const totalPages = table.getPageCount();
+  const currentPage = pagination.pageIndex + 1;
+  const itemsPerPage = pagination.pageSize;
+  const indexOfFirstItem = pagination.pageIndex * pagination.pageSize;
+  const indexOfLastItem = Math.min(
+    indexOfFirstItem + pagination.pageSize,
+    totalItems
+  );
 
   return (
     <div>
@@ -93,9 +116,9 @@ export function DataTable({ fetchUsersData, columns, data }) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}
@@ -131,39 +154,116 @@ export function DataTable({ fetchUsersData, columns, data }) {
             )}
           </TableBody>
         </Table>
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+        {totalItems > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row items-center justify-between border-t px-6 py-4">
+            <div className="text-sm text-muted-foreground mb-4 sm:mb-0">
+              Showing {indexOfFirstItem + 1} to {indexOfLastItem} of{" "}
+              {totalItems} entries
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="hidden sm:flex items-center space-x-2 mt-4 sm:mt-0">
+                <Select
+                  defaultValue="10"
+                  value={itemsPerPage.toString()}
+                  onValueChange={(value) => {
+                    table.setPageSize(Number(value));
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-24">
+                    <SelectValue>{itemsPerPage}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(
+                      (pageNum) =>
+                        pageNum === 1 ||
+                        pageNum === totalPages ||
+                        (pageNum >= currentPage - 1 &&
+                          pageNum <= currentPage + 1)
+                    )
+                    .map((pageNum, index, array) => {
+                      const showEllipsisBefore =
+                        index > 0 && pageNum > array[index - 1] + 1;
+                      const showEllipsisAfter =
+                        index < array.length - 1 &&
+                        pageNum < array[index + 1] - 1;
+
+                      return (
+                        <div key={pageNum} className="flex items-center">
+                          {showEllipsisBefore && (
+                            <span className="px-2 text-muted-foreground">
+                              ...
+                            </span>
+                          )}
+                          <Button
+                            variant={
+                              currentPage === pageNum ? "default" : "outline"
+                            }
+                            size="sm"
+                            className="w-8 h-8"
+                            onClick={() => table.setPageIndex(pageNum - 1)}
+                          >
+                            {pageNum}
+                          </Button>
+                          {showEllipsisAfter && (
+                            <span className="px-2 text-muted-foreground">
+                              ...
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardFooter>
+        )}
       </div>
     </div>
   );
 }
 
-
 function AddUserDialog({ fetchUsersData }) {
   const [openForm, setOpenForm] = React.useState(false);
   const closeForm = () => {
     setOpenForm(false);
-  }
+  };
   return (
     <Dialog open={openForm} onOpenChange={setOpenForm}>
       <DialogTrigger asChild>
-        <Button onClick={() => setOpenForm(true)} className={"relative -top-14"} ><PlusCircle className="mr-2"/> Add User</Button>
+        <Button
+          onClick={() => setOpenForm(true)}
+          className={"relative -top-14"}
+        >
+          <PlusCircle className="mr-2" /> Add User
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
