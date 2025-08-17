@@ -1,4 +1,4 @@
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -71,7 +71,7 @@ export const columns = [
       const { showLoader, hideLoader } = useLoader();
       const handleDelete = async (id) => {
         try {
-          showLoader()
+          showLoader();
           await api.delete(`/category/machine/${id}`);
           toast({
             title: "Success",
@@ -89,7 +89,9 @@ export const columns = [
         }
       };
       const handleEdit = () => {
-        navigate('/machine-category/update', { state: { myData: row.original } });
+        navigate("/machine-category/update", {
+          state: { myData: row.original },
+        });
       };
 
       return (
@@ -104,12 +106,14 @@ export const columns = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => handleEdit()}>
+              <Pencil className="mr-2 h-4 w-4" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handleDelete(row.original.id)}
               className="text-red-500"
             >
+              <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

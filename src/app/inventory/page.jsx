@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Plus, Search, ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Plus,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  PlusCircle,
+  MoreHorizontal,
+  Info,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -17,6 +25,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -44,6 +60,8 @@ const InventoryList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchInventory = async () => {
@@ -131,7 +149,10 @@ const InventoryList = () => {
   // Get current page items
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredInventory?.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredInventory?.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
 
   // Page navigation
   const goToPage = (pageNumber) => {
@@ -146,9 +167,7 @@ const InventoryList = () => {
   };
 
   if (loading) {
-    return (
-      <Spinner />
-    );
+    return <Spinner />;
   }
 
   return (
@@ -227,7 +246,7 @@ const InventoryList = () => {
             <div className="flex-1 flex flex-col justify-center">
               <TableSkeleton cols={9} rows={6} />
             </div>
-          ) :
+          ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -250,17 +269,29 @@ const InventoryList = () => {
                         className="text-center py-6 text-muted-foreground"
                       >
                         {searchTerm ||
-                          filterCategory !== "all" ||
-                          filterSite !== "all"
+                        filterCategory !== "all" ||
+                        filterSite !== "all"
                           ? "No items found matching your search criteria."
                           : "No inventory items found."}
                       </TableCell>
                     </TableRow>
                   ) : (
                     currentItems?.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">
-                          {item.Item?.name}
+                      <TableRow
+                        onDoubleClick={() =>
+                          navigate(`/inventory/${item.id || item.itemId}`)
+                        }
+                        className={"cursor-pointer"}
+                        key={item.id}
+                      >
+                        <TableCell className="font-medium text-blue-500 underline">
+                          <span
+                            onClick={() =>
+                              navigate(`/inventory/${item.id || item.itemId}`)
+                            }
+                          >
+                            {item.Item?.name}
+                          </span>
                         </TableCell>
                         <TableCell>{item.Item?.partNumber}</TableCell>
                         <TableCell>{item.Item?.ItemGroup?.name}</TableCell>
@@ -273,24 +304,44 @@ const InventoryList = () => {
                       <TableCell>{item.Site?.name || "Unknown Site"}</TableCell>
                       <TableCell>{formatDate(item.updatedAt)}</TableCell> */}
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm">
-                            <Link to={`/inventory/${item.id || item.itemId}`}>
-                              View
-                            </Link>
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  navigate(
+                                    `/inventory/${item.id || item.itemId}`
+                                  )
+                                }
+                              >
+                                <Info className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))
                   )}
                 </TableBody>
               </Table>
-            </div>}
+            </div>
+          )}
 
           {/* Pagination Controls */}
           {filteredInventory?.length > 0 && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredInventory.length)} of {filteredInventory.length} entries
+                Showing {indexOfFirstItem + 1} to{" "}
+                {Math.min(indexOfLastItem, filteredInventory.length)} of{" "}
+                {filteredInventory.length} entries
               </div>
               <div className="flex items-center space-x-2">
                 <Select
@@ -336,7 +387,9 @@ const InventoryList = () => {
                     return (
                       <Button
                         key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
+                        variant={
+                          currentPage === pageNum ? "default" : "outline"
+                        }
                         size="icon"
                         onClick={() => goToPage(pageNum)}
                         className="h-8 w-8"

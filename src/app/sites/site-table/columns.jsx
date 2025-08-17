@@ -1,4 +1,4 @@
-import { MoreHorizontal } from "lucide-react";
+import { Info, MoreHorizontal, Trash2 } from "lucide-react";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,22 +68,16 @@ export const columns = [
   {
     id: "actions",
     header: ({ column }) => {
-      return (
-        <span
-          className={"text-sm flex cursor-pointer"}
-        >
-          Action
-        </span>
-      );
+      return <span className={"text-sm flex cursor-pointer"}>Action</span>;
     },
     cell: ({ row }) => {
       const dispatch = useDispatch();
-      const navigate = useNavigate()
+      const navigate = useNavigate();
       const { showLoader, hideLoader } = useLoader();
       const handleDelete = async (id) => {
         const sid = Number(id);
         try {
-          showLoader()
+          showLoader();
           await api.delete(`/sites/${sid}`);
           toast({
             title: "Success",
@@ -113,7 +107,13 @@ export const columns = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); navigate(`/sites/${row.original.id}`); }}>
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault();
+                navigate(`/sites/${row.original.id}`);
+              }}
+            >
+              <Info className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -123,6 +123,7 @@ export const columns = [
               onClick={() => handleDelete(row.original.id)}
               className={"text-red-500"}
             >
+              <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

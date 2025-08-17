@@ -9,6 +9,8 @@ import {
   Package,
   Clock,
   PlusCircle,
+  MoreHorizontal,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +26,14 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate, useParams } from "react-router";
 import api from "@/services/api/api-service";
 import { Spinner } from "@/components/ui/loader";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Utility functions
 const getStatusColor = (status) => {
@@ -79,8 +89,14 @@ const TableHeader = () => (
 // Table Row Component
 const TableRow = ({ procurement, navigate }) => (
   <div className="border-b border-gray-200 px-6 py-4 transition-colors">
-    <div className="grid grid-cols-8 gap-4 items-center text-sm">
-      <div className="">
+    <div
+      onDoubleClick={() => navigate("/procurements/" + procurement.id)}
+      className="grid grid-cols-8 gap-4 items-center cursor-pointer text-sm"
+    >
+      <div
+        className="font-medium text-blue-500 underline cursor-pointer"
+        onClick={() => navigate("/procurements/" + procurement.id)}
+      >
         {procurement.procurementNo}
       </div>
 
@@ -112,14 +128,32 @@ const TableRow = ({ procurement, navigate }) => (
       </div>
 
       <div className="flex items-center gap-2">
-        <Button
+        {/* <Button
           variant="outline"
           size="sm"
           className="px-3 py-1 text-xs"
           onClick={() => navigate("/procurements/" + procurement.id)}
         >
           view
-        </Button>
+        </Button> */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => navigate("/procurements/" + procurement.id)}
+            >
+              <Info className="mr-2 h-4 w-4" />
+              View Details
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   </div>
@@ -208,7 +242,7 @@ const ProcurementList = () => {
   }, []);
 
   if (loading) {
-    return <Spinner />
+    return <Spinner />;
   }
 
   if (error) {

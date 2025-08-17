@@ -1,4 +1,4 @@
-import { FileImage, MoreHorizontal } from "lucide-react";
+import { FileImage, Info, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -263,17 +263,20 @@ export const columns = [
             <DropdownMenuItem
               onClick={() => navigate(`/machine/${row.original.id}`)}
             >
+              <Info className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => navigate(`/machine/edit/${row.original.id}`)}
             >
+              <Pencil className="mr-2 h-4 w-4" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handleDelete(row.original.id)}
               className={"text-red-500"}
             >
+              <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

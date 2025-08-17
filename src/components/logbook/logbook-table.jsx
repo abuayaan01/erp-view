@@ -15,6 +15,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -84,8 +86,15 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
           <TableBody>
             {paginatedEntries.length > 0 ? (
               paginatedEntries.map((entry) => (
-                <TableRow key={entry.id}>
-                  <TableCell>
+                <TableRow
+                  onDoubleClick={() => navigate(`/logbook/${entry.id}`)}
+                  className="text-sm text-center cursor-pointer"
+                  key={entry.id}
+                >
+                  <TableCell
+                    className="text-blue-500 underline"
+                    onClick={() => navigate(`/logbook/${entry.id}`)}
+                  >
                     {entry.name}
                   </TableCell>
                   <TableCell>
@@ -118,6 +127,8 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => navigate(`/logbook/${entry.id}`)}
                         >
@@ -146,7 +157,11 @@ export function LogbookTable({ entries, onEdit, tableLoader, onDelete }) {
                   colSpan={10}
                   className="text-center py-6 text-muted-foreground"
                 >
-                  {tableLoader ? <Loader size={"sm"} /> : "No logbook entries found"}
+                  {tableLoader ? (
+                    <Loader size={"sm"} />
+                  ) : (
+                    "No logbook entries found"
+                  )}
                 </TableCell>
               </TableRow>
             )}

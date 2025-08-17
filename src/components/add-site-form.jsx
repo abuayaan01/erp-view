@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import api from "@/services/api/api-service";
 import { useDispatch } from "react-redux";
 import { fetchSites } from "@/features/sites/sites-slice";
+import { Pencil } from "lucide-react";
 
 // ⬇️ UPDATED: Added mobileNumber and pincode
 const formSchema = z.object({
@@ -224,7 +225,8 @@ export function UpdateSite({ data }) {
       onKeyDown={(e) => e.stopPropagation()}
     >
       <DialogTrigger asChild>
-        <button onClick={() => setOpenForm(true)} variant="outline">
+        <button className="flex gap-2" onClick={() => setOpenForm(true)} variant="outline">
+          <Pencil className="mr-2 h-4 w-4"/>
           Edit
         </button>
       </DialogTrigger>

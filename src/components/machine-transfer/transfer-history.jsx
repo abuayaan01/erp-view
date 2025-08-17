@@ -34,6 +34,7 @@ import {
   PlusCircle,
   ChevronLeft,
   ChevronRight,
+  Info,
 } from "lucide-react";
 import api from "@/services/api/api-service";
 import Loader, { Spinner } from "../ui/loader";
@@ -43,6 +44,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import TableSkeleton from "../ui/table-skeleton";
@@ -342,7 +345,14 @@ export function TransferHistory() {
                     className="text-sm text-center cursor-pointer"
                     key={transfer.id}
                   >
-                    <TableCell>{transfer.name}</TableCell>
+                    <TableCell
+                      onClick={() => {
+                        navigate(`./${transfer.id}`);
+                      }}
+                      className="text-blue-500 underline"
+                    >
+                      {transfer.name}
+                    </TableCell>
                     <TableCell>
                       {transfer.machine?.machineName || "NA"}
                     </TableCell>
@@ -389,16 +399,16 @@ export function TransferHistory() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={"w-full"}
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
                             onClick={() => {
                               navigate(`./${transfer.id}`);
                             }}
                           >
+                            <Info className="mr-2 h-4 w-4" />
                             View Details
-                          </Button>
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

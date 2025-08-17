@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
   Eye,
@@ -14,6 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   PlusCircle,
+  Info,
+  MoreHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +27,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO } from "date-fns";
 import {
@@ -61,6 +71,8 @@ const MaterialRequisitionList = () => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch requisitions from API
@@ -390,9 +402,7 @@ const MaterialRequisitionList = () => {
   };
 
   if (loading) {
-    return (
-      <Spinner />
-    );
+    return <Spinner />;
   }
 
   if (error) {
@@ -479,81 +489,103 @@ const MaterialRequisitionList = () => {
             <div className="flex-1 flex flex-col justify-center">
               <TableSkeleton cols={9} rows={6} />
             </div>
-          ) :
-          <div className="overflow-auto">
-            <div className="rounded-md border min-w-full">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px]">Req No</TableHead>
-                    <TableHead className="w-[90px]">Date</TableHead>
-                    <TableHead className="hidden sm:table-cell">Site</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      Prepared By
-                    </TableHead>
-                    <TableHead className="hidden lg:table-cell">
-                      Charge Type
-                    </TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentItems?.length === 0 ? (
+          ) : (
+            <div className="overflow-auto">
+              <div className="rounded-md border min-w-full">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        className="text-center py-6 text-muted-foreground"
-                      >
-                        {searchTerm ||
-                        filterStatus !== "all" ||
-                        filterSite !== "all"
-                          ? "No requisitions found matching your search."
-                          : "No requisitions created yet."}
-                      </TableCell>
+                      <TableHead className="w-[100px]">Req No</TableHead>
+                      <TableHead className="w-[90px]">Date</TableHead>
+                      <TableHead className="hidden sm:table-cell">
+                        Site
+                      </TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        Prepared By
+                      </TableHead>
+                      <TableHead className="hidden lg:table-cell">
+                        Charge Type
+                      </TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ) : (
-                    currentItems?.map((req) => {
-                      return (
-                        <TableRow key={req.id}>
-                          <TableCell className="font-medium text-blue-500 underline cursor-pointer">
-                            <Link to={`/requisitions/${req.id}`}>
-                              {req.requisitionNo}
-                            </Link>
-                          </TableCell>
-                          <TableCell>{formatDate(req.requestedAt)}</TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            {req.requestingSite?.name || "-"}
-                          </TableCell>
-                          <TableCell>
-                            {getPriorityBadge(req.requestPriority)}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(req.status)}</TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            {req.preparedBy?.name || "-"}
-                          </TableCell>
-                          <TableCell className="hidden lg:table-cell">
-                            {req.chargeType || "-"}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon">
-                                <Link to={`/requisitions/${req.id}`}>
-                                  <Eye className="h-4 w-4" />
-                                  <span className="sr-only">View</span>
-                                </Link>
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {currentItems?.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={8}
+                          className="text-center py-6 text-muted-foreground"
+                        >
+                          {searchTerm ||
+                          filterStatus !== "all" ||
+                          filterSite !== "all"
+                            ? "No requisitions found matching your search."
+                            : "No requisitions created yet."}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      currentItems?.map((req) => {
+                        return (
+                          <TableRow
+                            className={"cursor-pointer"}
+                            onDoubleClick={() => navigate(`/requisitions/${req.id}`)}
+                            key={req.id}
+                          >
+                            <TableCell className="font-medium text-blue-500 underline cursor-pointer">
+                              <Link to={`/requisitions/${req.id}`}>
+                                {req.requisitionNo}
+                              </Link>
+                            </TableCell>
+                            <TableCell>{formatDate(req.requestedAt)}</TableCell>
+                            <TableCell className="hidden sm:table-cell">
+                              {req.requestingSite?.name || "-"}
+                            </TableCell>
+                            <TableCell>
+                              {getPriorityBadge(req.requestPriority)}
+                            </TableCell>
+                            <TableCell>{getStatusBadge(req.status)}</TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {req.preparedBy?.name || "-"}
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              {req.chargeType || "-"}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      navigate(`/requisitions/${req.id}`)
+                                    }
+                                  >
+                                    <Info className="mr-2 h-4 w-4" />
+                                    View Details
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
-          </div> }
+          )}
         </CardContent>
 
         {/* Pagination */}

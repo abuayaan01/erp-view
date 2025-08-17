@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
   Eye,
@@ -10,6 +10,8 @@ import {
   ChevronLeft,
   ChevronRight,
   PlusCircle,
+  Info,
+  MoreHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +23,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -53,6 +63,8 @@ const MaterialIssueList = () => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const navigate = useNavigate();
 
   // Fetch data from API
   useEffect(() => {
@@ -181,9 +193,7 @@ const MaterialIssueList = () => {
   }, [searchTerm, filterType, filterStatus, filterSite]);
 
   if (loading) {
-    return (
-      <Spinner />
-    );
+    return <Spinner />;
   }
 
   if (error && !issues.length) {
@@ -313,8 +323,11 @@ const MaterialIssueList = () => {
                         issue.items?.[0]?.toSite?.name?.split(",")[0] || "N/A";
 
                       return (
-                        <TableRow key={issue.id}>
-                          <TableCell className="font-medium">
+                        <TableRow className={"cursor-pointer"} onDoubleClick={() => navigate(`/issues/${issue.id}`)} key={issue.id}>
+                          <TableCell
+                            onClick={() => navigate(`/issues/${issue.id}`)}
+                            className="font-medium text-blue-500 underline cursor-pointer"
+                          >
                             {issue.issueNumber}
                           </TableCell>
                           <TableCell>{formatDate(issue.issueDate)}</TableCell>
@@ -332,20 +345,34 @@ const MaterialIssueList = () => {
                           </TableCell>
                           <TableCell>{getStatusBadge(issue.status)}</TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon">
-                                <Link to={`/issues/${issue.id}`}>
-                                  <Eye className="h-4 w-4" />
-                                  <span className="sr-only">View</span>
-                                </Link>
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <Link to={`/issues/${issue.id}?print=true`}>
-                                  <FileText className="h-4 w-4" />
-                                  <span className="sr-only">Print</span>
-                                </Link>
-                              </Button>
-                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    navigate(`/issues/${issue.id}`)
+                                  }
+                                >
+                                  <Info className="mr-2 h-4 w-4" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    navigate(`/issues/${issue.id}?print=true`)
+                                  }
+                                >
+                                  <FileText className="mr-2 h-4 w-4" />
+                                  View Pdf
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       );
