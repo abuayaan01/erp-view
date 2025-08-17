@@ -13,7 +13,7 @@ const InvoiceForm = ({ procurement, onSave }) => {
   const [amount, setAmount] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(null);
   const [notes, setNotes] = useState("");
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState([]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -23,7 +23,7 @@ const InvoiceForm = ({ procurement, onSave }) => {
       amount: parseFloat(amount),
       invoiceDate,
       notes,
-      // files:file
+      files:file
     });
   };
 
@@ -92,11 +92,11 @@ const InvoiceForm = ({ procurement, onSave }) => {
         <div>
           <Label>Upload Invoice (Optional)</Label>
           <div className="mt-2 flex items-center justify-center w-full">
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+            <label className="flex flex-col items-center justify-center w-full h-34 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <FileText className="h-8 w-8 text-gray-400 mb-2" />
+                <FileText className="h-9 w-8 text-gray-400 mb-" />
                 <p className="text-sm text-gray-500">
-                  Click to upload or drag and drop
+                  Click to upload
                 </p>
                 <p className="text-xs text-gray-500">
                   PDF, PNG, JPG or JPEG (max. 10MB)
@@ -104,9 +104,10 @@ const InvoiceForm = ({ procurement, onSave }) => {
               </div>
               <Input
                 type="file"
-                className="hidden"
+                multiple
+                className="border-l-none border-r-none rounded-none border-b-0 border-t-2"
                 accept=".pdf,.png,.jpg,.jpeg"
-                onChange={(e) => setFile(e.target.files[0])}
+                onChange={(e) => setFile(Array.from(e.target.files))}
               />
             </label>
           </div>

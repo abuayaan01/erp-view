@@ -58,6 +58,8 @@ const ProcurementDetails = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
+  console.log(invoices)
+
   const handlePaymentCreated = (payment) => {
     setInvoices((prevInvoices) =>
       prevInvoices.map((invoice) =>
@@ -172,11 +174,26 @@ const ProcurementDetails = () => {
       formData.append("amount", invoiceData.amount);
       formData.append("invoiceDate", invoiceData.invoiceDate.toISOString());
       formData.append("notes", invoiceData.notes);
-      if (invoiceData.file) {
-        formData.append("file", invoiceData.file);
+
+      if (invoiceData.files && invoiceData.files.length > 0) {
+        invoiceData.files.forEach((file) => {
+          formData.append("files", file);
+        });
       }
 
-      await api.post("/invoices", invoiceData);
+      console.log(invoiceData.files);
+
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+
+      // return;
+
+      await api.post("/invoices", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       setIsInvoiceDialogOpen(false);
       // Switch to invoices tab after creating invoice
       setActiveTab("invoices");
@@ -871,27 +888,25 @@ const ProcurementDetails = () => {
                                 Attachments
                               </h4>
                               <div className="flex flex-wrap gap-2">
-                                {invoice.files
-                                  ?.split(",")
-                                  .map((file, index) => (
-                                    <Button
-                                      key={index}
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-blue-600 hover:text-blue-700"
-                                      // asChild
+                                {invoice?.files && (
+                                  <Button
+                                    key={invoice?.files}
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-blue-600 hover:text-blue-700"
+                                    // asChild
+                                  >
+                                    <a
+                                      href={invoice?.files?.files}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center text-sm gap-1"
                                     >
-                                      <a
-                                        href={file.trim()}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-1"
-                                      >
-                                        <FileText className="h-4 w-4" />
-                                        File {index + 1}
-                                      </a>
-                                    </Button>
-                                  ))}
+                                      <FileText className="h-8 w-8" />
+                                      View Attachments
+                                    </a>
+                                  </Button>
+                                )}
                               </div>
                             </div>
                           )}
