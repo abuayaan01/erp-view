@@ -58,8 +58,6 @@ const ProcurementDetails = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  console.log(invoices)
-
   const handlePaymentCreated = (payment) => {
     setInvoices((prevInvoices) =>
       prevInvoices.map((invoice) =>
@@ -70,11 +68,37 @@ const ProcurementDetails = () => {
     );
   };
 
+  const transformProcurementDataForPDF = (procurementData) => {
+    // Transform the main procurement data
+    const formData = {
+      procurementNo: procurementData.procurementNo,
+      status: procurementData.status,
+      createdAt: procurementData.createdAt,
+      expectedDelivery: procurementData.expectedDelivery,
+      notes: procurementData.notes,
+      totalAmount: procurementData.totalAmount,
+      Vendor: procurementData.Vendor,
+      Requisition: procurementData.Requisition,
+    };
+
+    // Transform the items array
+    const items = procurementData.ProcurementItems.map((item) => ({
+      id: item.id,
+      quantity: item.quantity,
+      rate: item.rate,
+      amount: item.amount,
+      RequisitionItem: item.RequisitionItem,
+    }));
+
+    return { formData, items };
+  };
+
   const handleDownloadPDF = async () => {
     setIsGeneratingPdf(true);
+    const { formData, items } = transformProcurementDataForPDF(procurement);
     try {
       const blob = await pdf(
-        <ProcurementOrderPDF data={procurement} />
+        <ProcurementOrderPDF formData={formData} items={items} />
       ).toBlob();
 
       // Create download link
@@ -180,14 +204,6 @@ const ProcurementDetails = () => {
           formData.append("files", file);
         });
       }
-
-      console.log(invoiceData.files);
-
-      for (const [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-      }
-
-      // return;
 
       await api.post("/invoices", formData, {
         headers: {

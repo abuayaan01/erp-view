@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Document,
   Page,
@@ -6,195 +7,143 @@ import {
   StyleSheet,
   Image,
 } from "@react-pdf/renderer";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import logo from "../../assets/icons/company-logo.jpeg";
 
-// Create styles for PDF
+// Create styles matching Material Issue PDF
 const styles = StyleSheet.create({
   page: {
     padding: 30,
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: "Helvetica",
-    borderWidth: 1,
-    borderColor: "#000",
-    flexDirection: "column", // 👈 important
-  },
-
-  contentWrapper: {
-    flexDirection: "column",
-    flex: 1, // allow internal elements to grow/shrink
-  },
-
-  container: {
-    borderWidth: 1,
-    borderColor: "#000",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderColor: "#000",
-    padding: 10,
+    marginBottom: 10,
   },
   companyInfo: {
-    width: "80%",
-  },
-  challanInfo: {
-    width: "20%",
-    textAlign: "right",
-    flexDirection: "row",
-    justifyContent: "center",
+    width: "60%",
   },
   companyName: {
-    fontSize: 16,
-    fontWeight: "heavy",
-    fontFamily: "Helvetica-Bold",
+    fontWeight: "bold",
+    fontSize: 12,
+    marginBottom: 2,
   },
   companyAddress: {
-    fontSize: 10,
-    marginTop: 2,
-    color: "#555",
+    marginBottom: 1,
+  },
+  dateInfo: {
+    width: "40%",
+    alignItems: "flex-end",
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 10,
   },
   title: {
-    fontSize: 12,
-    fontWeight: "normal",
+    fontSize: 16,
+    fontWeight: "bold",
     textAlign: "center",
-    borderBottomWidth: 1,
-    borderColor: "#000",
-    padding: 2,
+    marginVertical: 10,
+    textDecoration: "underline",
   },
-  challanDetails: {
-    backgroundColor: "#f0f0f0",
-    padding: 12,
-    borderBottomWidth: 1,
-    borderColor: "#000",
-    // marginBottom: 10,
-  },
-  challanDetailsRow: {
+  sectionContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  challanLabel: {
-    fontSize: 8,
-    fontWeight: "bold",
-  },
-  challanValue: {
-    fontSize: 10,
-    fontWeight: "bold",
-  },
-  referenceValue: {
-    fontSize: 9,
-    textAlign: "right",
-  },
-  fromToSection: {
-    flexDirection: "row",
-    // marginBottom: 10,
-    padding: 12,
-    borderBottomWidth: 1,
+    marginBottom: 10,
+    borderWidth: 1,
     borderColor: "#000",
   },
-  fromSection: {
+  section: {
     width: "50%",
-    paddingRight: 10,
-    borderRight: 1,
+    padding: 8,
+    borderRightWidth: 1,
     borderRightColor: "#000",
   },
-  toSection: {
+  sectionRight: {
     width: "50%",
-    paddingLeft: 10,
+    padding: 8,
   },
   sectionTitle: {
-    fontSize: 8,
     fontWeight: "bold",
-    textTransform: "uppercase",
-    marginBottom: 4,
+    marginBottom: 5,
   },
-  sectionName: {
-    fontSize: 9,
-    fontWeight: "bold",
-  },
-  sectionText: {
-    fontSize: 8,
-    marginBottom: 2,
-  },
-  detailsSection: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderColor: "#000",
-  },
-  detailsTitle: {
-    fontSize: 8,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    paddingBottom: 2,
-    marginBottom: 4,
-  },
-  detailsGrid: {
+  row: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 4,
+    marginBottom: 3,
   },
-  detailsColumn: {
-    width: "50%",
-    marginBottom: 4,
-  },
-  detailsColumnThird: {
-    width: "33.33%",
-    marginBottom: 4,
-  },
-  detailsLabel: {
-    fontSize: 8,
-    color: "#666",
-  },
-  detailsValue: {
-    fontSize: 9,
-    fontWeight: "medium",
-  },
-  termsSection: {
-    fontSize: 7,
-    color: "#666",
-    padding: 12,
-    borderBottomWidth: 1,
-    borderColor: "#000",
-  },
-  termsTitle: {
+  label: {
+    width: "40%",
     fontWeight: "bold",
-    marginBottom: 2,
   },
-  termsList: {
-    marginLeft: 10,
+  value: {
+    width: "60%",
   },
-  termsItem: {
-    marginBottom: 2,
+  noteBox: {
+    borderWidth: 1,
+    borderColor: "#000",
+    padding: 8,
+    marginBottom: 10,
+    backgroundColor: "#f0f0f0",
   },
-  signatureSection: {
+  noteText: {
+    fontStyle: "italic",
+  },
+  table: {
+    display: "table",
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#000",
+    marginBottom: 10,
+  },
+  tableRow: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
+  },
+  tableRowLast: {
+    flexDirection: "row",
+  },
+  tableColHeader: {
+    borderRightWidth: 1,
+    borderRightColor: "#000",
+    padding: 5,
+    fontWeight: "bold",
+    backgroundColor: "#f0f0f0",
+  },
+  tableColHeaderLast: {
+    padding: 5,
+    fontWeight: "bold",
+    backgroundColor: "#f0f0f0",
+  },
+  tableCol: {
+    borderRightWidth: 1,
+    borderRightColor: "#000",
+    padding: 5,
+  },
+  tableColLast: {
+    padding: 5,
+  },
+  footer: {
+    marginTop: 30,
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 100,
-    padding: 12,
   },
   signature: {
-    width: "40%",
-    borderTop: 1,
-    borderTopStyle: "dashed",
+    width: "30%",
+    borderTopWidth: 1,
     borderTopColor: "#000",
-    paddingTop: 4,
+    paddingTop: 5,
     textAlign: "center",
-  },
-  signatureTitle: {
-    fontSize: 8,
-    fontWeight: "bold",
-  },
-  signatureSubtitle: {
-    fontSize: 7,
-    color: "#666",
   },
 });
 
 const TransferChallanPDF = ({ transfer }) => {
-  const formatDate = (dateString) => {
+  console.log(transfer);
+  // Format date if needed
+  const formatDisplayDate = (dateString) => {
     try {
-      return format(new Date(dateString), "dd-MMM-yyyy");
+      return format(parseISO(dateString), "dd-MMM-yyyy");
     } catch (error) {
       return dateString;
     }
@@ -219,258 +168,276 @@ const TransferChallanPDF = ({ transfer }) => {
     return "Vendor's Signature";
   };
 
-  const getSignatureSubtitle = () => {
-    if (transfer.requestType === "Site Transfer") return "(Receiver)";
-    if (transfer.requestType === "Sell") return "(Buyer)";
-    return "(Vendor)";
-  };
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.companyInfo}>
-              <Text style={styles.companyName}>
-                M/s B. P. C INFRAPROJECTS PVT LTD
-              </Text>
-              <Text style={styles.companyAddress}>
-                Galaxia Mall, Unit - 12, 2nd Floor, Piska More,
-              </Text>
-              <Text style={styles.companyAddress}>
-                Ratu Road Ranchi - 834005
-              </Text>
-              <Text style={styles.companyAddress}>Contact: +91 9471100887</Text>
-            </View>
-            <View style={styles.challanInfo}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.companyInfo}>
+            <Text style={styles.companyName}>
+              M/s B. P. C INFRAPROJECTS PVT LTD
+            </Text>
+            <Text style={styles.companyAddress}>
+              Galaxia Mall, Unit - 12, 2nd Floor, Piska More, Ratu Road
+            </Text>
+            <Text style={styles.companyAddress}>Ranchi - 834005</Text>
+            <Text style={styles.companyAddress}>Contact: +91 9471100887</Text>
+          </View>
+          <View style={styles.dateInfo}>
+            <View style={styles.logoContainer}>
               <Image src={logo} style={{ width: 50, height: 50 }} />
             </View>
+            <Text>Challan No: {transfer.id}</Text>
+            <Text>Date: {formatDisplayDate(transfer.approvedAt)}</Text>
+            <Text>Time: {format(new Date(), "HH:mm")}</Text>
           </View>
+        </View>
 
-          {/* Tittle */}
-          <View>
-            <Text style={styles.title}>{getChallanTitle()}</Text>
-            {/* <Text style={styles.companyAddress}>
-            Date: {formatDate(new Date().toISOString())}
-          </Text> */}
-          </View>
+        {/* Title */}
+        <Text style={styles.title}>{getChallanTitle()}</Text>
 
-          {/* Challan ID and Reference */}
-          <View style={styles.challanDetails}>
-            <View style={styles.challanDetailsRow}>
-              <View>
-                <Text style={styles.challanLabel}>Challan No:</Text>
-                <Text style={styles.challanValue}>{transfer.id}</Text>
-              </View>
-              <View>
-                <Text style={styles.challanLabel}>Reference:</Text>
-                <Text style={styles.referenceValue}>
-                  {transfer.requestType === "Site Transfer"
-                    ? "Site Transfer"
-                    : transfer.requestType === "Sell"
-                    ? "Machine Sell"
-                    : "Machine Scrap"}
-                </Text>
-              </View>
+        {/* From/To Sections */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>From</Text>
+            {/* <View style={styles.row}>
+              <Text style={styles.label}>Site:</Text>
+              <Text style={styles.value}>{transfer.fromSite}</Text>
+            </View> */}
+            <View style={styles.row}>
+              <Text style={styles.label}>Site Name:</Text>
+              <Text style={styles.value}>{transfer?.currentSite?.name}</Text>
             </View>
-          </View>
-
-          {/* From/To Details */}
-          <View style={styles.fromToSection}>
-            <View style={styles.fromSection}>
-              <Text style={styles.sectionTitle}>From</Text>
-              <Text style={styles.sectionName}>{transfer.fromSite}</Text>
-              <Text style={styles.sectionText}>
-                Site : {transfer?.currentSite.name}
-              </Text>
-              <Text style={styles.sectionText}>
-                Site Id : {transfer?.currentSite.id}
-              </Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Site Code:</Text>
+              <Text style={styles.value}>{transfer?.currentSite?.code}</Text>
             </View>
-
-            <View style={styles.toSection}>
-              <Text style={styles.sectionTitle}>{getToTitle()}</Text>
-              <Text style={styles.sectionName}>
+            {/* <View style={styles.row}>
+              <Text style={styles.label}>GST No.:</Text>
+              <Text style={styles.value}>21AABCT4589R1ZP</Text>
+            </View> */}
+          </View>
+          <View style={styles.sectionRight}>
+            <Text style={styles.sectionTitle}>{getToTitle()}</Text>
+            {/* <View style={styles.row}>
+              <Text style={styles.label}>Name:</Text>
+              <Text style={styles.value}>
                 {transfer.requestType === "Site Transfer"
-                  ? transfer.toSite
+                  ? transfer.destinationSite?.name
                   : transfer.requestType === "Sell"
                   ? transfer.buyerName
                   : transfer.scrapVendor}
               </Text>
-              {transfer.requestType === "Sell" && (
-                <>
-                  <Text style={styles.sectionText}>
-                    Contact: {transfer.buyerContact || "N/A"}
+            </View> */}
+            {transfer.requestType === "Site Transfer" && (
+              <>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Site Name:</Text>
+                  <Text style={styles.value}>
+                    {transfer?.destinationSite?.name}
                   </Text>
-                  {transfer.buyerAddress && (
-                    <Text style={styles.sectionText}>
-                      {transfer.buyerAddress}
-                    </Text>
-                  )}
-                </>
-              )}
-              {transfer.requestType === "Scrap" && (
-                <>
-                  <Text style={styles.sectionText}>
-                    Contact: {transfer.scrapVendorContact || "N/A"}
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Site Code:</Text>
+                  <Text style={styles.value}>
+                    {transfer?.destinationSite?.code}
                   </Text>
-                  {transfer.scrapVendorAddress && (
-                    <Text style={styles.sectionText}>
-                      {transfer.scrapVendorAddress}
-                    </Text>
-                  )}
-                </>
-              )}
-              {transfer.requestType === "Site Transfer" && (
-                <>
-                  <Text style={styles.sectionText}>
-                    Site : {transfer?.destinationSite.name}
+                </View>
+              </>
+            )}
+            {transfer.requestType === "Sell" && (
+              <>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Contact:</Text>
+                  <Text style={styles.value}>
+                    {transfer.buyerContact || "N/A"}
                   </Text>
-                  <Text style={styles.sectionText}>
-                    Site Id : {transfer?.destinationSite.id}
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Address:</Text>
+                  <Text style={styles.value}>
+                    {transfer.buyerAddress || "N/A"}
                   </Text>
-                </>
-              )}
+                </View>
+              </>
+            )}
+            {transfer.requestType === "Scrap" && (
+              <>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Contact:</Text>
+                  <Text style={styles.value}>
+                    {transfer.scrapVendorContact || "N/A"}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Address:</Text>
+                  <Text style={styles.value}>
+                    {transfer.scrapVendorAddress || "N/A"}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+
+        {/* Note */}
+        <View style={styles.noteBox}>
+          <Text style={styles.noteText}>
+            We are{" "}
+            {transfer.requestType === "Site Transfer"
+              ? "transferring"
+              : transfer.requestType === "Sell"
+              ? "selling"
+              : "scrapping"}{" "}
+            the following machine for OUR OWN USE and Not For Sale/Resale.
+          </Text>
+          <Text style={styles.noteText}>
+            The concerned Authority is requested to allow uninterrupted
+            transport of this machine.
+          </Text>
+        </View>
+
+        {/* Machine Details Table */}
+        <View style={styles.table}>
+          {/* Table Header */}
+          <View style={styles.tableRow}>
+            <View style={[styles.tableColHeader, { width: "8%" }]}>
+              <Text>S.No.</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "15%" }]}>
+              <Text>Machine Code</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "25%" }]}>
+              <Text>Machine Name</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "15%" }]}>
+              <Text>Model</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "15%" }]}>
+              <Text>Serial No.</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "15%" }]}>
+              <Text>Registration No.</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "12%" }]}>
+              <Text>Condition</Text>
+            </View>
+            <View style={[styles.tableColHeaderLast, { width: "10%" }]}>
+              <Text>Remarks</Text>
             </View>
           </View>
 
-          {/* Machine Details */}
-          <View style={styles.detailsSection}>
-            <Text style={styles.detailsTitle}>Machine Details</Text>
-            <View style={styles.detailsGrid}>
-              <View style={styles.detailsColumn}>
-                <Text style={styles.detailsLabel}>Machine Name:</Text>
-                <Text style={styles.detailsValue}>
-                  {transfer.machine.machineName}
-                </Text>
-              </View>
-              <View style={styles.detailsColumn}>
-                <Text style={styles.detailsLabel}>Machine ID:</Text>
-                <Text style={styles.detailsValue}>{transfer.machineId}</Text>
-              </View>
-              <View style={styles.detailsColumn}>
-                <Text style={styles.detailsLabel}>Model:</Text>
-                <Text style={styles.detailsValue}>
-                  {transfer.model || "N/A"}
-                </Text>
-              </View>
-              <View style={styles.detailsColumn}>
-                <Text style={styles.detailsLabel}>Serial Number:</Text>
-                <Text style={styles.detailsValue}>
-                  {transfer.serialNumber || "N/A"}
-                </Text>
-              </View>
+          {/* Table Body */}
+          <View style={styles.tableRowLast}>
+            <View style={[styles.tableCol, { width: "8%" }]}>
+              <Text>1</Text>
+            </View>
+            <View style={[styles.tableCol, { width: "15%" }]}>
+              <Text>{transfer.machine?.machineCode}</Text>
+            </View>
+            <View style={[styles.tableCol, { width: "25%" }]}>
+              <Text>{transfer.machine?.machineName}</Text>
+            </View>
+            <View style={[styles.tableCol, { width: "15%" }]}>
+              <Text>{transfer.machine?.model || "N/A"}</Text>
+            </View>
+            <View style={[styles.tableCol, { width: "15%" }]}>
+              <Text>{transfer.machine?.serialNumber || "N/A"}</Text>
+            </View>
+            <View style={[styles.tableCol, { width: "15%" }]}>
+              <Text>{transfer.registrationNumber || "N/A"}</Text>
+            </View>
+            <View style={[styles.tableCol, { width: "12%" }]}>
+              <Text>Working</Text>
+            </View>
+            <View style={[styles.tableColLast, { width: "10%" }]}>
+              <Text>-</Text>
             </View>
           </View>
+        </View>
 
-          {/* Transfer Details */}
-          <View style={styles.detailsSection}>
-            <Text style={styles.detailsTitle}>
-              {transfer.requestType === "Site Transfer"
-                ? "Transfer Details"
-                : transfer.requestType === "Sell"
+        {/* Transport Details */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Transport Details</Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Vehicle No:</Text>
+              <Text style={styles.value}>
+                {transfer.transportDetails?.vehicleNumber || "N/A"}
+              </Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Driver Name:</Text>
+              <Text style={styles.value}>
+                {transfer.transportDetails?.driverName || "N/A"}
+              </Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Driver Contact:</Text>
+              <Text style={styles.value}>
+                {transfer.transportDetails?.mobileNumber || "N/A"}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.sectionRight}>
+            <Text style={styles.sectionTitle}>
+              {transfer.requestType === "Sell"
                 ? "Sale Details"
-                : "Scrap Details"}
+                : transfer.requestType === "Scrap"
+                ? "Scrap Details"
+                : "Additional Info"}
             </Text>
-            <View style={styles.detailsGrid}>
-              <View style={styles.detailsColumn}>
-                <Text style={styles.detailsLabel}>Date:</Text>
-                <Text style={styles.detailsValue}>
-                  {formatDate(transfer.approvedAt)}
-                </Text>
-              </View>
-              <View style={styles.detailsColumn}>
-                <Text style={styles.detailsLabel}>Approved By:</Text>
-                <Text style={styles.detailsValue}>
-                  {transfer?.approver?.name}
-                </Text>
-              </View>
-              {transfer.requestType === "Sell" && (
-                <View style={styles.detailsColumn}>
-                  <Text style={styles.detailsLabel}>Sale Amount:</Text>
-                  <Text style={styles.detailsValue}>
-                    {transfer.saleAmount ? `$${transfer.saleAmount}` : "N/A"}
-                  </Text>
-                </View>
-              )}
-              {transfer.requestType === "Scrap" && (
-                <View style={styles.detailsColumn}>
-                  <Text style={styles.detailsLabel}>Scrap Value:</Text>
-                  <Text style={styles.detailsValue}>
-                    {transfer.scrapValue ? `$${transfer.scrapValue}` : "N/A"}
-                  </Text>
-                </View>
-              )}
+            <View style={styles.row}>
+              <Text style={styles.label}>Approved By:</Text>
+              <Text style={styles.value}>
+                {transfer?.approver?.name || "N/A"}
+              </Text>
             </View>
+            {transfer.requestType === "Sell" && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Sale Amount:</Text>
+                <Text style={styles.value}>
+                  ₹{transfer.saleAmount ? transfer.saleAmount : "N/A"}
+                </Text>
+              </View>
+            )}
+            {transfer.requestType === "Scrap" && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Scrap Value:</Text>
+                <Text style={styles.value}>
+                  ₹{transfer.scrapValue ? transfer.scrapValue : "N/A"}
+                </Text>
+              </View>
+            )}
           </View>
+        </View>
 
-          {/* Transport Details */}
-          <View style={styles.detailsSection}>
-            <Text style={styles.detailsTitle}>Transport Details</Text>
-            <View style={styles.detailsGrid}>
-              <View style={styles.detailsColumnThird}>
-                <Text style={styles.detailsLabel}>Vehicle Number:</Text>
-                <Text style={styles.detailsValue}>
-                  {transfer.transportDetails?.vehicleNumber || "N/A"}
-                </Text>
-              </View>
-              <View style={styles.detailsColumnThird}>
-                <Text style={styles.detailsLabel}>Driver Name:</Text>
-                <Text style={styles.detailsValue}>
-                  {transfer.transportDetails?.driverName || "N/A"}
-                </Text>
-              </View>
-              <View style={styles.detailsColumnThird}>
-                <Text style={styles.detailsLabel}>Driver Contact:</Text>
-                <Text style={styles.detailsValue}>
-                  {transfer.transportDetails?.mobileNumber || "N/A"}
-                </Text>
-              </View>
-            </View>
+        {/* Narration */}
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ fontWeight: "bold" }}>Narration:</Text>
+          <Text>
+            Machine{" "}
+            {transfer.requestType === "Site Transfer"
+              ? "transfer"
+              : transfer.requestType === "Sell"
+              ? "sale"
+              : "scrap"}{" "}
+            as per approval
+          </Text>
+          <Text>Status: {transfer.status}</Text>
+          <Text>Reference: {transfer.requestType}</Text>
+        </View>
+
+        {/* Footer with signatures */}
+        <View style={styles.footer}>
+          <View style={styles.signature}>
+            <Text>Authorized By</Text>
           </View>
-
-          {/* Terms and Conditions */}
-          <View style={styles.termsSection}>
-            <Text style={styles.termsTitle}>Terms & Conditions:</Text>
-            <View style={styles.termsList}>
-              <Text style={styles.termsItem}>
-                1. This challan must be presented at the time of
-                delivery/receipt.
-              </Text>
-              <Text style={styles.termsItem}>
-                2. The receiver must verify all details before accepting the
-                machine.
-              </Text>
-              <Text style={styles.termsItem}>
-                3. Any discrepancies must be reported within 24 hours of
-                receipt.
-              </Text>
-              <Text style={styles.termsItem}>
-                4. This document serves as proof of{" "}
-                {transfer.requestType === "Site Transfer"
-                  ? "transfer"
-                  : transfer.requestType === "Sell"
-                  ? "sale"
-                  : "scrapping"}
-                .
-              </Text>
-            </View>
+          <View style={styles.signature}>
+            <Text>Prepared By</Text>
           </View>
-
-          {/* Signatures */}
-          <View style={{ flex: 1 }}></View>
-          <View style={styles.signatureSection}>
-            <View style={styles.signature}>
-              <Text style={styles.signatureTitle}>Authorized Signature</Text>
-              <Text style={styles.signatureSubtitle}>(Sender)</Text>
-            </View>
-            <View style={styles.signature}>
-              <Text style={styles.signatureTitle}>{getSignatureTitle()}</Text>
-              <Text style={styles.signatureSubtitle}>
-                {getSignatureSubtitle()}
-              </Text>
-            </View>
+          <View style={styles.signature}>
+            <Text>{getSignatureTitle()}</Text>
           </View>
         </View>
       </Page>

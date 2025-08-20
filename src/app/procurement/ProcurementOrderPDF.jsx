@@ -1,263 +1,317 @@
-import React from 'react';
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-  Font
-} from '@react-pdf/renderer';
-import { format } from 'date-fns';
+import React from "react";
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { format, parseISO } from "date-fns";
 
-// Create styles
+// Create styles matching Material Issue PDF
 const styles = StyleSheet.create({
   page: {
-    flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
     padding: 30,
     fontSize: 10,
-    fontFamily: 'Helvetica'
+    fontFamily: "Helvetica",
   },
   header: {
-    marginBottom: 20,
-    borderBottom: 2,
-    borderBottomColor: '#000000',
-    paddingBottom: 10
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  companyInfo: {
+    width: "60%",
+  },
+  companyName: {
+    fontWeight: "bold",
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  companyAddress: {
+    marginBottom: 1,
+  },
+  dateInfo: {
+    width: "40%",
+    alignItems: "flex-end",
   },
   title: {
-    fontSize: 20,
-    textAlign: 'center',
-    fontWeight: 'bold',
-    marginBottom: 10
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginVertical: 10,
+    textDecoration: "underline",
   },
-  subtitle: {
-    fontSize: 12,
-    textAlign: 'center',
-    color: '#666666'
+  sectionContainer: {
+    flexDirection: "row",
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#000",
   },
   section: {
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 4
+    width: "50%",
+    padding: 8,
+    borderRightWidth: 1,
+    borderRightColor: "#000",
+  },
+  sectionRight: {
+    width: "50%",
+    padding: 8,
   },
   sectionTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#333333'
+    fontWeight: "bold",
+    marginBottom: 5,
   },
   row: {
-    flexDirection: 'row',
-    marginBottom: 4
+    flexDirection: "row",
+    marginBottom: 3,
   },
   label: {
-    width: '40%',
-    fontWeight: 'bold',
-    fontSize: 10
+    width: "40%",
+    fontWeight: "bold",
   },
   value: {
-    width: '60%',
-    fontSize: 10
+    width: "60%",
+  },
+  noteBox: {
+    borderWidth: 1,
+    borderColor: "#000",
+    padding: 8,
+    marginBottom: 10,
+    backgroundColor: "#f0f0f0",
+  },
+  noteText: {
+    fontStyle: "italic",
   },
   table: {
-    display: 'table',
-    width: '100%',
-    borderStyle: 'solid',
+    display: "table",
+    width: "100%",
     borderWidth: 1,
-    borderColor: '#000000',
-    marginBottom: 20
+    borderColor: "#000",
+    marginBottom: 10,
   },
   tableRow: {
-    margin: 'auto',
-    flexDirection: 'row'
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
   },
-  tableHeader: {
-    backgroundColor: '#f1f1f1',
-    fontWeight: 'bold'
+  tableRowLast: {
+    flexDirection: "row",
+  },
+  tableColHeader: {
+    borderRightWidth: 1,
+    borderRightColor: "#000",
+    padding: 5,
+    fontWeight: "bold",
+    backgroundColor: "#f0f0f0",
+  },
+  tableColHeaderLast: {
+    padding: 5,
+    fontWeight: "bold",
+    backgroundColor: "#f0f0f0",
   },
   tableCol: {
-    width: '16.66%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#000000',
-    padding: 5
+    borderRightWidth: 1,
+    borderRightColor: "#000",
+    padding: 5,
   },
-  tableCell: {
-    fontSize: 9,
-    textAlign: 'left'
+  tableColLast: {
+    padding: 5,
+  },
+  totalRow: {
+    flexDirection: "row",
+    borderTopWidth: 1,
+    borderTopColor: "#000",
+    fontWeight: "bold",
   },
   footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 30,
-    right: 30,
-    textAlign: 'center',
-    fontSize: 8,
-    color: '#666666',
-    borderTop: 1,
-    borderTopColor: '#cccccc',
-    paddingTop: 10
+    marginTop: 30,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-  totalSection: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#e8f4f8',
-    borderRadius: 4
+  signature: {
+    width: "30%",
+    borderTopWidth: 1,
+    borderTopColor: "#000",
+    paddingTop: 5,
+    textAlign: "center",
   },
-  totalAmount: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    textAlign: 'right'
-  }
 });
 
-const ProcurementOrderPDF = ({ data }) => {
-  const procurement = data;
-  
+const ProcurementOrderPDF = ({ formData, items }) => {
+  // Format date if needed
+  const formatDisplayDate = (dateString) => {
+    try {
+      return format(parseISO(dateString), "dd-MMM-yyyy");
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  // Calculate total amount
+  const totalAmount = items?.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>PROCUREMENT ORDER</Text>
-          <Text style={styles.subtitle}>Purchase Order Document</Text>
-        </View>
-
-        {/* Procurement Information */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Procurement Details</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Procurement No:</Text>
-            <Text style={styles.value}>{procurement.procurementNo}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Status:</Text>
-            <Text style={styles.value}>{procurement.status?.toUpperCase()}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Order Date:</Text>
-            <Text style={styles.value}>
-              {format(new Date(procurement.createdAt), 'dd MMM yyyy')}
+          <View style={styles.companyInfo}>
+            <Text style={styles.companyName}>
+              M/s B. P. C INFRAPROJECTS PVT LTD
             </Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Expected Delivery:</Text>
-            <Text style={styles.value}>
-              {format(new Date(procurement.expectedDelivery), 'dd MMM yyyy')}
+            <Text style={styles.companyAddress}>
+              Galaxia Mall, Unit - 12, 2nd Floor, Piska More, Ratu Road
             </Text>
+            <Text style={styles.companyAddress}>Ranchi - 834005</Text>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Requisition No:</Text>
-            <Text style={styles.value}>{procurement.Requisition?.requisitionNo}</Text>
-          </View>
-        </View>
-
-        {/* Vendor Information */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Vendor Information</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Vendor Name:</Text>
-            <Text style={styles.value}>{procurement.Vendor?.name}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Contact Person:</Text>
-            <Text style={styles.value}>{procurement.Vendor?.contactPerson}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Email:</Text>
-            <Text style={styles.value}>{procurement.Vendor?.email}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Phone:</Text>
-            <Text style={styles.value}>{procurement.Vendor?.phone || 'N/A'}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Address:</Text>
-            <Text style={styles.value}>{procurement.Vendor?.address}</Text>
+          <View style={styles.dateInfo}>
+            <Text>PO No: {formData.procurementNo}</Text>
+            <Text>Date: {formatDisplayDate(formData.createdAt)}</Text>
+            <Text>Expected Delivery: {formatDisplayDate(formData.expectedDelivery)}</Text>
           </View>
         </View>
 
-        {/* Items Table */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Order Items</Text>
-          
-          <View style={styles.table}>
-            {/* Table Header */}
-            <View style={[styles.tableRow, styles.tableHeader]}>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>Sr. No.</Text>
+        {/* Title */}
+        <Text style={styles.title}>PROCUREMENT ORDER</Text>
+
+        {/* Vendor/Company Sections */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Vendor Details</Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Name:</Text>
+              <Text style={styles.value}>{formData.Vendor?.name}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Contact Person:</Text>
+              <Text style={styles.value}>{formData.Vendor?.contactPerson}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Email:</Text>
+              <Text style={styles.value}>{formData.Vendor?.email}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Phone:</Text>
+              <Text style={styles.value}>{formData.Vendor?.phone || "N/A"}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Address:</Text>
+              <Text style={styles.value}>{formData.Vendor?.address}</Text>
+            </View>
+          </View>
+          <View style={styles.sectionRight}>
+            <Text style={styles.sectionTitle}>Order Details</Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Status:</Text>
+              <Text style={styles.value}>{formData.status?.toUpperCase()}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Requisition No:</Text>
+              <Text style={styles.value}>{formData.Requisition?.requisitionNo}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>GST No.:</Text>
+              <Text style={styles.value}>21AABCT4589R1ZP</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Note */}
+        <View style={styles.noteBox}>
+          <Text style={styles.noteText}>
+            This Procurement Order is issued for the supply of materials as per the specifications mentioned below.
+          </Text>
+          <Text style={styles.noteText}>
+            Please ensure timely delivery as per the agreed terms and conditions.
+          </Text>
+        </View>
+
+        {/* Table */}
+        <View style={styles.table}>
+          {/* Table Header */}
+          <View style={styles.tableRow}>
+            <View style={[styles.tableColHeader, { width: "8%" }]}>
+              <Text>S.No.</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "8%" }]}>
+              <Text>Item Code</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "8%" }]}>
+              <Text>HSN Code</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "30%" }]}>
+              <Text>Material Description</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "10%" }]}>
+              <Text>Part No.</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "8%" }]}>
+              <Text>UOM</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "8%" }]}>
+              <Text>Quantity</Text>
+            </View>
+            <View style={[styles.tableColHeader, { width: "10%" }]}>
+              <Text>Rate (₹)</Text>
+            </View>
+            <View style={[styles.tableColHeaderLast, { width: "10%" }]}>
+              <Text>Amount (₹)</Text>
+            </View>
+          </View>
+
+          {/* Table Body */}
+          {items.map((item, index) => (
+            <View
+              style={
+                index === items.length - 1
+                  ? styles.tableRowLast
+                  : styles.tableRow
+              }
+              key={index}
+            >
+              <View style={[styles.tableCol, { width: "8%" }]}>
+                <Text>{index + 1}</Text>
               </View>
-              <View style={[styles.tableCol, { width: '25%' }]}>
-                <Text style={styles.tableCell}>Item Name</Text>
+              <View style={[styles.tableCol, { width: "8%" }]}>
+                <Text>{item.RequisitionItem?.Item?.id || "-"}</Text>
               </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>Part No.</Text>
+              <View style={[styles.tableCol, { width: "8%" }]}>
+                <Text>{item.RequisitionItem?.Item?.hsnCode || "-"}</Text>
               </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>Unit</Text>
+              <View style={[styles.tableCol, { width: "30%" }]}>
+                <Text>{item.RequisitionItem?.Item?.name || "-"}</Text>
               </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>Quantity</Text>
+              <View style={[styles.tableCol, { width: "10%" }]}>
+                <Text>{item.RequisitionItem?.Item?.partNumber || "-"}</Text>
               </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>Rate (₹)</Text>
+              <View style={[styles.tableCol, { width: "8%" }]}>
+                <Text>{item.RequisitionItem?.Item?.Unit?.shortName || "Nos"}</Text>
               </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>Amount (₹)</Text>
+              <View style={[styles.tableCol, { width: "8%" }]}>
+                <Text>{item.quantity}</Text>
+              </View>
+              <View style={[styles.tableCol, { width: "10%" }]}>
+                <Text>
+                  {parseFloat(item.rate || 0).toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}
+                </Text>
+              </View>
+              <View style={[styles.tableColLast, { width: "10%" }]}>
+                <Text>
+                  {parseFloat(item.amount || 0).toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}
+                </Text>
               </View>
             </View>
+          ))}
 
-            {/* Table Rows */}
-            {procurement.ProcurementItems?.map((item, index) => (
-              <View style={styles.tableRow} key={item.id}>
-                <View style={styles.tableCol}>
-                  <Text style={styles.tableCell}>{index + 1}</Text>
-                </View>
-                <View style={[styles.tableCol, { width: '25%' }]}>
-                  <Text style={styles.tableCell}>
-                    {item.RequisitionItem?.Item?.name}
-                  </Text>
-                </View>
-                <View style={styles.tableCol}>
-                  <Text style={styles.tableCell}>
-                    {item.RequisitionItem?.Item?.partNumber || 'N/A'}
-                  </Text>
-                </View>
-                <View style={styles.tableCol}>
-                  <Text style={styles.tableCell}>
-                    {item.RequisitionItem?.Item?.Unit?.shortName}
-                  </Text>
-                </View>
-                <View style={styles.tableCol}>
-                  <Text style={styles.tableCell}>{item.quantity}</Text>
-                </View>
-                <View style={styles.tableCol}>
-                  <Text style={styles.tableCell}>
-                    {parseFloat(item.rate).toLocaleString('en-IN', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })}
-                  </Text>
-                </View>
-                <View style={styles.tableCol}>
-                  <Text style={styles.tableCell}>
-                    {parseFloat(item.amount).toLocaleString('en-IN', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          {/* Total Amount */}
-          <View style={styles.totalSection}>
-            <View style={styles.row}>
-              <Text style={styles.label}>Total Amount:</Text>
-              <Text style={styles.totalAmount}>
-                ₹{parseFloat(procurement.totalAmount).toLocaleString('en-IN', {
+          {/* Total Row */}
+          <View style={styles.totalRow}>
+            <View style={[styles.tableCol, { width: "82%" }]}>
+              <Text>Total Amount</Text>
+            </View>
+            <View style={[styles.tableColLast, { width: "18%" }]}>
+              <Text>
+                ₹{totalAmount.toLocaleString('en-IN', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
@@ -266,20 +320,25 @@ const ProcurementOrderPDF = ({ data }) => {
           </View>
         </View>
 
-        {/* Notes */}
-        {procurement.notes && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Notes</Text>
-            <Text style={styles.value}>{procurement.notes}</Text>
-          </View>
-        )}
+        {/* Narration */}
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ fontWeight: "bold" }}>Narration:</Text>
+          <Text>Procurement order for materials as per requisition</Text>
+          <Text>Status: {formData.status}</Text>
+          {formData.notes && <Text>Notes: {formData.notes}</Text>}
+        </View>
 
-        {/* Footer */}
+        {/* Footer with signatures */}
         <View style={styles.footer}>
-          <Text>
-            Generated on {format(new Date(), 'dd MMM yyyy, HH:mm')} | 
-            Procurement Order: {procurement.procurementNo}
-          </Text>
+          <View style={styles.signature}>
+            <Text>Prepared By</Text>
+          </View>
+          <View style={styles.signature}>
+            <Text>Checked By</Text>
+          </View>
+          <View style={styles.signature}>
+            <Text>Approved By</Text>
+          </View>
         </View>
       </Page>
     </Document>
