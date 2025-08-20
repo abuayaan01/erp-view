@@ -1,41 +1,42 @@
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import Loader, { Spinner } from "@/components/ui/loader"
-import { Separator } from "@/components/ui/separator"
+import { Spinner } from "@/components/ui/loader"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import api from "@/services/api/api-service"
-import { MapPin, Settings, Package } from "lucide-react"
+import { MapPin } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useParams } from "react-router"
+import SiteInformationTab from "./tabs/SiteInformationTab"
+import MachineryTab from "./tabs/MachineryTab"
+import InventoryTab from "./tabs/InventoryTab"
+import UsersTab from "./tabs/UsersTab"
 
-// This would typically come from an API call
 export default function SiteDetailPage() {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState();
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState()
   const params = useParams()
-  // const { data } = siteData
 
   useEffect(() => {
-    fetchSiteDetails(params.id);
+    fetchSiteDetails(params.id)
   }, [params])
 
   const fetchSiteDetails = async (sid) => {
     try {
-      setLoading(true);
-      const res = await api.get(`/sites/${sid}`);
-      setData(res.data);
-      setLoading(false);
+      setLoading(true)
+      const res = await api.get(`/sites/${sid}`)
+      setData(res.data)
+      setLoading(false)
     } catch (error) {
-      setLoading(false);
+      setLoading(false)
     }
   }
-
 
   return (
     <div className="container mx-auto py-2 min-h-screen flex flex-col">
       {loading ? (
         <Spinner />
-      ) :
-        (<div className="container py-4 px-4 max-w-5xl">
+      ) : (
+        <div className="container py-4 px-4 max-w-5xl">
+          {/* Site Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
               <h1 className="text-lg font-bold tracking-tight">{data.name}</h1>
@@ -49,109 +50,33 @@ export default function SiteDetailPage() {
             </Badge>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Site Information</CardTitle>
-                <CardDescription>Details about the site</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Site Code</p>
-                    <p className="font-medium">{data.code}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Site ID</p>
-                    <p className="font-medium">#{data.id}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Created On</p>
-                    <p className="font-medium">{new Date(data.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Last Updated</p>
-                    <p className="font-medium">
-                      {new Date(data.updatedAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Tabs */}
+          <Tabs defaultValue="site-info" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="site-info">Site Information</TabsTrigger>
+              <TabsTrigger value="machinery">Machinery</TabsTrigger>
+              <TabsTrigger value="inventory">Inventory</TabsTrigger>
+              {/* <TabsTrigger value="users">Users</TabsTrigger> */}
+            </TabsList>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div>
-                  <CardTitle className="text-lg">Department</CardTitle>
-                  <CardDescription>Department information</CardDescription>
-                </div>
-                <Settings className="h-5 w-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Department Name</p>
-                    <p className="text-lg font-semibold">{data.Department.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Department ID</p>
-                    <p className="text-lg font-semibold">#{data.Department.id}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            <TabsContent value="site-info" className="mt-6">
+              <SiteInformationTab data={data} />
+            </TabsContent>
 
-          <h2 className="text-lg font-bold mb-4">Machinery</h2>
-          <Separator className="mb-6" />
+            <TabsContent value="machinery" className="mt-6">
+              <MachineryTab machinery={data.Machinery} />
+            </TabsContent>
 
-          {data.Machinery.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {data.Machinery.map((machine) => (
-                <Card key={machine.id}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <div>
-                      <CardTitle className="text-lg">{machine.machineName}</CardTitle>
-                      <CardDescription>Machine ID: #{machine.id}</CardDescription>
-                    </div>
-                    <Package className="h-5 w-5 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Capacity</p>
-                          <p className="font-medium">{machine.capacity}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Owner Type</p>
-                          <p className="font-medium">{machine.ownerType}</p>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Owner Name</p>
-                        <p className="font-medium">{machine.ownerName}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No machinery found for this site.</p>
-            </div>
-          )}
-        </div>)}
+            <TabsContent value="inventory" className="mt-6">
+              <InventoryTab siteId={data.id} />
+            </TabsContent>
+
+            <TabsContent value="users" className="mt-6">
+              <UsersTab siteId={data.id} />
+            </TabsContent>
+          </Tabs>
+        </div>
+      )}
     </div>
   )
 }
-
