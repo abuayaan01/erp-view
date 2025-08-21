@@ -149,7 +149,7 @@ const ProcurementDetails = () => {
 
   const handleStatusUpdate = async (newStatus) => {
     try {
-      await api.patch(`/procurements/${id}/status`, { status: newStatus });
+      await api.put(`/procurements/${id}/status`, { status: newStatus });
       setProcurement((prev) => ({ ...prev, status: newStatus }));
     } catch (err) {
       console.error("Failed to update status:", err);
@@ -354,7 +354,7 @@ const ProcurementDetails = () => {
                   )}
                   {procurement.status === "ordered" && (
                     <DropdownMenuItem
-                      onClick={() => handleStatusUpdate("Delivered")}
+                      onClick={() => handleStatusUpdate("delivered")}
                     >
                       <Truck className="h-4 w-4 mr-2" />
                       Mark as Delivered
@@ -362,7 +362,7 @@ const ProcurementDetails = () => {
                   )}
                   <DropdownMenuItem
                     className="text-red-600"
-                    onClick={() => handleStatusUpdate("Cancelled")}
+                    onClick={() => handleStatusUpdate("cancelled")}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Cancel Order

@@ -1,4 +1,4 @@
-import { MainDashboard } from "@/app/dashboard/page";
+import { DashboardPage } from "@/app/dashboard/page";
 import ForbiddenPage from "@/app/error/403/page";
 import NotFoundPage from "@/app/error/404/page";
 import AddInventoryItems from "@/app/inventory/add-items/page";
@@ -71,7 +71,7 @@ function AppRouter() {
       <Route
         element={<AppLayout />} // Wrap these routes in layout
       >
-        <Route path="/" element={<MainDashboard />} />
+        <Route path="/" element={<DashboardPage />} />
 
         {/* Site Management */}
         <Route

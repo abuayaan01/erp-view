@@ -127,7 +127,6 @@ const MaterialDetails = () => {
       } catch (error) {
         console.log(error);
       }
-
     };
     fetchStockLogs(id);
 
@@ -211,9 +210,7 @@ const MaterialDetails = () => {
   );
 
   if (loading) {
-    return (
-      <Spinner />
-    );
+    return <Spinner />;
   }
 
   if (!item) {
@@ -227,7 +224,11 @@ const MaterialDetails = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" onClick={() => navigate("/inventory")}>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => navigate("/inventory")}
+        >
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>
@@ -427,12 +428,12 @@ const MaterialDetails = () => {
                           </TableCell>
                           <TableCell
                             className={
-                              log.quantity > 0
+                              log.type == "IN"
                                 ? "text-green-600"
                                 : "text-red-600"
                             }
                           >
-                            {log.quantity > 0 ? "+" : ""}
+                            {log.type == "IN" ? "+" : "-"}
                             {log.quantity} {unit?.shortName || unit?.name}
                           </TableCell>
                           <TableCell>{log.site}</TableCell>
