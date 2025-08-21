@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,9 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -23,8 +19,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import api from "@/services/api/api-service";
+import { useUserRoleLevel } from "@/utils/roles";
+import { pdf } from "@react-pdf/renderer";
 import {
   AlertCircle,
   ArrowLeft,
@@ -32,22 +34,13 @@ import {
   FileDown,
   FileText,
   MapPin,
-  MoreHorizontal,
   Truck,
-  X,
+  X
 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { useSelector } from "react-redux";
-import { useUserRoleLevel } from "@/utils/roles";
-import TransferChallanPDF from "./transfer-challan-pdf";
-import { pdf, PDFViewer } from "@react-pdf/renderer";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Checkbox } from "../ui/checkbox";
-import api from "@/services/api/api-service";
+import TransferChallanPDF from "./transfer-challan-pdf";
 
 export default function MachineTransferDetail({
   transferData,

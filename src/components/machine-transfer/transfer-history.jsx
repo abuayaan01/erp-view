@@ -51,10 +51,6 @@ import {
 import TableSkeleton from "../ui/table-skeleton";
 import { CardFooter } from "../ui/card";
 
-// Update the mock data to include the new transfer types
-// Replace the historyTransfers array with this updated one
-
-// Update the statuses array to include new statuses
 const statuses = [
   "All Statuses",
   "Pending",
@@ -68,19 +64,6 @@ const statuses = [
 
 // Add a new transferTypes array for filtering
 const transferTypes = ["All Types", "Site Transfer", "Sell", "Scrap"];
-
-// Mock data for sites and machines
-const sites = ["All Sites", "Site A", "Site B", "Site C", "Site D"];
-const machines = [
-  "All Machines",
-  "Excavator XL2000",
-  "Bulldozer B500",
-  "Crane CR300",
-  "Loader L100",
-  "Excavator XL1000",
-  "Forklift F200",
-  "Compactor C100",
-];
 
 export function TransferHistory() {
   const [transfers, setTransfers] = useState([]);
