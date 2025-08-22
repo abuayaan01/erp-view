@@ -170,7 +170,6 @@ const MaterialIssueDetails = () => {
           "There was an error approving this issue. Please try again.",
         variant: "destructive",
       });
-
     } finally {
       setProcessingAction(false);
     }
@@ -206,8 +205,6 @@ const MaterialIssueDetails = () => {
           "There was an error processing this issue. Please try again.",
         variant: "destructive",
       });
-
-    
     } finally {
       setProcessingAction(false);
     }
@@ -242,7 +239,6 @@ const MaterialIssueDetails = () => {
           "There was an error processing this issue. Please try again.",
         variant: "destructive",
       });
-
     } finally {
       setProcessingAction(false);
     }
@@ -273,16 +269,13 @@ const MaterialIssueDetails = () => {
           "There was an error marking materials as received. Please try again.",
         variant: "destructive",
       });
-
     } finally {
       setProcessingAction(false);
     }
   };
 
   if (loading) {
-    return (
-      <Spinner />
-    );
+    return <Spinner />;
   }
 
   if (error && !issue) {
@@ -300,8 +293,8 @@ const MaterialIssueDetails = () => {
   }
 
   // Get from and to site data
-  const fromSite = issue.items?.[0]?.fromSite || {};
-  const toSite = issue.items?.[0]?.toSite || {};
+  const fromSite = issue.fromSite || {};
+  const toSite = issue.toSite || {};
 
   // Format data for PDF
   const pdfData = {
@@ -342,28 +335,34 @@ const MaterialIssueDetails = () => {
               {/* {getStatusBadge(issue.status)} */}
 
               {/* Action Buttons based on status */}
-              {isPending && adminRoles.includes(user.role?.id) && issue.issueType == "Site Transfer" && (
-                <Button
-                  onClick={handleApprove}
-                  className="bg-green-600 hover:bg-green-700"
-                  disabled={processingAction}
-                >
-                  <CheckSquare className="mr-2 h-4 w-4" /> Approve
-                </Button>
-              )}
+              {isPending &&
+                adminRoles.includes(user.role?.id) &&
+                issue.issueType == "Site Transfer" && (
+                  <Button
+                    onClick={handleApprove}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={processingAction}
+                  >
+                    <CheckSquare className="mr-2 h-4 w-4" /> Approve
+                  </Button>
+                )}
 
-              {isPending && siteRoles.includes(user.role?.id) && user.role?.id === getIdByRole("Project Manager") && issue.issueType == "Consumption" && (
-                <Button
-                  onClick={handleApprove}
-                  className="bg-green-600 hover:bg-green-700"
-                  disabled={processingAction}
-                >
-                  <CheckSquare className="mr-2 h-4 w-4" /> Approve
-                </Button>
-              )}
+              {isPending &&
+                siteRoles.includes(user.role?.id) &&
+                user.role?.id === getIdByRole("Project Manager") &&
+                issue.issueType == "Consumption" && (
+                  <Button
+                    onClick={handleApprove}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={processingAction}
+                  >
+                    <CheckSquare className="mr-2 h-4 w-4" /> Approve
+                  </Button>
+                )}
 
               {isApproved &&
-                siteRoles.includes(user.role?.id) && issue.issueType == "Consumption" &&
+                siteRoles.includes(user.role?.id) &&
+                issue.issueType == "Consumption" &&
                 issue.siteId === user?.site?.id && (
                   <Button
                     onClick={handleIssueConsume}
@@ -375,7 +374,8 @@ const MaterialIssueDetails = () => {
                 )}
 
               {isApproved &&
-                siteRoles.includes(user.role?.id) && issue.issueType == "Site Transfer" &&
+                siteRoles.includes(user.role?.id) &&
+                issue.issueType == "Site Transfer" &&
                 issue.siteId === user?.site?.id && (
                   <Button
                     onClick={handleIssueDispatch}

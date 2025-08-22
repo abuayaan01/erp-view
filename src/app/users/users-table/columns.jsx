@@ -63,6 +63,13 @@ export const columns = [
     },
   },
   {
+    accessorKey: "siteName",
+    header: "Site Name",
+    cell: ({ row }) => {
+      return row.original.Site?.name ? row.original.Site?.name : "NA";
+    },
+  },
+  {
     id: "actions",
     header: "Actions",
     cell: ({ row, fetchUsersData }) => {

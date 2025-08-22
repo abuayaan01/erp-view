@@ -66,8 +66,8 @@ export default function EditUserForm({ userData, fetchUsersData, close }) {
       email: userData.email || "",
       phone: userData.phone || "",
       code: userData.code || "",
-      roleId: userData.Role.name || "", // assuming userData has roleName
-      siteId: userData.Site.name || "", // assuming userData has siteName
+      roleId: userData.Role?.name || "", // assuming userData has roleName
+      siteId: userData.Site?.name || "", // assuming userData has siteName
       password: "",
       confirm_password: "",
     },
